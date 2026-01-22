@@ -11,7 +11,10 @@ Auth::routes(['register' => false]);
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/users', function () { return view('users'); })->name('users');
-    Route::get('/banks', function () { return view('banks'); })->name('banks');
-    Route::get('/cheques', function () { return view('cheques'); })->name('cheques');
+    Route::resource('users', App\Http\Controllers\UserController::class);
+    Route::resource('banks', App\Http\Controllers\BankController::class);
+    Route::resource('cheques', App\Http\Controllers\ChequeController::class);
+    
+    Route::post('/cheque-reasons', [App\Http\Controllers\ChequeReasonController::class, 'store'])->name('cheque-reasons.store');
+    Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
 });
