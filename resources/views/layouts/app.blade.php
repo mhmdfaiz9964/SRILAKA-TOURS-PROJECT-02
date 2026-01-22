@@ -251,19 +251,19 @@
                     <span>Dashboard</span>
                 </a>
 
-                <a href="{{ route('users') }}" class="menu-item {{ request()->routeIs('users') ? 'active' : '' }}">
+                <a href="{{ route('users.index') }}" class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-users"></i>
                     <span>Users</span>
                 </a>
 
                 <div class="menu-label">Finance</div>
 
-                <a href="{{ route('banks') }}" class="menu-item {{ request()->routeIs('banks') ? 'active' : '' }}">
+                <a href="{{ route('banks.index') }}" class="menu-item {{ request()->routeIs('banks.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-building-columns"></i>
                     <span>Banks</span>
                 </a>
 
-                <a href="{{ route('cheques') }}" class="menu-item {{ request()->routeIs('cheques') ? 'active' : '' }}">
+                <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.*') ? 'active' : '' }}">
                     <i class="fa-solid fa-money-check-dollar"></i>
                     <span>Cheques</span>
                 </a>

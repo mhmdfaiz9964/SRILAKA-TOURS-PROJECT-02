@@ -23,6 +23,11 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $userCount = \App\Models\User::count();
+        $bankCount = \App\Models\Bank::count();
+        $chequeCount = \App\Models\Cheque::count();
+        $recentCheques = \App\Models\Cheque::with('bank')->latest()->take(5)->get();
+
+        return view('home', compact('userCount', 'bankCount', 'chequeCount', 'recentCheques'));
     }
 }
