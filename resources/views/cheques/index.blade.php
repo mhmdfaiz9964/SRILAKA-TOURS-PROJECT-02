@@ -183,6 +183,11 @@
         position: relative;
     }
     .divider { height: 20px; width: 1px; background: #e2e8f0; }
+    .btn-icon:hover {
+        background: #f1f5f9;
+        color: #6366f1 !important;
+        border-radius: 8px;
+    }
     .btn-white { background: #fff; border: 1px solid #f1f5f9; color: #475569; border-radius: 10px; font-size: 0.85rem; }
     .btn-white:hover { background: #f8fafc; }
     .table th { background: transparent; border-bottom: none; font-size: 0.7rem; letter-spacing: 0.05em; font-weight: 700; }
