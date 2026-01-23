@@ -62,7 +62,7 @@
                                 <label class="form-label small fw-bold text-muted text-uppercase">Status</label>
                                 <select name="status" class="form-select border-light bg-light rounded-3 shadow-none">
                                     <option value="sent">Sent (Pending)</option>
-                                    <option value="realized">Realized (Cleared)</option>
+                                    <option value="realized">Received (Cleared)</option>
                                     <option value="bounced">Bounced</option>
                                 </select>
                             </div>

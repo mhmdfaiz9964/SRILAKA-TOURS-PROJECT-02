@@ -60,7 +60,7 @@
                                 <label class="form-label small fw-bold text-muted text-uppercase">Update Status</label>
                                 <select name="status" class="form-select border-light bg-light rounded-3 shadow-none">
                                     <option value="sent" {{ (old('status', $outCheque->status) == 'sent') ? 'selected' : '' }}>Sent (Pending)</option>
-                                    <option value="realized" {{ (old('status', $outCheque->status) == 'realized') ? 'selected' : '' }}>Realized (Cleared)</option>
+                                    <option value="realized" {{ (old('status', $outCheque->status) == 'realized') ? 'selected' : '' }}>Received (Cleared)</option>
                                     <option value="bounced" {{ (old('status', $outCheque->status) == 'bounced') ? 'selected' : '' }}>Bounced</option>
                                 </select>
                             </div>
