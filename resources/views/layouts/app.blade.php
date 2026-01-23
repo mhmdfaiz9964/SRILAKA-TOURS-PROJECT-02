@@ -510,17 +510,19 @@
             </div>
 
             <div class="sidebar-footer">
-                <div class="user-profile" onclick="confirmLogout()">
+                <div class="user-profile">
                     <div class="user-info">
                         <div class="user-avatar text-white fw-bold" style="background: #FF6A6A;">
                             {{ substr(Auth::user()->name, 0, 1) }}
                         </div>
                         <div class="user-details">
                             <span class="user-name">{{ Auth::user()->name }}</span>
-                            <span class="user-email">Pro Member</span>
+                            <span class="user-email">{{ Auth::user()->email }}</span>
                         </div>
                     </div>
-                    <i class="fa-solid fa-chevron-up-down profile-chevron"></i>
+                    <button type="button" onclick="confirmLogout()" class="btn btn-sm btn-icon border-0 text-danger shadow-none p-0" title="Logout" style="font-size: 1.1rem;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
                 </div>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                     @csrf
