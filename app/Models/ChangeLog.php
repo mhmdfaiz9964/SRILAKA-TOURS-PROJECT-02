@@ -6,5 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class ChangeLog extends Model
 {
-    //
+    protected $fillable = [
+        'version',
+        'title',
+        'description',
+        'type'
+    ];
 }

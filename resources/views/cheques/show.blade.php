@@ -72,14 +72,14 @@
             <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-3 small text-uppercase text-muted">3rd Party Details</h6>
-                    @if($cheque->type == '3rd Party')
+                    @if($cheque->payee_name)
                         <div class="d-flex flex-column gap-2">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted small">Provided to</span>
-                                <span class="small fw-bold">{{ $cheque->third_party_name }}</span>
+                                <span class="text-muted small">3rd Part Name</span>
+                                <span class="small fw-bold">{{ $cheque->payee_name }}</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted small">3rd Party Status</span>
+                                <span class="text-muted small">Status</span>
                                 <span class="badge rounded-pill" style="background: {{ $cheque->third_party_payment_status == 'paid' ? '#ecfdf5' : '#fff7ed' }}; color: {{ $cheque->third_party_payment_status == 'paid' ? '#10b981' : '#f97316' }};">
                                     {{ ucwords($cheque->third_party_payment_status) }}
                                 </span>
@@ -91,7 +91,7 @@
                             @endif
                         </div>
                     @else
-                        <p class="small text-muted mb-0">Not a 3rd party cheque.</p>
+                        <p class="small text-muted mb-0">No 3rd party assigned to this cheque.</p>
                     @endif
                 </div>
             </div>

@@ -79,6 +79,7 @@
                         <th class="py-3 text-muted small text-uppercase">Bank</th>
                         <th class="py-3 text-muted small text-uppercase">Amount (LKR)</th>
                         <th class="py-3 text-muted small text-uppercase">3rd Part</th>
+                        <th class="py-3 text-muted small text-uppercase">3rd Part Status</th>
                         <th class="py-3 text-muted small text-uppercase">Status</th>
                         <th class="py-3 text-muted small text-uppercase">Date</th>
                         <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
@@ -107,6 +108,20 @@
                         <td class="small">{{ $cheque->bank->name }}</td>
                         <td class="small fw-bold">LKR {{ number_format($cheque->amount, 2) }}</td>
                         <td class="small">{{ $cheque->payee_name ?? '-' }}</td>
+                        <td>
+                            @if($cheque->payee_name)
+                                @php
+                                    $tpStatusColor = $cheque->third_party_payment_status == 'paid' ? '#10b981' : '#f97316';
+                                    $tpStatusBg = $cheque->third_party_payment_status == 'paid' ? '#ecfdf5' : '#fff7ed';
+                                @endphp
+                                <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded-3" style="background: {{ $tpStatusBg }};">
+                                    <span class="rounded-circle" style="width: 6px; height: 6px; background: {{ $tpStatusColor }};"></span>
+                                    <span class="small fw-medium" style="color: {{ $tpStatusColor }}; font-size: 0.65rem;">{{ ucwords($cheque->third_party_payment_status) }}</span>
+                                </div>
+                            @else
+                                <span class="text-muted small">-</span>
+                            @endif
+                        </td>
                         <td>
                             @php
                                 $statusMeta = match($cheque->payment_status) {
