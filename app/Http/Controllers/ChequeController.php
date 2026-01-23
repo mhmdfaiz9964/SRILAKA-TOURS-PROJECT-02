@@ -108,7 +108,7 @@ class ChequeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'cheque_number' => 'required',
+            'cheque_number' => 'required|digits:6',
             'cheque_date' => 'required|date',
             'bank_id' => 'required|exists:banks,id',
             'amount' => 'required|numeric',
@@ -137,7 +137,7 @@ class ChequeController extends Controller
     public function update(Request $request, Cheque $cheque)
     {
         $request->validate([
-            'cheque_number' => 'required',
+            'cheque_number' => 'required|digits:6',
             'cheque_date' => 'required|date',
             'bank_id' => 'required|exists:banks,id',
             'amount' => 'required|numeric',

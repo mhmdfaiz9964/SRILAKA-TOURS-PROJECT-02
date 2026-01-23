@@ -17,7 +17,8 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted text-uppercase">Cheque Number</label>
-                                <input type="text" name="cheque_number" class="form-control border-light shadow-none @error('cheque_number') is-invalid @enderror" value="{{ old('cheque_number', $cheque->cheque_number) }}" required>
+                                <input type="text" name="cheque_number" id="cheque_number_input" class="form-control border-light shadow-none @error('cheque_number') is-invalid @enderror" value="{{ old('cheque_number', $cheque->cheque_number) }}" required maxlength="6">
+                                <div id="cheque_validation_msg" class="small mt-1 d-none"></div>
                                 @error('cheque_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
@@ -82,3 +83,30 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.getElementById('cheque_number_input').addEventListener('input', function(e) {
+    const val = e.target.value;
+    const msg = document.getElementById('cheque_validation_msg');
+    
+    // Remove non-numeric characters
+    e.target.value = val.replace(/[^0-9]/g, '');
+    
+    if (e.target.value.length === 6) {
+        msg.textContent = '✓ Perfect: 6 digits entered';
+        msg.className = 'small mt-1 text-success d-block';
+        e.target.classList.remove('border-danger', 'border-warning');
+        e.target.classList.add('border-success');
+    } else if (e.target.value.length > 0) {
+        msg.textContent = 'Need ' + (6 - e.target.value.length) + ' more digits...';
+        msg.className = 'small mt-1 text-warning d-block';
+        e.target.classList.remove('border-success');
+        e.target.classList.add('border-warning');
+    } else {
+        msg.className = 'small mt-1 d-none';
+        e.target.classList.remove('border-success', 'border-warning');
+    }
+});
+</script>
+@endpush
