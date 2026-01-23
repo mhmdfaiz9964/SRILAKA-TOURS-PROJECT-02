@@ -29,12 +29,29 @@ class OutChequeController extends Controller
             });
         }
 
+        // Payee Name filter (exact match for dropdown)
+        if ($request->payee_name) {
+            $query->where('payee_name', $request->payee_name);
+        }
+
+        // Bank filter
+        if ($request->bank_id) {
+            $query->where('bank_id', $request->bank_id);
+        }
+
         if ($request->status) {
             $query->where('status', $request->status);
         }
 
+        // Single date filter (cheque_date)
+        if ($request->cheque_date) {
+            $query->whereDate('cheque_date', $request->cheque_date);
+        }
+
         $cheques = $query->latest()->paginate(10)->withQueryString();
-        return view('cheque_operations.out_cheques.index', compact('cheques', 'stats'));
+        $banks = Bank::all();
+        $payees = OutCheque::select('payee_name')->distinct()->orderBy('payee_name')->pluck('payee_name');
+        return view('cheque_operations.out_cheques.index', compact('cheques', 'stats', 'banks', 'payees'));
     }
 
     public function create()

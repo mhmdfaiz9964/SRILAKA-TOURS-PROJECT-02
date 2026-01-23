@@ -34,6 +34,16 @@ class InChequeController extends Controller
             });
         }
 
+        // Payer Name filter (exact match for dropdown)
+        if ($request->payer_name) {
+            $query->where('payer_name', $request->payer_name);
+        }
+
+        // Bank filter
+        if ($request->bank_id) {
+            $query->where('bank_id', $request->bank_id);
+        }
+
         if ($request->status) {
             if ($request->status == 'today') {
                 // Filter for cheques to deposit today (received status + today's date)
@@ -47,8 +57,15 @@ class InChequeController extends Controller
             }
         }
 
+        // Single date filter (cheque_date)
+        if ($request->cheque_date) {
+            $query->whereDate('cheque_date', $request->cheque_date);
+        }
+
         $cheques = $query->latest()->paginate(10)->withQueryString();
-        return view('cheque_operations.in_cheques.index', compact('cheques', 'stats'));
+        $banks = Bank::all();
+        $payers = InCheque::select('payer_name')->distinct()->orderBy('payer_name')->pluck('payer_name');
+        return view('cheque_operations.in_cheques.index', compact('cheques', 'stats', 'banks', 'payers'));
     }
 
     public function create()

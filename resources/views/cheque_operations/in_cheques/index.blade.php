@@ -55,21 +55,72 @@
 
     <!-- Table Section -->
     <div class="table-container bg-white rounded-4 shadow-sm border border-light overflow-hidden">
-        <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light bg-opacity-10">
-            <div class="d-flex align-items-center gap-2">
-                <form action="{{ route('in-cheques.index') }}" method="GET" class="position-relative">
-                    <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
-                    <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm ps-4 border-light rounded-3" style="width: 250px;" placeholder="Search by name or #...">
-                </form>
-            </div>
-            <div class="p-2 px-3 small fw-bold text-muted border-start ms-2">{{ $cheques->total() }} Results</div>
+        <div class="p-3 border-bottom bg-light bg-opacity-10">
+            <form action="{{ route('in-cheques.index') }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm ps-4 border-light rounded-3" placeholder="Name or #...">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Payer Name</label>
+                    <select name="payer_name" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Payers</option>
+                        @foreach($payers as $payer)
+                            <option value="{{ $payer }}" {{ request('payer_name') == $payer ? 'selected' : '' }}>{{ $payer }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Bank</label>
+                    <select name="bank_id" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Banks</option>
+                        @foreach($banks as $bank)
+                            <option value="{{ $bank->id }}" {{ request('bank_id') == $bank->id ? 'selected' : '' }}>{{ $bank->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Status</option>
+                        <option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>In Hand</option>
+                        <option value="deposited" {{ request('status') == 'deposited' ? 'selected' : '' }}>Deposited</option>
+                        <option value="transferred_to_third_party" {{ request('status') == 'transferred_to_third_party' ? 'selected' : '' }}>Transferred</option>
+                        <option value="realized" {{ request('status') == 'realized' ? 'selected' : '' }}>Realized</option>
+                        <option value="returned" {{ request('status') == 'returned' ? 'selected' : '' }}>Returned</option>
+                        <option value="today" {{ request('status') == 'today' ? 'selected' : '' }}>Deposit Today</option>
+                        <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>Overdue</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Cheque Date</label>
+                    <input type="date" name="cheque_date" value="{{ request('cheque_date') }}" class="form-control form-control-sm border-light rounded-3">
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-filter me-1"></i> Filter
+                        </button>
+                        <a href="{{ route('in-cheques.index') }}" class="btn btn-light btn-sm px-3 rounded-3 border-light">
+                            <i class="fa-solid fa-rotate-right me-1"></i> Clear
+                        </a>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="p-2 px-3 small fw-bold text-muted border-top pt-3">{{ $cheques->total() }} Results</div>
+                </div>
+            </form>
         </div>
 
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr class="bg-light bg-opacity-10 border-bottom">
-                        <th class="ps-4 py-3 text-muted small text-uppercase">Cheq Date</th>
+                        <th class="ps-4 py-3 text-muted small text-uppercase">Type</th>
+                        <th class="py-3 text-muted small text-uppercase">Cheq Date</th>
                         <th class="py-3 text-muted small text-uppercase">Cheq #</th>
                         <th class="py-3 text-muted small text-uppercase">Bank</th>
                         <th class="py-3 text-muted small text-uppercase">Payer Name</th>
@@ -81,7 +132,12 @@
                 <tbody>
                     @forelse($cheques as $cheque)
                     <tr>
-                        <td class="ps-4 small text-muted">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
+                        <td class="ps-4">
+                            <span class="badge rounded-pill px-2 py-1" style="background: #eff6ff; color: #3b82f6; font-size: 0.65rem;">
+                                IN
+                            </span>
+                        </td>
+                        <td class="small text-muted">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
                         <td class="small fw-bold">#{{ $cheque->cheque_number }}</td>
                         <td class="small">{{ $cheque->bank->name }}</td>
                         <td class="small fw-bold text-dark">{{ $cheque->payer_name }}</td>
@@ -118,7 +174,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted small">No records found.</td>
+                        <td colspan="8" class="text-center py-5 text-muted small">No records found.</td>
                     </tr>
                     @endforelse
                 </tbody>

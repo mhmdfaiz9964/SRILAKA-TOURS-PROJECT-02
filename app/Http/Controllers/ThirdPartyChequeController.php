@@ -13,12 +13,58 @@ class ThirdPartyChequeController extends Controller
     {
         $query = ThirdPartyCheque::with('inCheque.bank');
 
+        // Stats for Cards with amounts
+        $stats = [
+            'all' => [
+                'count' => ThirdPartyCheque::count(), 
+                'amount' => ThirdPartyCheque::with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
+            ],
+            'received' => [
+                'count' => ThirdPartyCheque::where('status', 'received')->count(), 
+                'amount' => ThirdPartyCheque::where('status', 'received')->with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
+            ],
+            'realized' => [
+                'count' => ThirdPartyCheque::where('status', 'realized')->count(), 
+                'amount' => ThirdPartyCheque::where('status', 'realized')->with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
+            ],
+            'returned' => [
+                'count' => ThirdPartyCheque::where('status', 'returned')->count(), 
+                'amount' => ThirdPartyCheque::where('status', 'returned')->with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
+            ],
+        ];
+
         if ($request->search) {
             $query->where('third_party_name', 'like', "%{$request->search}%");
         }
 
+        // Third Party Name filter
+        if ($request->third_party_name) {
+            $query->where('third_party_name', 'like', "%{$request->third_party_name}%");
+        }
+
+        // Bank filter (through inCheque relationship)
+        if ($request->bank_id) {
+            $query->whereHas('inCheque', function($q) use ($request) {
+                $q->where('bank_id', $request->bank_id);
+            });
+        }
+
+        // Status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Date range filter (using transfer_date)
+        if ($request->from_date) {
+            $query->whereDate('transfer_date', '>=', $request->from_date);
+        }
+        if ($request->to_date) {
+            $query->whereDate('transfer_date', '<=', $request->to_date);
+        }
+
         $cheques = $query->latest()->paginate(10)->withQueryString();
-        return view('cheque_operations.third_party_cheques.index', compact('cheques'));
+        $banks = \App\Models\Bank::all();
+        return view('cheque_operations.third_party_cheques.index', compact('cheques', 'stats', 'banks'));
     }
 
     public function update(Request $request, ThirdPartyCheque $thirdPartyCheque)
