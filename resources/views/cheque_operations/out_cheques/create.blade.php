@@ -63,7 +63,7 @@
                                 <select name="status" class="form-select border-light bg-light rounded-3 shadow-none">
                                     <option value="sent">Sent (Pending)</option>
                                     <option value="realized">Realized (Cleared)</option>
-                                    <option value="returned">Returned</option>
+                                    <option value="bounced">Bounced</option>
                                 </select>
                             </div>
 

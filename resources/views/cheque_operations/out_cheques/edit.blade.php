@@ -61,7 +61,7 @@
                                 <select name="status" class="form-select border-light bg-light rounded-3 shadow-none">
                                     <option value="sent" {{ (old('status', $outCheque->status) == 'sent') ? 'selected' : '' }}>Sent (Pending)</option>
                                     <option value="realized" {{ (old('status', $outCheque->status) == 'realized') ? 'selected' : '' }}>Realized (Cleared)</option>
-                                    <option value="returned" {{ (old('status', $outCheque->status) == 'returned') ? 'selected' : '' }}>Returned</option>
+                                    <option value="bounced" {{ (old('status', $outCheque->status) == 'bounced') ? 'selected' : '' }}>Bounced</option>
                                 </select>
                             </div>
 

@@ -19,7 +19,7 @@ class OutChequeController extends Controller
             'all' => ['count' => OutCheque::count(), 'amount' => OutCheque::sum('amount')],
             'sent' => ['count' => OutCheque::where('status', 'sent')->count(), 'amount' => OutCheque::where('status', 'sent')->sum('amount')],
             'realized' => ['count' => OutCheque::where('status', 'realized')->count(), 'amount' => OutCheque::where('status', 'realized')->sum('amount')],
-            'returned' => ['count' => OutCheque::where('status', 'returned')->count(), 'amount' => OutCheque::where('status', 'returned')->sum('amount')],
+            'bounced' => ['count' => OutCheque::where('status', 'bounced')->count(), 'amount' => OutCheque::where('status', 'bounced')->sum('amount')],
         ];
 
         if ($request->search) {
@@ -69,20 +69,22 @@ class OutChequeController extends Controller
             'bank_id' => 'required|exists:banks,id',
             'payee_name' => 'required|string',
             'notes' => 'nullable|string',
-            'status' => 'required|in:sent,realized,returned'
+            'status' => 'required|in:sent,realized,bounced'
         ]);
 
         $cheque = OutCheque::create($data);
 
-        if ($cheque->status == 'returned') {
-            InCheque::create([
-                'cheque_date' => $cheque->cheque_date,
-                'amount' => $cheque->amount,
+        // If bounced, create a record in Cheque Management (RTN Cheque)
+        if ($cheque->status == 'bounced') {
+            \App\Models\Cheque::create([
                 'cheque_number' => $cheque->cheque_number,
+                'cheque_date' => $cheque->cheque_date,
                 'bank_id' => $cheque->bank_id,
-                'payer_name' => $cheque->payee_name, // In this case, the one who returned it
-                'notes' => "Returned Out Cheque #" . $cheque->cheque_number,
-                'status' => 'returned'
+                'amount' => $cheque->amount,
+                'payer_name' => $cheque->payee_name, // The payee who bounced it
+                'payment_status' => 'pending',
+                'return_reason' => 'Bounced Out Cheque',
+                'notes' => $cheque->notes
             ]);
         }
 
@@ -104,21 +106,23 @@ class OutChequeController extends Controller
             'bank_id' => 'required|exists:banks,id',
             'payee_name' => 'required|string',
             'notes' => 'nullable|string',
-            'status' => 'required|in:sent,realized,returned'
+            'status' => 'required|in:sent,realized,bounced'
         ]);
 
         $oldStatus = $outCheque->status;
         $outCheque->update($data);
 
-        if ($outCheque->status == 'returned' && $oldStatus != 'returned') {
-            InCheque::create([
-                'cheque_date' => $outCheque->cheque_date,
-                'amount' => $outCheque->amount,
+        // If status changed to bounced, create a record in Cheque Management (RTN Cheque)
+        if ($outCheque->status == 'bounced' && $oldStatus != 'bounced') {
+            \App\Models\Cheque::create([
                 'cheque_number' => $outCheque->cheque_number,
+                'cheque_date' => $outCheque->cheque_date,
                 'bank_id' => $outCheque->bank_id,
-                'payer_name' => $outCheque->payee_name,
-                'notes' => "Returned Out Cheque #" . $outCheque->cheque_number,
-                'status' => 'returned'
+                'amount' => $outCheque->amount,
+                'payer_name' => $outCheque->payee_name, // The payee who bounced it
+                'payment_status' => 'pending',
+                'return_reason' => 'Bounced Out Cheque',
+                'notes' => $outCheque->notes
             ]);
         }
 
