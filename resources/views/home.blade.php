@@ -28,8 +28,8 @@
             <div class="card h-100 border-0 shadow-sm" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);">
                 <div class="card-body p-4 text-white">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="p-2 rounded-3 bg-white bg-opacity-20">
-                            <i class="fa-solid fa-hand-wave fa-lg"></i>
+                        <div class="p-2 rounded-3 bg-white bg-opacity-20 text-black">
+                            <i class="fa-solid fa-face-smile-beam fa-lg"></i>
                         </div>
                     </div>
                     <p class="mb-1 text-white text-opacity-75 small">Welcome Back,</p>
@@ -46,7 +46,7 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="p-3 rounded-3" style="background: #f5f3ff; color: #6366f1;">
+                        <div class="p-3 rounded-3" style="background: #f5f3ff; color: #000;">
                             <i class="fa-solid fa-users fa-lg"></i>
                         </div>
                         <span class="badge rounded-pill text-success bg-success bg-opacity-10 py-2 px-3">+2% <i class="fa-solid fa-arrow-up fa-xs"></i></span>
@@ -62,7 +62,7 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="p-3 rounded-3" style="background: #ecfdf5; color: #10b981;">
+                        <div class="p-3 rounded-3" style="background: #ecfdf5; color: #000;">
                             <i class="fa-solid fa-building-columns fa-lg"></i>
                         </div>
                     </div>
@@ -77,7 +77,7 @@
             <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div class="p-3 rounded-3" style="background: #fffbeb; color: #f59e0b;">
+                        <div class="p-3 rounded-3" style="background: #fffbeb; color: #000;">
                             <i class="fa-solid fa-money-check-dollar fa-lg"></i>
                         </div>
                     </div>
@@ -157,35 +157,27 @@
                     <h6 class="fw-bold mb-3">Quick Actions</h6>
                     <div class="d-grid gap-2">
                         <a href="{{ route('cheques.create') }}" class="btn btn-white border-light shadow-sm text-start p-3 d-flex align-items-center gap-3">
-                            <div class="p-2 rounded bg-primary bg-opacity-10 text-primary"><i class="fa-solid fa-plus"></i></div>
+                            <div class="p-2 rounded bg-primary bg-opacity-10 text-black"><i class="fa-solid fa-plus"></i></div>
                             <div>
                                 <div class="fw-bold small">Add New Cheque</div>
                                 <div class="extra-small text-muted">Register an incoming cheque</div>
                             </div>
                         </a>
                         <a href="{{ route('banks.create') }}" class="btn btn-white border-light shadow-sm text-start p-3 d-flex align-items-center gap-3">
-                            <div class="p-2 rounded bg-success bg-opacity-10 text-success"><i class="fa-solid fa-building-columns"></i></div>
+                            <div class="p-2 rounded bg-success bg-opacity-10 text-black"><i class="fa-solid fa-building-columns"></i></div>
                             <div>
                                 <div class="fw-bold small">Register Bank</div>
                                 <div class="extra-small text-muted">Add a new bank to the system</div>
                             </div>
                         </a>
                         <a href="{{ route('users.create') }}" class="btn btn-white border-light shadow-sm text-start p-3 d-flex align-items-center gap-3">
-                            <div class="p-2 rounded bg-info bg-opacity-10 text-info"><i class="fa-solid fa-user-plus"></i></div>
+                            <div class="p-2 rounded bg-info bg-opacity-10 text-black"><i class="fa-solid fa-user-plus"></i></div>
                             <div>
                                 <div class="fw-bold small">Create User</div>
                                 <div class="extra-small text-muted">Invite a new team member</div>
                             </div>
                         </a>
                     </div>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm" style="border-radius: 12px; background: #6366f1;">
-                <div class="card-body p-4 text-white">
-                    <h6 class="fw-bold mb-2">Need Help?</h6>
-                    <p class="extra-small text-white text-opacity-75 mb-3">Check our documentation or contact support for any issues with the new system.</p>
-                    <button class="btn btn-white btn-sm px-4 fw-bold">Documentation</button>
                 </div>
             </div>
         </div>

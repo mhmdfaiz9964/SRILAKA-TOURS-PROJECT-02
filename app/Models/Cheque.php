@@ -7,18 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Cheque extends Model
 {
     protected $fillable = [
-        'cheque_number', 'cheque_date', 'bank_id', 'cheque_reason_id', 
-        'amount', 'payer_name', 'payment_status', 'cheque_status', 'notes'
+        'cheque_number', 'cheque_date', 'bank_id', 'amount', 'payer_name', 
+        'payee_name', 'payment_status', 'notes', 'type', 'third_party_name',
+        'third_party_payment_status', 'third_party_notes', 'return_reason', 'return_notes'
     ];
 
     public function bank()
     {
         return $this->belongsTo(Bank::class);
-    }
-
-    public function reason()
-    {
-        return $this->belongsTo(ChequeReason::class, 'cheque_reason_id');
     }
 
     public function payments()

@@ -1,193 +1,184 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="mb-4">
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <div>
-                <h4 class="mb-0 fw-bold">Cheques Management</h4>
-                <p class="text-muted small mb-0">Track and manage all incoming/outgoing cheques</p>
+<div class="container-fluid py-4">
+    <!-- Breadcrumb & Top Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small">Business partner</span> <span class="fw-bold fs-5">APEX CRM</span>
+            <span class="badge bg-light text-muted border px-2 py-1 ms-2" style="font-size: 0.65rem;">New Data</span>
+        </div>
+        
+        <div class="d-flex align-items-center gap-3">
+            <div class="search-box position-relative">
+                <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
+                <input type="text" id="globalSearch" class="form-control ps-5 border-0 shadow-sm rounded-pill" style="width: 350px; background: #fff;" placeholder="Search">
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <button class="btn btn-outline-secondary btn-sm bg-white border-light shadow-sm px-3">
-                    <i class="fa-solid fa-file-export me-1"></i> Export
-                </button>
-                <a href="{{ route('cheques.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
-                    <i class="fa-solid fa-plus"></i> New Cheque
-                </a>
+            <div class="user-stack d-flex align-items-center">
+                <div class="avatar-group d-flex me-3">
+                    <div class="avatar-circle">M</div>
+                    <div class="avatar-circle" style="left: -10px;">A</div>
+                    <div class="avatar-circle" style="left: -20px;">+4</div>
+                </div>
+                <button class="btn btn-white btn-sm px-3 fw-bold">Add</button>
+                <div class="divider mx-3"></div>
+                <button class="btn btn-white btn-sm px-3"><i class="fa-solid fa-share-nodes me-2"></i>Share</button>
+                <button class="btn btn-white btn-sm px-2 ms-2"><i class="fa-solid fa-square"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
-        <div class="card-body py-3">
-            <form action="{{ route('cheques.index') }}" method="GET" class="row g-2 align-items-center">
-                <div class="col-md-3">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white border-light"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" name="search" class="form-control border-light shadow-none" placeholder="Search No or Payer" value="{{ request('search') }}">
-                    </div>
-                </div>
-                <div class="col-md-2">
-                    <select name="status" class="form-select form-select-sm border-light shadow-none">
-                        <option value="">Payment Status</option>
-                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="partial paid" {{ request('status') == 'partial paid' ? 'selected' : '' }}>Partial Paid</option>
-                        <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="start_date" class="form-control form-control-sm border-light shadow-none" value="{{ request('start_date') }}">
-                </div>
-                <div class="col-md-2">
-                    <input type="date" name="end_date" class="form-control form-control-sm border-light shadow-none" value="{{ request('end_date') }}">
-                </div>
-                <div class="col-md-1">
-                    <button type="submit" class="btn btn-dark btn-sm w-100"><i class="fa-solid fa-filter"></i></button>
-                </div>
-                <div class="col text-end">
-                    <a href="{{ route('cheques.index') }}" class="btn btn-link btn-sm text-muted text-decoration-none">Reset</a>
-                </div>
-            </form>
+    <!-- Toolbar Section -->
+    <div class="toolbar d-flex align-items-center justify-content-between mb-3 bg-white p-2 rounded-4 shadow-sm border border-light">
+        <div class="d-flex align-items-center gap-2">
+            <button onclick="updateSystem()" class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-rotate text-black"></i> Update
+            </button>
+            <div class="p-2 px-3 bg-light rounded-3 small fw-bold text-muted">0 Selected</div>
+            
+            <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-filter text-black"></i> Filter 0
+            </button>
+            
+            <div class="dropdown">
+                <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fa-solid fa-arrow-down-short-wide text-black"></i> Short
+                </button>
+            </div>
+
+            <div class="p-2 px-3 small fw-bold text-muted border-start ms-2">{{ $cheques->total() }} Results</div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('cheques.create') }}" class="btn btn-primary btn-sm px-4 rounded-3 d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
+                <i class="fa-solid fa-plus"></i> Add New
+            </a>
+            <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-upload text-black"></i> Import/Export
+            </button>
+            <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
+                <i class="fa-solid fa-eye text-black"></i> View
+            </button>
+            <button class="btn btn-white btn-sm px-2 border-light rounded-3 ml-2">
+                <i class="fa-solid fa-ellipsis-vertical text-black"></i>
+            </button>
         </div>
     </div>
 
     <!-- Table Section -->
-    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header bg-white border-bottom-0 py-3 px-4">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <button onclick="updateSystem()" class="btn btn-light btn-sm px-3 border-light">
-                        <i class="fa-solid fa-rotate-right me-1 text-muted"></i> Update
-                    </button>
-                    <button class="btn btn-light btn-sm px-3 border-light">
-                        <i class="fa-solid fa-filter me-1 text-muted"></i> Sort
-                    </button>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted small">{{ $cheques->total() }} Results</span>
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm px-3 border-light dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fa-solid fa-gear me-1 text-muted"></i> View
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background: #fdfdfd; border-bottom: 1px solid #f3f4f6;">
-                        <tr>
-                            <th class="ps-4 py-3 text-muted fw-semibold small text-uppercase" style="width: 50px;">
-                                <input type="checkbox" class="form-check-input">
-                            </th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Cheque Detail</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Bank</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Amount</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Payee</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($cheques as $cheque)
-                        <tr>
-                            <td class="ps-4">
-                                <input type="checkbox" class="form-check-input">
-                            </td>
-                            <td>
+    <div class="table-container bg-white rounded-4 shadow-sm border border-light overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr class="bg-light bg-opacity-10 border-bottom">
+                        <th class="ps-4 py-3" style="width: 40px;">
+                            <input type="checkbox" class="form-check-input">
+                        </th>
+                        <th class="py-3" style="width: 40px;"></th>
+                        <th class="py-3 text-muted small text-uppercase">Client Name</th>
+                        <th class="py-3 text-muted small text-uppercase">Bank</th>
+                        <th class="py-3 text-muted small text-uppercase">Amount (LKR)</th>
+                        <th class="py-3 text-muted small text-uppercase">3rd Part</th>
+                        <th class="py-3 text-muted small text-uppercase">Status</th>
+                        <th class="py-3 text-muted small text-uppercase">Date</th>
+                        <th class="py-3 text-muted small text-uppercase text-end pe-4">Categories</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($cheques as $cheque)
+                    <tr>
+                        <td class="ps-4">
+                            <input type="checkbox" class="form-check-input">
+                        </td>
+                        <td>
+                            <i class="fa-regular fa-star text-muted cursor-pointer"></i>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #8b5cf6; width: 30px; height: 30px; font-size: 0.75rem;">
+                                    {{ substr($cheque->payer_name, 0, 1) }}
+                                </div>
                                 <div class="d-flex flex-column">
-                                    <a href="{{ route('cheques.show', $cheque) }}" class="fw-bold text-primary small text-decoration-none hover-underline">{{ $cheque->cheque_number }}</a>
-                                    <span class="text-muted extra-small">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d M, Y') }}</span>
+                                    <a href="{{ route('cheques.show', $cheque) }}" class="fw-bold text-dark small text-decoration-none hover-underline">{{ $cheque->payer_name }}</a>
+                                    <span class="text-muted" style="font-size: 0.65rem;">#{{ $cheque->cheque_number }}</span>
                                 </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="bank-avatar" style="width: 24px; height: 24px; border-radius: 6px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                                        @if($cheque->bank->logo)
-                                            <img src="{{ asset('storage/' . $cheque->bank->logo) }}" alt="L" style="width: 100%; height: 100%; object-fit: contain;">
-                                        @else
-                                            <i class="fa-solid fa-building-columns text-muted" style="font-size: 0.7rem;"></i>
-                                        @endif
-                                    </div>
-                                    <span class="small">{{ $cheque->bank->name }}</span>
-                                </div>
-                            </td>
-                            <td class="small fw-semibold">LKR {{ number_format($cheque->amount, 2) }}</td>
-                            <td class="small">{{ $cheque->payer_name }}</td>
-                            <td>
-                                @php
-                                    $statusColor = match($cheque->payment_status) {
-                                        'paid' => '#10b981',
-                                        'partial paid' => '#f59e0b',
-                                        default => '#ef4444'
-                                    };
-                                @endphp
-                                <div class="d-flex align-items-center gap-1">
-                                    <span class="status-dot" style="width: 6px; height: 6px; border-radius: 50%; background: {{ $statusColor }};"></span>
-                                    <span class="small fw-medium" style="color: {{ $statusColor }};">{{ ucwords($cheque->payment_status) }}</span>
-                                </div>
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="d-flex justify-content-end gap-1">
-                                    <a href="{{ route('cheques.edit', $cheque) }}" class="btn btn-sm btn-icon border-0 text-muted">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-icon border-0 text-muted" 
-                                            onclick="confirmDelete({{ $cheque->id }}, 'delete-cheque-{{ $cheque->id }}')">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                    <form id="delete-cheque-{{ $cheque->id }}" action="{{ route('cheques.destroy', $cheque) }}" method="POST" class="d-none">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="text-muted small">No cheques found.</div>
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                        <td class="small">{{ $cheque->bank->name }}</td>
+                        <td class="small fw-bold">LKR {{ number_format($cheque->amount, 2) }}</td>
+                        <td class="small">{{ $cheque->payee_name ?? '-' }}</td>
+                        <td>
+                            @php
+                                $statusMeta = match($cheque->payment_status) {
+                                    'paid' => ['color' => '#10b981', 'bg' => '#ecfdf5', 'text' => 'Paid'],
+                                    'partial paid' => ['color' => '#f59e0b', 'bg' => '#fffbeb', 'text' => 'Partial'],
+                                    default => ['color' => '#ef4444', 'bg' => '#fef2f2', 'text' => 'Pending']
+                                };
+                            @endphp
+                            <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded-3" style="background: {{ $statusMeta['bg'] }};">
+                                <span class="rounded-circle" style="width: 6px; height: 6px; background: {{ $statusMeta['color'] }};"></span>
+                                <span class="small fw-medium" style="color: {{ $statusMeta['color'] }}; font-size: 0.7rem;">{{ $statusMeta['text'] }}</span>
+                            </div>
+                        </td>
+                        <td class="small text-muted">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-1">
+                                <span class="badge bg-light text-muted fw-normal" style="font-size: 0.65rem;">Financing</span>
+                                <span class="badge bg-light text-muted fw-normal" style="font-size: 0.65rem;">B2B</span>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted small">No cheques found matching your criteria.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
-        <div class="card-footer bg-white border-top-0 py-3 px-4">
-            <div class="d-flex align-items-center justify-content-between">
-                <div class="small text-muted">Page {{ $cheques->currentPage() }} of {{ $cheques->lastPage() }}</div>
-                <div class="pagination-container">
-                    {{ $cheques->links() }}
-                </div>
+
+        <div class="d-flex align-items-center justify-content-between p-4 border-top">
+            <div class="text-muted small">1-{{ $cheques->count() }} of {{ $cheques->total() }}</div>
+            <div class="pagination-custom d-flex gap-2">
+                {{ $cheques->links() }}
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Row/Page:</span>
+                <select class="form-select form-select-sm border-0 bg-light" style="width: 70px;">
+                    <option>10</option>
+                    <option>20</option>
+                    <option>50</option>
+                </select>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .extra-small { font-size: 0.75rem; }
-    .btn-icon:hover {
-        background: #f3f4f6;
-        color: #6366f1 !important;
+    body { background-color: #fcfcfd; }
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        border: 2px solid #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: bold;
+        color: #4a5568;
+        position: relative;
     }
-    .pagination { margin-bottom: 0; gap: 4px; }
-    .page-link { 
-        padding: 5px 12px; 
-        font-size: 0.8rem; 
-        border-radius: 6px !important; 
-        border-color: #f3f4f6;
-        color: #6b7280;
-    }
-    .page-item.active .page-link {
-        background: #6366f1;
-        border-color: #6366f1;
-    }
-    .hover-underline:hover {
-        text-decoration: underline !important;
-    }
+    .divider { height: 20px; width: 1px; background: #e2e8f0; }
+    .btn-white { background: #fff; border: 1px solid #f1f5f9; color: #475569; border-radius: 10px; font-size: 0.85rem; }
+    .btn-white:hover { background: #f8fafc; }
+    .table th { background: transparent; border-bottom: none; font-size: 0.7rem; letter-spacing: 0.05em; font-weight: 700; }
+    .table td { border-bottom: 1px solid #f8fafc; height: 65px; }
+    .form-check-input:checked { background-color: #6366f1; border-color: #6366f1; }
+    .pagination-custom .pagination { margin-bottom: 0; }
+    .pagination-custom .page-link { border: none; background: transparent; color: #64748b; font-size: 0.85rem; margin: 0 2px; }
+    .pagination-custom .page-item.active .page-link { color: #6366f1; font-weight: bold; background: #f5f3ff; border-radius: 8px; }
+    .avatar-sm { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 </style>
 @endsection

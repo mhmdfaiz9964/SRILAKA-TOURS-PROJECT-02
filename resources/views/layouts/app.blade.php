@@ -202,6 +202,7 @@
             font-size: 1rem;
             width: 20px;
             text-align: center;
+            color: #000;
         }
 
         .menu-item:hover {
@@ -368,8 +369,8 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo-section">
-                    <div class="logo-box">GB</div>
-                    <div class="brand-name">GlobalBank</div>
+                    <div class="logo-box">AP</div>
+                    <div class="brand-name">APEX CRM</div>
                 </div>
                 <button class="btn btn-sm text-muted">
                     <i class="fa-solid fa-square-poll-vertical"></i>
@@ -405,10 +406,24 @@
                     </div>
                 </a>
 
-                <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.*') ? 'active' : '' }}">
+                <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.index') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-money-check-dollar"></i>
-                        <span>Cheques</span>
+                        <span>Cheque Management</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('cheques.payment') }}" class="menu-item {{ request()->routeIs('cheques.payment') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <span>Payment Cheques</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('cheques.paid') }}" class="menu-item {{ request()->routeIs('cheques.paid') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Paid Cheques</span>
                     </div>
                 </a>
 
@@ -507,8 +522,8 @@
                         <input type="text" placeholder="Search in items...">
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                        <i class="fa-regular fa-bell text-muted cursor-pointer"></i>
-                        <i class="fa-regular fa-comment-dots text-muted cursor-pointer"></i>
+                        <i class="fa-regular fa-bell text-black cursor-pointer"></i>
+                        <i class="fa-regular fa-comment-dots text-black cursor-pointer"></i>
                     </div>
                 </div>
             </header>
@@ -517,6 +532,18 @@
             <div class="{{ Auth::check() ? 'view-pane' : 'container' }}">
                 @yield('content')
             </div>
+
+            <footer class="mt-auto py-3 px-4 border-top bg-white">
+                <div class="container-fluid">
+                    <div class="d-flex align-items-center justify-content-between small text-muted">
+                        <div>&copy; {{ date('Y') }} <strong>Apex Web Innovations</strong>. All rights reserved.</div>
+                        <div class="d-flex gap-3">
+                            <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
+                            <a href="#" class="text-muted text-decoration-none">Terms of Service</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </main>
 
     </div>

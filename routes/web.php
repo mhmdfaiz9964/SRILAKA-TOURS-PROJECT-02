@@ -25,9 +25,15 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 Route::middleware(['auth'])->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class);
     Route::resource('banks', App\Http\Controllers\BankController::class);
+    Route::get('/payment-cheques', [App\Http\Controllers\ChequeController::class, 'paymentCheques'])->name('cheques.payment');
+    Route::get('/paid-cheques', [App\Http\Controllers\ChequeController::class, 'paidCheques'])->name('cheques.paid');
     Route::resource('cheques', App\Http\Controllers\ChequeController::class);
+    Route::post('/cheques/{cheque}/add-payment', [App\Http\Controllers\ChequeController::class, 'addPayment'])->name('cheques.add-payment');
+    Route::post('/cheques/{cheque}/update-third-party', [App\Http\Controllers\ChequeController::class, 'updateThirdPartyStatus'])->name('cheques.update-third-party');
     
     Route::post('/cheque-reasons', [App\Http\Controllers\ChequeReasonController::class, 'store'])->name('cheque-reasons.store');
     Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
+    Route::get('/system', [App\Http\Controllers\SystemController::class, 'index'])->name('system.index');
     Route::post('/system/update', [App\Http\Controllers\SystemController::class, 'update'])->name('system.update');
+    Route::post('/system/storage-link', [App\Http\Controllers\SystemController::class, 'linkStorage'])->name('system.storage-link');
 });

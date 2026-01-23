@@ -25,17 +25,17 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <button onclick="updateSystem()" class="btn btn-light btn-sm px-3 border-light">
-                        <i class="fa-solid fa-rotate-right me-1 text-muted"></i> Update
+                        <i class="fa-solid fa-rotate-right me-1 text-black"></i> Update
                     </button>
                     <button class="btn btn-light btn-sm px-3 border-light">
-                        <i class="fa-solid fa-filter me-1 text-muted"></i> Filter
+                        <i class="fa-solid fa-filter me-1 text-black"></i> Filter
                     </button>
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <span class="text-muted small">{{ count($banks) }} Results</span>
                     <div class="dropdown">
                         <button class="btn btn-light btn-sm px-3 border-light dropdown-toggle" data-bs-toggle="dropdown">
-                            <i class="fa-solid fa-arrow-down-short-wide me-1 text-muted"></i> Short
+                            <i class="fa-solid fa-arrow-down-short-wide me-1 text-black"></i> Short
                         </button>
                     </div>
                 </div>

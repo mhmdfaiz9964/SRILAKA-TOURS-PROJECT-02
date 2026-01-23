@@ -2,42 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bank;
+use App\Models\Cheque;
+use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ChequeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $query = \App\Models\Cheque::with(['bank', 'reason']);
+        $query = Cheque::with(['bank'])->where('payment_status', '!=', 'paid');
+        $this->applyFilters($query, $request);
 
-        if ($request->status) {
-            $query->where('payment_status', $request->status);
+        $cheques = $query->latest()->paginate(10);
+        $banks = Bank::all();
+        $payers = Cheque::distinct()->pluck('payer_name');
+        $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
+
+        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties'));
+    }
+
+    public function paymentCheques(Request $request)
+    {
+        $query = Cheque::with(['bank'])->whereHas('payments')->where('payment_status', '!=', 'paid');
+        $this->applyFilters($query, $request);
+
+        $cheques = $query->latest()->paginate(10);
+        $banks = Bank::all();
+        $payers = Cheque::distinct()->pluck('payer_name');
+        $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
+
+        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties'))->with('page_title', 'Payment Cheques');
+    }
+
+    public function paidCheques(Request $request)
+    {
+        $query = Cheque::with(['bank'])->where('payment_status', 'paid');
+        $this->applyFilters($query, $request);
+
+        $cheques = $query->latest()->paginate(10);
+        $banks = Bank::all();
+        $payers = Cheque::distinct()->pluck('payer_name');
+        $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
+
+        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties'))->with('page_title', 'Paid Cheques');
+    }
+
+    private function applyFilters($query, $request)
+    {
+        if ($request->bank_id) {
+            $query->where('bank_id', $request->bank_id);
         }
-        if ($request->cheque_status) {
-            $query->where('cheque_status', $request->cheque_status);
+        if ($request->payer_name) {
+            $query->where('payer_name', $request->payer_name);
+        }
+        if ($request->third_party) {
+            $query->where('payee_name', $request->third_party);
         }
         if ($request->start_date && $request->end_date) {
             $query->whereBetween('cheque_date', [$request->start_date, $request->end_date]);
         }
         if ($request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('cheque_number', 'like', "%{$request->search}%")
-                  ->orWhere('payer_name', 'like', "%{$request->search}%");
-            });
+            $query->where('cheque_number', 'like', "%{$request->search}%");
         }
-
-        $cheques = $query->latest()->paginate(10);
-        return view('cheques.index', compact('cheques'));
     }
 
     public function create()
     {
-        $banks = \App\Models\Bank::all();
-        $reasons = \App\Models\ChequeReason::all();
-        return view('cheques.create', compact('banks', 'reasons'));
+        $banks = Bank::all();
+        return view('cheques.create', compact('banks'));
     }
 
     public function store(Request $request)
@@ -46,41 +80,37 @@ class ChequeController extends Controller
             'cheque_number' => 'required',
             'cheque_date' => 'required|date',
             'bank_id' => 'required|exists:banks,id',
-            'cheque_reason_id' => 'required|exists:cheque_reasons,id',
             'amount' => 'required|numeric',
             'payer_name' => 'required',
         ]);
 
-        \App\Models\Cheque::create($request->all());
+        Cheque::create($request->all());
 
         return redirect()->route('cheques.index')->with('success', 'Cheque created successfully');
     }
 
-    public function show(\App\Models\Cheque $cheque)
+    public function show(Cheque $cheque)
     {
-        $cheque->load('payments');
+        $cheque->load(['payments.bank', 'bank']);
         $totalPaid = $cheque->payments->sum('amount');
-        return view('cheques.show', compact('cheque', 'totalPaid'));
+        $banks = Bank::all();
+        return view('cheques.show', compact('cheque', 'totalPaid', 'banks'));
     }
 
-    public function edit(\App\Models\Cheque $cheque)
+    public function edit(Cheque $cheque)
     {
-        $banks = \App\Models\Bank::all();
-        $reasons = \App\Models\ChequeReason::all();
-        return view('cheques.edit', compact('cheque', 'banks', 'reasons'));
+        $banks = Bank::all();
+        return view('cheques.edit', compact('cheque', 'banks'));
     }
 
-    public function update(Request $request, \App\Models\Cheque $cheque)
+    public function update(Request $request, Cheque $cheque)
     {
         $request->validate([
             'cheque_number' => 'required',
             'cheque_date' => 'required|date',
             'bank_id' => 'required|exists:banks,id',
-            'cheque_reason_id' => 'required|exists:cheque_reasons,id',
             'amount' => 'required|numeric',
             'payer_name' => 'required',
-            'payment_status' => 'required',
-            'cheque_status' => 'required',
         ]);
 
         $cheque->update($request->all());
@@ -88,7 +118,50 @@ class ChequeController extends Controller
         return redirect()->route('cheques.index')->with('success', 'Cheque updated successfully');
     }
 
-    public function destroy(\App\Models\Cheque $cheque)
+    public function updateThirdPartyStatus(Request $request, Cheque $cheque)
+    {
+        $request->validate([
+            'third_party_payment_status' => 'required|in:paid,pending',
+            'third_party_notes' => 'nullable'
+        ]);
+
+        $cheque->update([
+            'third_party_payment_status' => $request->third_party_payment_status,
+            'third_party_notes' => $request->third_party_notes
+        ]);
+
+        return back()->with('success', '3rd party status updated');
+    }
+
+    public function addPayment(Request $request, Cheque $cheque)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|in:bank_transfer,cash,cheque',
+            'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048'
+        ]);
+
+        $data = $request->except('document');
+        $data['cheque_id'] = $cheque->id;
+
+        if ($request->hasFile('document')) {
+            $data['document'] = $request->file('document')->store('payments', 'public');
+        }
+
+        Payment::create($data);
+
+        $totalPaid = $cheque->payments()->sum('amount');
+        if ($totalPaid >= $cheque->amount) {
+            $cheque->update(['payment_status' => 'paid']);
+        } elseif ($totalPaid > 0) {
+            $cheque->update(['payment_status' => 'partial paid']);
+        }
+
+        return back()->with('success', 'Payment added successfully');
+    }
+
+    public function destroy(Cheque $cheque)
     {
         $cheque->delete();
         return redirect()->route('cheques.index')->with('success', 'Cheque deleted successfully');
