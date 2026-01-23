@@ -17,14 +17,14 @@
     <div class="row g-3 mb-4">
         @php
             $cards = [
-                ['label' => 'All In Cheques', 'value' => $stats['all'], 'icon' => 'fa-list', 'color' => '#64748b', 'bg' => '#f8fafc', 'status' => ''],
-                ['label' => 'In Hand', 'value' => $stats['in_hand'], 'icon' => 'fa-hand-holding-dollar', 'color' => '#f59e0b', 'bg' => '#fffbeb', 'status' => 'received'],
-                ['label' => 'Deposited', 'value' => $stats['deposited'], 'icon' => 'fa-building-columns', 'color' => '#3b82f6', 'bg' => '#eff6ff', 'status' => 'deposited'],
-                ['label' => 'Transferred', 'value' => $stats['transferred'], 'icon' => 'fa-right-left', 'color' => '#8b5cf6', 'bg' => '#f5f3ff', 'status' => 'transferred_to_third_party'],
-                ['label' => 'Returned', 'value' => $stats['returned'], 'icon' => 'fa-rotate-left', 'color' => '#ef4444', 'bg' => '#fef2f2', 'status' => 'returned'],
-                ['label' => 'Realized', 'value' => $stats['realized'], 'icon' => 'fa-circle-check', 'color' => '#10b981', 'bg' => '#ecfdf5', 'status' => 'realized'],
-                ['label' => 'Deposit Today', 'value' => $stats['to_deposit_today'], 'icon' => 'fa-calendar-day', 'color' => '#06b6d4', 'bg' => '#ecfeff', 'status' => 'today'],
-                ['label' => 'Overdue', 'value' => $stats['overdue'], 'icon' => 'fa-clock', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'status' => 'overdue'],
+                ['label' => 'All In Cheques', 'key' => 'all', 'icon' => 'fa-list', 'color' => '#64748b', 'bg' => '#f8fafc', 'status' => ''],
+                ['label' => 'In Hand', 'key' => 'in_hand', 'icon' => 'fa-hand-holding-dollar', 'color' => '#f59e0b', 'bg' => '#fffbeb', 'status' => 'received'],
+                ['label' => 'Deposited', 'key' => 'deposited', 'icon' => 'fa-building-columns', 'color' => '#3b82f6', 'bg' => '#eff6ff', 'status' => 'deposited'],
+                ['label' => 'Transferred', 'key' => 'transferred', 'icon' => 'fa-right-left', 'color' => '#8b5cf6', 'bg' => '#f5f3ff', 'status' => 'transferred_to_third_party'],
+                ['label' => 'Returned', 'key' => 'returned', 'icon' => 'fa-rotate-left', 'color' => '#ef4444', 'bg' => '#fef2f2', 'status' => 'returned'],
+                ['label' => 'Realized', 'key' => 'realized', 'icon' => 'fa-circle-check', 'color' => '#10b981', 'bg' => '#ecfdf5', 'status' => 'realized'],
+                ['label' => 'Deposit Today', 'key' => 'to_deposit_today', 'icon' => 'fa-calendar-day', 'color' => '#06b6d4', 'bg' => '#ecfeff', 'status' => 'today'],
+                ['label' => 'Overdue', 'key' => 'overdue', 'icon' => 'fa-clock', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'status' => 'overdue'],
             ];
         @endphp
 
@@ -33,14 +33,18 @@
             <a href="{{ route('in-cheques.index', ['status' => $card['status']]) }}" class="text-decoration-none">
                 <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden card-stat" style="background: {{ $card['bg'] }};">
                     <div class="card-body p-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="flex-grow-1">
                                 <div class="text-muted small fw-bold text-uppercase mb-1" style="font-size: 0.65rem;">{{ $card['label'] }}</div>
-                                <div class="h4 fw-bold mb-0" style="color: {{ $card['color'] }};">{{ $card['value'] }}</div>
+                                <div class="h4 fw-bold mb-0" style="color: {{ $card['color'] }};">{{ $stats[$card['key']]['count'] }}</div>
                             </div>
                             <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; background: #fff; color: {{ $card['color'] }};">
                                 <i class="fa-solid {{ $card['icon'] }}"></i>
                             </div>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between pt-2 border-top" style="border-color: {{ $card['color'] }}33 !important;">
+                            <span class="extra-small text-muted fw-bold">Total Amount</span>
+                            <span class="small fw-bold" style="color: {{ $card['color'] }};">LKR {{ number_format($stats[$card['key']]['amount'], 2) }}</span>
                         </div>
                     </div>
                 </div>

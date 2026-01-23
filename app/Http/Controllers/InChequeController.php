@@ -15,16 +15,16 @@ class InChequeController extends Controller
     {
         $query = InCheque::with('bank');
 
-        // Stats for Cards
+        // Stats for Cards with amounts
         $stats = [
-            'all' => InCheque::count(),
-            'in_hand' => InCheque::where('status', 'received')->count(),
-            'deposited' => InCheque::where('status', 'deposited')->count(),
-            'transferred' => InCheque::where('status', 'transferred_to_third_party')->count(),
-            'returned' => InCheque::where('status', 'returned')->count(),
-            'realized' => InCheque::where('status', 'realized')->count(),
-            'to_deposit_today' => InCheque::where('status', 'received')->whereDate('cheque_date', Carbon::today())->count(),
-            'overdue' => InCheque::whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today())->count(),
+            'all' => ['count' => InCheque::count(), 'amount' => InCheque::sum('amount')],
+            'in_hand' => ['count' => InCheque::where('status', 'received')->count(), 'amount' => InCheque::where('status', 'received')->sum('amount')],
+            'deposited' => ['count' => InCheque::where('status', 'deposited')->count(), 'amount' => InCheque::where('status', 'deposited')->sum('amount')],
+            'transferred' => ['count' => InCheque::where('status', 'transferred_to_third_party')->count(), 'amount' => InCheque::where('status', 'transferred_to_third_party')->sum('amount')],
+            'returned' => ['count' => InCheque::where('status', 'returned')->count(), 'amount' => InCheque::where('status', 'returned')->sum('amount')],
+            'realized' => ['count' => InCheque::where('status', 'realized')->count(), 'amount' => InCheque::where('status', 'realized')->sum('amount')],
+            'to_deposit_today' => ['count' => InCheque::where('status', 'received')->whereDate('cheque_date', Carbon::today())->count(), 'amount' => InCheque::where('status', 'received')->whereDate('cheque_date', Carbon::today())->sum('amount')],
+            'overdue' => ['count' => InCheque::whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today())->count(), 'amount' => InCheque::whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today())->sum('amount')],
         ];
 
         if ($request->search) {
@@ -35,7 +35,16 @@ class InChequeController extends Controller
         }
 
         if ($request->status) {
-            $query->where('status', $request->status);
+            if ($request->status == 'today') {
+                // Filter for cheques to deposit today (received status + today's date)
+                $query->where('status', 'received')->whereDate('cheque_date', Carbon::today());
+            } elseif ($request->status == 'overdue') {
+                // Filter for overdue cheques (received or deposited + past date)
+                $query->whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today());
+            } else {
+                // Regular status filter
+                $query->where('status', $request->status);
+            }
         }
 
         $cheques = $query->latest()->paginate(10)->withQueryString();

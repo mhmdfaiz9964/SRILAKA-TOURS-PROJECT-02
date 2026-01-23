@@ -14,6 +14,14 @@ class OutChequeController extends Controller
     {
         $query = OutCheque::with('bank');
 
+        // Stats for Cards with amounts
+        $stats = [
+            'all' => ['count' => OutCheque::count(), 'amount' => OutCheque::sum('amount')],
+            'sent' => ['count' => OutCheque::where('status', 'sent')->count(), 'amount' => OutCheque::where('status', 'sent')->sum('amount')],
+            'realized' => ['count' => OutCheque::where('status', 'realized')->count(), 'amount' => OutCheque::where('status', 'realized')->sum('amount')],
+            'returned' => ['count' => OutCheque::where('status', 'returned')->count(), 'amount' => OutCheque::where('status', 'returned')->sum('amount')],
+        ];
+
         if ($request->search) {
             $query->where(function($q) use ($request) {
                 $q->where('payee_name', 'like', "%{$request->search}%")
@@ -21,8 +29,12 @@ class OutChequeController extends Controller
             });
         }
 
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
         $cheques = $query->latest()->paginate(10)->withQueryString();
-        return view('cheque_operations.out_cheques.index', compact('cheques'));
+        return view('cheque_operations.out_cheques.index', compact('cheques', 'stats'));
     }
 
     public function create()
