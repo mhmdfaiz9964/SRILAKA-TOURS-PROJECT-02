@@ -18,22 +18,29 @@ class SystemController extends Controller
     public function update(Request $request)
     {
         try {
-            // Simulate System Update
-            // 1. Run migrations
+            // 1. Run Git Pull to get latest changes
+            $gitProcess = new Process(['git', 'pull', 'origin', 'main']);
+            // Set working directory to the project root
+            $gitProcess->setWorkingDirectory(base_path());
+            $gitProcess->run();
+
+            // 2. Run migrations
             Artisan::call('migrate', ['--force' => true]);
 
-            // 2. Clear cache
+            // 3. Clear cache and optimize
             Artisan::call('optimize:clear');
+
+            $gitOutput = $gitProcess->isSuccessful() ? 'Changes pulled successfully.' : 'Git pull skipped or failed (check permissions).';
 
             // Add to Change Log
             ChangeLog::create([
                 'version' => 'v' . (ChangeLog::count() + 1.0),
-                'title' => 'System Auto Update',
-                'description' => 'System performed an automatic optimization and migration sequence.',
+                'title' => 'System Core Update',
+                'description' => 'Performed Git Pull, Database Migrations, and System Optimization. ' . $gitOutput,
                 'type' => 'update'
             ]);
 
-            return redirect()->route('system.index')->with('success', 'System updated successfully! All services are optimized.');
+            return redirect()->route('system.index')->with('success', 'System update completed! ' . $gitOutput);
         } catch (\Exception $e) {
             return redirect()->route('system.index')->with('error', 'Update Failed: ' . $e->getMessage());
         }
