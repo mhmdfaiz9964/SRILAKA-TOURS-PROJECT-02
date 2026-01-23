@@ -31,6 +31,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cheques/{cheque}/reminder', [App\Http\Controllers\ChequeController::class, 'storeReminder'])->name('cheques.reminder');
     Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ChequeController::class, 'completeReminder'])->name('reminders.complete');
     Route::resource('cheques', App\Http\Controllers\ChequeController::class);
+    
+    Route::get('/investors/export', [App\Http\Controllers\InvestorController::class, 'export'])->name('investors.export');
+    Route::resource('investors', App\Http\Controllers\InvestorController::class);
+
+    Route::resource('in-cheques', App\Http\Controllers\InChequeController::class);
+    Route::resource('out-cheques', App\Http\Controllers\OutChequeController::class);
+    Route::resource('third-party-cheques', App\Http\Controllers\ThirdPartyChequeController::class);
     Route::post('/cheques/{cheque}/add-payment', [App\Http\Controllers\ChequeController::class, 'addPayment'])->name('cheques.add-payment');
     Route::post('/cheques/{cheque}/update-third-party', [App\Http\Controllers\ChequeController::class, 'updateThirdPartyStatus'])->name('cheques.update-third-party');
     

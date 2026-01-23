@@ -283,6 +283,12 @@
 
         .hover-bg-light:hover { background-color: #f8fafc; transition: background 0.2s; }
 
+        /* Hover Dropdowns for Toolbar */
+        .toolbar .dropdown:hover .dropdown-menu {
+            display: block;
+            margin-top: 0;
+        }
+
         /* Main Content Styling */
         .main-content {
             flex-grow: 1;
@@ -408,8 +414,33 @@
                 </a>
 
                 <div class="menu-label-wrapper">
-                    <span class="menu-label">Finance</span>
+                    <span class="menu-label">Cheque Operation</span>
                     <i class="fa-solid fa-plus menu-label-plus"></i>
+                </div>
+
+                <a href="{{ route('in-cheques.index') }}" class="menu-item {{ request()->routeIs('in-cheques.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span>In Cheque</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('out-cheques.index') }}" class="menu-item {{ request()->routeIs('out-cheques.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-file-export"></i>
+                        <span>Out Cheque</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('third-party-cheques.index') }}" class="menu-item {{ request()->routeIs('third-party-cheques.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-users-viewfinder"></i>
+                        <span>3rd Party Cheque</span>
+                    </div>
+                </a>
+
+                <div class="menu-label-wrapper mt-3">
+                    <span class="menu-label">Returns & Payments</span>
                 </div>
 
                 <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.index') ? 'active' : '' }}">
@@ -452,7 +483,7 @@
                     </div>
                 </a>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('investors.index') }}" class="menu-item {{ request()->routeIs('investors.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                         <span>Investors</span>
@@ -543,7 +574,7 @@
                                                     </div>
                                                     <div class="flex-grow-1">
                                                         <div class="d-flex justify-content-between align-items-start">
-                                                            <div class="small fw-bold text-dark">{{ $reminder->cheque->payer_name ?? 'Cheque' }}</div>
+                                                            <div class="small fw-bold text-dark">{{ $reminder->payer_name ?? ($reminder->cheque->payer_name ?? 'Cheque') }}</div>
                                                             <form action="{{ route('reminders.complete', $reminder) }}" method="POST">
                                                                 @csrf
                                                                 <button type="submit" class="btn btn-sm btn-icon border-0 text-success p-0 shadow-none" title="Mark as Completed">
@@ -552,7 +583,7 @@
                                                             </form>
                                                         </div>
                                                         <div class="text-muted small text-truncate" style="max-width: 180px;">{{ $reminder->notes }}</div>
-                                                        <div class="text-primary mt-1" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($reminder->reminder_date)->format('H:i A') }}</div>
+                                                        <div class="text-primary mt-1" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($reminder->reminder_date)->format('d M, H:i A') }}</div>
                                                     </div>
                                                 </div>
                                             </div>

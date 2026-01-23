@@ -26,4 +26,9 @@ class Cheque extends Model
     {
         return $this->hasMany(Reminder::class);
     }
+
+    public function latestPayment()
+    {
+        return $this->hasOne(Payment::class)->latestOfMany();
+    }
 }

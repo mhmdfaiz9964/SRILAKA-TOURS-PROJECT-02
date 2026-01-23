@@ -11,7 +11,7 @@
             </div>
             
             <!-- Summary Balance Card (Modern Design as requested) -->
-            <div class="d-flex align-items-center bg-white border border-success border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3 animate__animated animate__pulse animate__infinite" style="background: #f0fdf4 !important; min-width: 250px;">
+            <div class="d-flex align-items-center bg-white border border-success border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3" style="background: #f0fdf4 !important; min-width: 250px;">
                 <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: #10b981; color: #fff;">
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
@@ -160,15 +160,24 @@
                             <input type="checkbox" class="form-check-input shadow-none">
                         </th>
                         <th class="py-3" style="width: 40px;"></th>
-                        <th class="py-3 text-muted small text-uppercase">Cheq Date</th>
-                        <th class="py-3 text-muted small text-uppercase">Status</th>
-                        <th class="py-3 text-muted small text-uppercase">Client Name</th>
-                        <th class="py-3 text-muted small text-uppercase">Bank</th>
-                        <th class="py-3 text-muted small text-uppercase">Amount (LKR)</th>
-                        <th class="py-3 text-muted small text-uppercase">Balance</th>
-                        <th class="py-3 text-muted small text-uppercase">3rd Part Status</th>
-                        <th class="py-3 text-muted small text-uppercase">3rd Part Name</th>
-                        <th class="py-3 text-muted small text-uppercase">CHQ RTN Note</th>
+                        @if(($page_title ?? '') == 'Payment Cheques')
+                            <th class="py-3 text-muted small text-uppercase">Payment Date</th>
+                            <th class="py-3 text-muted small text-uppercase">Payment Method</th>
+                            <th class="py-3 text-muted small text-uppercase">Payer/Client</th>
+                            <th class="py-3 text-muted small text-uppercase">3rd Party Name</th>
+                            <th class="py-3 text-muted small text-uppercase">Amount</th>
+                            <th class="py-3 text-muted small text-uppercase">Latest Note</th>
+                        @else
+                            <th class="py-3 text-muted small text-uppercase">Cheq Date</th>
+                            <th class="py-3 text-muted small text-uppercase">Status</th>
+                            <th class="py-3 text-muted small text-uppercase">Client Name</th>
+                            <th class="py-3 text-muted small text-uppercase">Bank</th>
+                            <th class="py-3 text-muted small text-uppercase">Amount (LKR)</th>
+                            <th class="py-3 text-muted small text-uppercase">Balance</th>
+                            <th class="py-3 text-muted small text-uppercase">3rd Part Status</th>
+                            <th class="py-3 text-muted small text-uppercase">3rd Part Name</th>
+                            <th class="py-3 text-muted small text-uppercase">CHQ RTN Note</th>
+                        @endif
                         <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -181,73 +190,101 @@
                         <td>
                             <i class="fa-regular fa-star text-muted cursor-pointer"></i>
                         </td>
-                        <td class="small text-muted text-nowrap">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
-                        <td>
-                            @php
-                                $statusMeta = match($cheque->payment_status) {
-                                    'paid' => ['color' => '#10b981', 'bg' => '#ecfdf5', 'text' => 'Paid'],
-                                    'partial paid' => ['color' => '#f59e0b', 'bg' => '#fffbeb', 'text' => 'Partial'],
-                                    default => ['color' => '#ef4444', 'bg' => '#fef2f2', 'text' => 'Pending']
-                                };
-                            @endphp
-                            <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded-3" style="background: {{ $statusMeta['bg'] }};">
-                                <span class="rounded-circle" style="width: 6px; height: 6px; background: {{ $statusMeta['color'] }};"></span>
-                                <span class="small fw-medium" style="color: {{ $statusMeta['color'] }}; font-size: 0.7rem;">{{ $statusMeta['text'] }}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #8b5cf6; width: 30px; height: 30px; font-size: 0.75rem;">
-                                    {{ substr($cheque->payer_name, 0, 1) }}
+                        @if(($page_title ?? '') == 'Payment Cheques')
+                            <td class="small text-muted text-nowrap">
+                                {{ \Carbon\Carbon::parse($cheque->payment_date)->format('d/m/Y') }}
+                            </td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary fw-bold" style="font-size: 0.65rem; border-radius: 6px;">
+                                    {{ ucwords(str_replace('_', ' ', $cheque->payment_method)) }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #8b5cf6; width: 30px; height: 30px; font-size: 0.75rem;">
+                                        {{ substr($cheque->cheque->payer_name ?? 'C', 0, 1) }}
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <a href="{{ route('cheques.show', $cheque->cheque) }}" class="fw-bold text-dark small text-decoration-none hover-underline text-nowrap">{{ $cheque->cheque->payer_name ?? 'N/A' }}</a>
+                                        <span class="text-muted text-nowrap" style="font-size: 0.65rem;">#{{ $cheque->cheque->cheque_number ?? '000000' }}</span>
+                                    </div>
                                 </div>
-                                <div class="d-flex flex-column">
-                                    <a href="{{ route('cheques.show', $cheque) }}" class="fw-bold text-dark small text-decoration-none hover-underline text-nowrap">{{ $cheque->payer_name }}</a>
-                                    <span class="text-muted text-nowrap" style="font-size: 0.65rem;">#{{ $cheque->cheque_number }}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="small">{{ $cheque->bank->name }}</td>
-                        <td class="small fw-bold text-nowrap">LKR {{ number_format($cheque->amount, 2) }}</td>
-                        <td class="small fw-bold text-danger text-nowrap">LKR {{ number_format($cheque->amount - ($cheque->payments_sum_amount ?? 0), 2) }}</td>
-                        <td>
-                            @if($cheque->payee_name)
+                            </td>
+                            <td class="small fw-medium">{{ $cheque->cheque->payee_name ?? '-' }}</td>
+                            <td class="small fw-bold text-nowrap">LKR {{ number_format($cheque->amount, 2) }}</td>
+                            <td class="small text-muted text-truncate" style="max-width: 150px;">{{ $cheque->notes ?? '-' }}</td>
+                        @else
+                            <td class="small text-muted text-nowrap">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
+                            <td>
                                 @php
-                                    $tpStatusColor = $cheque->third_party_payment_status == 'paid' ? '#10b981' : '#f97316';
-                                    $tpStatusBg = $cheque->third_party_payment_status == 'paid' ? '#ecfdf5' : '#fff7ed';
+                                    $statusMeta = match($cheque->payment_status) {
+                                        'paid' => ['color' => '#10b981', 'bg' => '#ecfdf5', 'text' => 'Paid'],
+                                        'partial paid' => ['color' => '#f59e0b', 'bg' => '#fffbeb', 'text' => 'Partial'],
+                                        default => ['color' => '#ef4444', 'bg' => '#fef2f2', 'text' => 'Pending']
+                                    };
                                 @endphp
-                                <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded-3" style="background: {{ $tpStatusBg }};">
-                                    <span class="rounded-circle" style="width: 6px; height: 6px; background: {{ $tpStatusColor }};"></span>
-                                    <span class="small fw-medium" style="color: {{ $tpStatusColor }}; font-size: 0.7rem;">{{ ucwords($cheque->third_party_payment_status) }}</span>
+                                <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded-3" style="background: {{ $statusMeta['bg'] }};">
+                                    <span class="rounded-circle" style="width: 6px; height: 6px; background: {{ $statusMeta['color'] }};"></span>
+                                    <span class="small fw-medium" style="color: {{ $statusMeta['color'] }}; font-size: 0.7rem;">{{ $statusMeta['text'] }}</span>
                                 </div>
-                            @else
-                                <span class="text-muted small">-</span>
-                            @endif
-                        </td>
-                        <td class="small">{{ $cheque->payee_name ?? '-' }}</td>
-                        <td>
-                            @if($cheque->return_reason)
-                                <span class="badge bg-light text-muted fw-normal" style="font-size: 0.65rem;">{{ $cheque->return_reason }}</span>
-                            @else
-                                <span class="text-muted small">-</span>
-                            @endif
-                        </td>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #8b5cf6; width: 30px; height: 30px; font-size: 0.75rem;">
+                                        {{ substr($cheque->payer_name, 0, 1) }}
+                                    </div>
+                                    <div class="d-flex flex-column">
+                                        <a href="{{ route('cheques.show', $cheque) }}" class="fw-bold text-dark small text-decoration-none hover-underline text-nowrap">{{ $cheque->payer_name }}</a>
+                                        <span class="text-muted text-nowrap" style="font-size: 0.65rem;">#{{ $cheque->cheque_number }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="small">{{ $cheque->bank->name }}</td>
+                            <td class="small fw-bold text-nowrap">LKR {{ number_format($cheque->amount, 2) }}</td>
+                            <td class="small fw-bold text-danger text-nowrap">LKR {{ number_format($cheque->amount - ($cheque->payments_sum_amount ?? 0), 2) }}</td>
+                            <td>
+                                @if($cheque->payee_name)
+                                    @php
+                                        $tpStatusColor = $cheque->third_party_payment_status == 'paid' ? '#10b981' : '#f97316';
+                                        $tpStatusBg = $cheque->third_party_payment_status == 'paid' ? '#ecfdf5' : '#fff7ed';
+                                    @endphp
+                                    <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded-3" style="background: {{ $tpStatusBg }};">
+                                        <span class="rounded-circle" style="width: 6px; height: 6px; background: {{ $tpStatusColor }};"></span>
+                                        <span class="small fw-medium" style="color: {{ $tpStatusColor }}; font-size: 0.7rem;">{{ ucwords($cheque->third_party_payment_status) }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-muted small">-</span>
+                                @endif
+                            </td>
+                            <td class="small">{{ $cheque->payee_name ?? '-' }}</td>
+                            <td>
+                                @if($cheque->return_reason)
+                                    <span class="badge bg-light text-muted fw-normal" style="font-size: 0.65rem;">{{ $cheque->return_reason }}</span>
+                                @else
+                                    <span class="text-muted small">-</span>
+                                @endif
+                            </td>
+                        @endif
                         <td class="text-end pe-4">
                             <div class="d-flex justify-content-end gap-1">
+                                @php 
+                                    $targetCheque = ($page_title ?? '') == 'Payment Cheques' ? $cheque->cheque : $cheque;
+                                @endphp
                                 <button type="button" class="btn btn-sm btn-icon border-0 text-primary shadow-none btn-notification-animate" 
-                                        onclick="openReminderModal({{ $cheque->id }}, '{{ $cheque->payer_name }}')">
+                                        onclick="openReminderModal({{ $targetCheque->id }}, '{{ $targetCheque->payer_name }}')">
                                     <i class="fa-solid fa-bell"></i>
                                 </button>
-                                <a href="{{ route('cheques.show', $cheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
+                                <a href="{{ route('cheques.show', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
                                     <i class="fa-solid fa-eye"></i>
                                 </a>
-                                <a href="{{ route('cheques.edit', $cheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
+                                <a href="{{ route('cheques.edit', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
                                 <button type="button" class="btn btn-sm btn-icon border-0 text-black shadow-none" 
-                                        onclick="confirmDelete({{ $cheque->id }}, 'delete-cheque-{{ $cheque->id }}')">
+                                        onclick="confirmDelete({{ $targetCheque->id }}, 'delete-cheque-{{ $targetCheque->id }}')">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
-                                <form id="delete-cheque-{{ $cheque->id }}" action="{{ route('cheques.destroy', $cheque) }}" method="POST" class="d-none">
+                                <form id="delete-cheque-{{ $targetCheque->id }}" action="{{ route('cheques.destroy', $targetCheque) }}" method="POST" class="d-none">
                                     @csrf
                                     @method('DELETE')
                                 </form>

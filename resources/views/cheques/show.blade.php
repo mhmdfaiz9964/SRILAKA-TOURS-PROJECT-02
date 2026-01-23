@@ -98,7 +98,7 @@
 
             @if($cheque->return_reason)
             <!-- Return Info Card -->
-            <div class="card border-0 shadow-sm border-start border-4 border-danger" style="border-radius: 12px;">
+            <div class="card border-0 shadow-sm border-start border-4 border-danger mb-4" style="border-radius: 12px;">
                 <div class="card-body p-4">
                     <h6 class="fw-bold mb-1 text-danger small text-uppercase">Return Information</h6>
                     <div class="small fw-bold mb-2">Reason: {{ $cheque->return_reason }}</div>
@@ -108,6 +108,42 @@
                 </div>
             </div>
             @endif
+
+            <!-- Reminders Card -->
+            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="fw-bold mb-0 small text-uppercase text-muted">Reminders</h6>
+                        <button class="btn btn-primary btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; background: #6366f1; border: none;" data-bs-toggle="modal" data-bs-target="#addReminderModal">
+                            <i class="fa-solid fa-plus extra-small"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        @forelse($cheque->reminders->sortByDesc('reminder_date') as $reminder)
+                            <div class="p-3 {{ $reminder->is_read ? 'bg-light opacity-75' : 'bg-primary bg-opacity-10' }} rounded-3 position-relative">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <span class="fw-bold small" style="color: #4338ca;">{{ \Carbon\Carbon::parse($reminder->reminder_date)->format('d M, H:i') }}</span>
+                                    @if(!$reminder->is_read)
+                                        <form action="{{ route('reminders.complete', $reminder) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn btn-link p-0 text-success text-decoration-none extra-small fw-bold">
+                                                <i class="fa-solid fa-check-circle"></i> Done
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="badge bg-success bg-opacity-10 text-success extra-small">Completed</span>
+                                    @endif
+                                </div>
+                                <div class="small fw-bold mb-1 text-dark">{{ $reminder->payer_name ?? 'Client' }}</div>
+                                <p class="small mb-0 text-dark">{{ $reminder->notes ?? 'Recovery Follow-up' }}</p>
+                            </div>
+                        @empty
+                            <p class="small text-muted mb-0 italic">No reminders set for this recovery.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-8">
@@ -282,6 +318,35 @@
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-light px-4 border-light" style="border-radius: 8px;" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary px-4 shadow-sm" style="background: #6366f1; border: none; border-radius: 8px;">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Reminder Modal -->
+<div class="modal fade" id="addReminderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <form action="{{ route('cheques.reminder', $cheque) }}" method="POST">
+                @csrf
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="modal-title fw-bold">Schedule Reminder</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Reminder Date & Time</label>
+                        <input type="datetime-local" name="reminder_date" class="form-control border-light shadow-none" value="{{ date('Y-m-d\TH:i') }}" required>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Notes</label>
+                        <textarea name="notes" class="form-control border-light shadow-none" rows="3" placeholder="What should we remember?"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light px-4 border-light" style="border-radius: 8px;" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4 shadow-sm" style="background: #6366f1; border: none; border-radius: 8px;">Save Reminder</button>
                 </div>
             </form>
         </div>

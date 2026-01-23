@@ -32,17 +32,31 @@ class ChequeController extends Controller
 
     public function paymentCheques(Request $request)
     {
-        $query = Cheque::with(['bank'])->withSum('payments', 'amount')->whereHas('payments')->where('payment_status', '!=', 'paid');
-        $this->applyFilters($query, $request);
-        $this->applySorting($query, $request);
+        $query = Payment::with(['cheque.bank'])->where('payment_method', 'cheque');
 
-        $cheques = $query->paginate(10)->withQueryString();
-        $total_balance = $query->get()->sum(fn($c) => $c->amount - ($c->payments_sum_amount ?? 0));
+        // Apply filters if any
+        if ($request->search) {
+            $query->whereHas('cheque', function($q) use ($request) {
+                $q->where('payer_name', 'like', "%{$request->search}%")
+                  ->orWhere('cheque_number', 'like', "%{$request->search}%");
+            });
+        }
+
+        $payments = $query->latest('payment_date')->paginate(10)->withQueryString();
+        $total_balance = $query->sum('amount');
+        
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
 
-        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties', 'total_balance'))->with('page_title', 'Payment Cheques');
+        return view('cheques.index', [
+            'cheques' => $payments,
+            'banks' => $banks,
+            'payers' => $payers,
+            'third_parties' => $third_parties,
+            'total_balance' => $total_balance,
+            'page_title' => 'Payment Cheques'
+        ]);
     }
 
     public function paidCheques(Request $request)
@@ -159,7 +173,7 @@ class ChequeController extends Controller
 
     public function show(Cheque $cheque)
     {
-        $cheque->load(['payments.bank', 'bank']);
+        $cheque->load(['payments.bank', 'bank', 'reminders']);
         $totalPaid = $cheque->payments->sum('amount');
         $banks = Bank::all();
         return view('cheques.show', compact('cheque', 'totalPaid', 'banks'));
@@ -244,6 +258,7 @@ class ChequeController extends Controller
 
         Reminder::create([
             'cheque_id' => $cheque->id,
+            'payer_name' => $cheque->payer_name,
             'reminder_date' => $request->reminder_date,
             'notes' => $request->notes
         ]);

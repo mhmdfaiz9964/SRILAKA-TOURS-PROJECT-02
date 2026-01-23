@@ -22,8 +22,8 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
             if (auth()->check()) {
                 $dueReminders = \App\Models\Reminder::with('cheque')
-                    ->where('reminder_date', '<=', \Carbon\Carbon::now())
                     ->where('is_read', false)
+                    ->orderBy('reminder_date', 'asc')
                     ->get();
                 $view->with('dueReminders', $dueReminders);
                 $view->with('reminderCount', $dueReminders->count());
