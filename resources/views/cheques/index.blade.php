@@ -81,7 +81,7 @@
                         <th class="py-3 text-muted small text-uppercase">3rd Part</th>
                         <th class="py-3 text-muted small text-uppercase">Status</th>
                         <th class="py-3 text-muted small text-uppercase">Date</th>
-                        <th class="py-3 text-muted small text-uppercase text-end pe-4">Categories</th>
+                        <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -123,8 +123,20 @@
                         <td class="small text-muted">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
                         <td class="text-end pe-4">
                             <div class="d-flex justify-content-end gap-1">
-                                <span class="badge bg-light text-muted fw-normal" style="font-size: 0.65rem;">Financing</span>
-                                <span class="badge bg-light text-muted fw-normal" style="font-size: 0.65rem;">B2B</span>
+                                <a href="{{ route('cheques.show', $cheque) }}" class="btn btn-sm btn-icon border-0 text-black">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{{ route('cheques.edit', $cheque) }}" class="btn btn-sm btn-icon border-0 text-black">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-icon border-0 text-black" 
+                                        onclick="confirmDelete({{ $cheque->id }}, 'delete-cheque-{{ $cheque->id }}')">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                                <form id="delete-cheque-{{ $cheque->id }}" action="{{ route('cheques.destroy', $cheque) }}" method="POST" class="d-none">
+                                    @csrf
+                                    @method('DELETE')
+                                </form>
                             </div>
                         </td>
                     </tr>

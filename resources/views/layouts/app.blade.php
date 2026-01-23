@@ -434,6 +434,13 @@
                     </div>
                 </a>
 
+                <a href="{{ route('system.index') }}" class="menu-item {{ request()->routeIs('system.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-microchip"></i>
+                        <span>System</span>
+                    </div>
+                </a>
+
                 <a href="#" class="menu-item">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-box"></i>
@@ -640,10 +647,7 @@
                         }
                     })
                     .then(response => {
-                        if (!response.ok) {
-                            throw new Error(response.statusText)
-                        }
-                        return response.json()
+                        window.location.href = "{{ route('system.index') }}";
                     })
                     .catch(error => {
                         Swal.showValidationMessage(`Request failed: ${error}`)
