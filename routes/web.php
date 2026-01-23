@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('home');
+    }
     return redirect()->route('login');
 });
 
@@ -26,4 +29,5 @@ Route::middleware(['auth'])->group(function () {
     
     Route::post('/cheque-reasons', [App\Http\Controllers\ChequeReasonController::class, 'store'])->name('cheque-reasons.store');
     Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
+    Route::post('/system/update', [App\Http\Controllers\SystemController::class, 'update'])->name('system.update');
 });

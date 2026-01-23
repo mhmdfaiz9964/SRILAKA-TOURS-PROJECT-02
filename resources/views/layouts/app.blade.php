@@ -31,15 +31,18 @@
 
     <style>
         :root {
-            --sidebar-width: 260px;
-            --primary-color: #ff4d4d;
-            --bg-light: #f8f9fa;
-            --text-dark: #333;
-            --text-muted: #6c757d;
+            --sidebar-width: 280px;
+            --primary-color: #6366f1;
+            --primary-light: #eef2ff;
+            --bg-light: #f9fafb;
+            --text-dark: #111827;
+            --text-muted: #6b7280;
             --sidebar-bg: #ffffff;
-            --sidebar-hover: #fff0f0;
-            --sidebar-active: #fff0f0;
-            --sidebar-active-text: #ff4d4d;
+            --sidebar-hover: #f3f4f6;
+            --sidebar-active: #eef2ff;
+            --sidebar-active-text: #6366f1;
+            --border-color: #f3f4f6;
+            --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
         }
 
         body {
@@ -47,6 +50,7 @@
             background-color: var(--bg-light);
             margin: 0;
             padding: 0;
+            color: var(--text-dark);
             overflow-x: hidden;
         }
 
@@ -59,80 +63,150 @@
         .sidebar {
             width: var(--sidebar-width);
             background: var(--sidebar-bg);
-            border-right: 1px solid #eee;
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             position: fixed;
             height: 100vh;
             z-index: 1000;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-header {
-            padding: 20px;
+            padding: 24px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .logo-box {
             background: var(--primary-color);
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-            box-shadow: 0 4px 10px rgba(255, 77, 77, 0.3);
+            font-weight: 700;
+            font-size: 14px;
         }
 
         .brand-name {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
-            color: #1a1a1a;
-            letter-spacing: -0.5px;
+            color: var(--text-dark);
+            letter-spacing: -0.025em;
+        }
+
+        .sidebar-actions {
+            padding: 0 24px 16px;
+        }
+
+        .btn-add-new {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            text-decoration: none;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .btn-add-new:hover {
+            background: var(--sidebar-hover);
+        }
+
+        .sidebar-search {
+            padding: 0 24px 20px;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            background: #fdfdfd;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
         }
 
         .sidebar-menu {
             flex-grow: 1;
-            padding: 20px 0;
+            padding: 0 12px 20px;
             overflow-y: auto;
         }
 
         .menu-label {
-            padding: 10px 25px;
-            font-size: 0.75rem;
+            padding: 20px 12px 8px;
+            font-size: 0.7rem;
             font-weight: 700;
-            color: #b0b0b0;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.05em;
         }
 
         .menu-item {
-            padding: 12px 25px;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
-            gap: 15px;
-            color: #555;
+            justify-content: space-between;
+            color: var(--text-muted);
             text-decoration: none;
             font-weight: 500;
+            font-size: 0.95rem;
             transition: all 0.2s;
-            margin: 4px 12px;
-            border-radius: 12px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+        }
+
+        .menu-item-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .menu-item i {
-            font-size: 1.1rem;
+            font-size: 1rem;
             width: 20px;
             text-align: center;
         }
 
         .menu-item:hover {
             background: var(--sidebar-hover);
-            color: var(--primary-color);
+            color: var(--text-dark);
         }
 
         .menu-item.active {
@@ -140,9 +214,19 @@
             color: var(--primary-color);
         }
 
+        .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
         .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid #eee;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            background: #fff;
+        }
+
+        .user-profile {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -151,19 +235,35 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+        }
+
+        .avatar-box {
+            position: relative;
         }
 
         .user-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: #eee;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--primary-light);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--primary-color);
-            font-weight: bold;
+            font-weight: 700;
+            border: 1px solid #e0e7ff;
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border: 2px solid white;
+            border-radius: 50%;
         }
 
         .user-details {
@@ -174,53 +274,81 @@
         .user-name {
             font-size: 0.9rem;
             font-weight: 600;
-            color: #333;
+            color: var(--text-dark);
         }
 
-        .user-role {
+        .user-email {
             font-size: 0.75rem;
-            color: #888;
-        }
-
-        .logout-btn {
-            color: #aaa;
-            transition: color 0.2s;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            color: var(--primary-color);
+            color: var(--text-muted);
         }
 
         /* Main Content Styling */
         .main-content {
             flex-grow: 1;
             margin-left: var(--sidebar-width);
-            padding: 30px;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        .content-header {
-            margin-bottom: 30px;
+        /* Top Navbar */
+        .content-navbar {
+            padding: 12px 30px;
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 900;
         }
 
-        .content-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0;
-            color: #1a1a1a;
+        .breadcrumb-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
         }
 
-        /* Card Styling */
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-search {
+            position: relative;
+            width: 400px;
+        }
+
+        .nav-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .nav-search input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            background: #f9fafb;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .view-pane {
+            padding: 30px;
+        }
+
+        /* Card Styling Enhancement */
         .card {
-            border: none;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
         }
 
         @media (max-width: 992px) {
@@ -239,51 +367,122 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="logo-box">SH</div>
-                <div class="brand-name">SELF HOLIDAYS</div>
+                <div class="logo-section">
+                    <div class="logo-box">GB</div>
+                    <div class="brand-name">GlobalBank</div>
+                </div>
+                <button class="btn btn-sm text-muted">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-actions">
+                <a href="#" class="btn-add-new">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add New</span>
+                </a>
+            </div>
+
+            <div class="sidebar-search">
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" class="search-input" placeholder="Search...">
+                </div>
             </div>
 
             <div class="sidebar-menu">
-                <div class="menu-label">Main Menu</div>
-                
                 <a href="{{ route('home') }}" class="menu-item {{ request()->routeIs('home') ? 'active' : '' }}">
-                    <i class="fa-solid fa-chart-pie"></i>
-                    <span>Dashboard</span>
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Dashboard</span>
+                    </div>
                 </a>
 
                 <a href="{{ route('users.index') }}" class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-users"></i>
-                    <span>Users</span>
-                </a>
-
-                <div class="menu-label">Finance</div>
-
-                <a href="{{ route('banks.index') }}" class="menu-item {{ request()->routeIs('banks.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-building-columns"></i>
-                    <span>Banks</span>
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <span>Users</span>
+                    </div>
                 </a>
 
                 <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.*') ? 'active' : '' }}">
-                    <i class="fa-solid fa-money-check-dollar"></i>
-                    <span>Cheques</span>
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-money-check-dollar"></i>
+                        <span>Cheques</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('banks.index') }}" class="menu-item {{ request()->routeIs('banks.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Banks</span>
+                    </div>
+                </a>
+
+                <a href="#" class="menu-item">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-box"></i>
+                        <span>Product</span>
+                    </div>
+                </a>
+
+                <a href="#" class="menu-item">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                        <span>Investors</span>
+                    </div>
+                </a>
+
+                <a href="#" class="menu-item">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-truck-field"></i>
+                        <span>Supplier</span>
+                    </div>
+                </a>
+
+                <a href="#" class="menu-item">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-user-tag"></i>
+                        <span>Customer</span>
+                    </div>
+                </a>
+
+                <a href="#" class="menu-item">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Stage</span>
+                    </div>
+                </a>
+
+                <div class="menu-label">System</div>
+                <a href="javascript:void(0)" onclick="updateSystem()" class="menu-item">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>System Update</span>
+                    </div>
                 </a>
             </div>
 
             <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">
-                        {{ substr(Auth::user()->name, 0, 1) }}
+                <div class="user-profile">
+                    <div class="user-info">
+                        <div class="avatar-box">
+                            <div class="user-avatar">
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
+                            <div class="status-dot"></div>
+                        </div>
+                        <div class="user-details">
+                            <span class="user-name">{{ Auth::user()->name }}</span>
+                            <span class="user-email">Pro Member</span>
+                        </div>
                     </div>
-                    <div class="user-details">
-                        <span class="user-name">{{ Auth::user()->name }}</span>
-                        <span class="user-role">Admin</span>
-                    </div>
+                    <a href="javascript:void(0)" 
+                       class="text-muted"
+                       onclick="confirmLogout()">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </a>
                 </div>
-                <a href="{{ route('logout') }}" 
-                   class="logout-btn"
-                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                </a>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                     @csrf
                 </form>
@@ -292,8 +491,34 @@
         @endauth
 
         <main class="{{ Auth::check() ? 'main-content' : 'w-100 py-4' }}">
-            @yield('content')
+            @auth
+            <header class="content-navbar">
+                <div class="breadcrumb-section">
+                    <i class="fa-solid fa-house"></i>
+                    <i class="fa-solid fa-chevron-right fa-xs mx-1"></i>
+                    <span>Dashboard</span>
+                    <i class="fa-solid fa-chevron-right fa-xs mx-1"></i>
+                    <span class="text-dark fw-bold">Overview</span>
+                </div>
+
+                <div class="navbar-actions">
+                    <div class="nav-search">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" placeholder="Search in items...">
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fa-regular fa-bell text-muted cursor-pointer"></i>
+                        <i class="fa-regular fa-comment-dots text-muted cursor-pointer"></i>
+                    </div>
+                </div>
+            </header>
+            @endauth
+
+            <div class="{{ Auth::check() ? 'view-pane' : 'container' }}">
+                @yield('content')
+            </div>
         </main>
+
     </div>
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -337,6 +562,81 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     document.getElementById(formId).submit();
+                }
+            })
+        }
+
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Sign Out',
+                text: "Are you sure you want to log out of the system?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#6366f1',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, Sign Out'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('logout-form').submit();
+                }
+            })
+        }
+
+        function updateSystem() {
+            Swal.fire({
+                title: 'System Update',
+                html: `
+                    <div class="text-start">
+                        <p class="fw-bold mb-2">Changelog (v2.1.0):</p>
+                        <ul class="small text-muted ps-3">
+                            <li>Redesigned Dashboard & Sidebar with Purple Theme</li>
+                            <li>Enhanced Table views for Users, Banks and Cheques</li>
+                            <li>Fixed Cheque Number linking issues</li>
+                            <li>Implemented Automated System Update System</li>
+                            <li>Initial backend support for Products and Investors</li>
+                        </ul>
+                        <p class="small mt-3 text-warning"><i class="fa-solid fa-triangle-exclamation"></i> This will run <code>git pull</code> and <code>php artisan migrate</code>.</p>
+                    </div>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#6366f1',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Start Update',
+                showLoaderOnConfirm: true,
+                preConfirm: () => {
+                    return fetch("{{ route('system.update') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(response.statusText)
+                        }
+                        return response.json()
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error}`)
+                    })
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (result.value.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: 'System updated successfully with latest changes.',
+                            icon: 'success',
+                            confirmButtonColor: '#6366f1'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', result.value.message, 'error');
+                    }
                 }
             })
         }
