@@ -4,9 +4,25 @@
 <div class="container-fluid py-4">
     <!-- Breadcrumb & Top Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">
-        <div class="d-flex align-items-center gap-2">
-            <h4 class="fw-bold mb-0">Cheque Management</h4>
-            <span class="badge bg-light text-muted border px-2 py-1 ms-2" style="font-size: 0.65rem;">{{ $page_title ?? 'Active' }}</span>
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <h4 class="fw-bold mb-0">Cheque Management</h4>
+                <span class="badge bg-light text-muted border px-2 py-1 ms-2" style="font-size: 0.65rem;">{{ $page_title ?? 'Active' }}</span>
+            </div>
+            
+            <!-- Summary Balance Card (Modern Design as requested) -->
+            <div class="d-flex align-items-center bg-white border border-success border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3 animate__animated animate__pulse animate__infinite" style="background: #f0fdf4 !important; min-width: 250px;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: #10b981; color: #fff;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #111827; line-height: 1;">Total Balance</div>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="text-muted" style="font-size: 0.75rem;">Total Remaining:</span>
+                        <span class="fw-bold text-success" style="font-size: 0.9rem;">LKR {{ number_format($total_balance ?? 0, 2) }}</span>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <div class="d-flex align-items-center gap-3">
@@ -109,9 +125,25 @@
             <a href="{{ route('cheques.create') }}" class="btn btn-primary btn-sm px-4 rounded-3 d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                 <i class="fa-solid fa-plus"></i> Add New
             </a>
-            <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-upload text-black"></i> Import/Export
-            </button>
+            <div class="dropdown">
+                <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2 dropdown-toggle shadow-sm" data-bs-toggle="dropdown">
+                    <i class="fa-solid fa-file-export text-black"></i> Export
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 180px;">
+                    <a class="dropdown-item d-flex align-items-center gap-3 p-2 rounded-3" href="{{ route('cheques.export', array_merge(request()->all(), ['format' => 'excel', 'view' => ($page_title ?? '') == 'Payment Cheques' ? 'payment' : (($page_title ?? '') == 'Paid Cheques' ? 'paid' : 'index')])) }}">
+                        <div class="bg-success bg-opacity-10 p-2 rounded-circle">
+                            <i class="fa-solid fa-file-excel text-success"></i>
+                        </div>
+                        <span class="small fw-bold">Excel Format</span>
+                    </a>
+                    <a class="dropdown-item d-flex align-items-center gap-3 p-2 rounded-3 mt-1" href="{{ route('cheques.export', array_merge(request()->all(), ['format' => 'pdf', 'view' => ($page_title ?? '') == 'Payment Cheques' ? 'payment' : (($page_title ?? '') == 'Paid Cheques' ? 'paid' : 'index')])) }}">
+                        <div class="bg-danger bg-opacity-10 p-2 rounded-circle">
+                            <i class="fa-solid fa-file-pdf text-danger"></i>
+                        </div>
+                        <span class="small fw-bold">PDF Format</span>
+                    </a>
+                </div>
+            </div>
             <a href="{{ url()->current() }}" class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
                 <i class="fa-solid fa-rotate-left text-black"></i> Reset
             </a>
@@ -201,6 +233,10 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="d-flex justify-content-end gap-1">
+                                <button type="button" class="btn btn-sm btn-icon border-0 text-primary shadow-none btn-notification-animate" 
+                                        onclick="openReminderModal({{ $cheque->id }}, '{{ $cheque->payer_name }}')">
+                                    <i class="fa-solid fa-bell"></i>
+                                </button>
                                 <a href="{{ route('cheques.show', $cheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
                                     <i class="fa-solid fa-eye"></i>
                                 </a>
@@ -244,6 +280,38 @@
     </div>
 </div>
 
+<!-- Reminder Modal -->
+<div class="modal fade" id="reminderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="reminderModalLabel">Set Reminder</h5>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reminderForm" method="POST">
+                @csrf
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-4">Set a reminder for <span id="reminderClientName" class="fw-bold text-dark"></span></p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Reminder Date & Time</label>
+                        <input type="datetime-local" name="reminder_date" class="form-control border-light bg-light rounded-3 shadow-none" required>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Notes</label>
+                        <textarea name="notes" class="form-control border-light bg-light rounded-3 shadow-none" rows="3" placeholder="What should we remind you about?"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-3 px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-3 px-4" style="background: #6366f1; border: none;">Save Reminder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     body { background-color: #fcfcfd; }
     .avatar-circle {
@@ -276,5 +344,43 @@
     .pagination-custom .page-item.active .page-link { color: #6366f1; font-weight: bold; background: #f5f3ff; border-radius: 8px; }
     .avatar-sm { box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .dropdown-item:active { background-color: #6366f1; }
+
+    @keyframes bell-ring {
+        0%, 100% { transform: rotate(0); }
+        10%, 30%, 50%, 70%, 90% { transform: rotate(10deg); }
+        20%, 40%, 60%, 80% { transform: rotate(-10deg); }
+    }
+    .btn-notification-animate:hover i {
+        animation: bell-ring 1s ease-in-out infinite;
+    }
+    .animate__animated.animate__fadeIn {
+        animation-duration: 0.5s;
+    }
 </style>
+
+<script>
+function openReminderModal(id, name) {
+    const modal = new bootstrap.Modal(document.getElementById('reminderModal'));
+    const form = document.getElementById('reminderForm');
+    document.getElementById('reminderClientName').textContent = name;
+    form.action = `/cheques/${id}/reminder`;
+    modal.show();
+}
+
+function confirmDelete(id, formId) {
+    Swal.fire({
+        title: 'Delete Cheque?',
+        text: "This action cannot be undone!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById(formId).submit();
+        }
+    })
+}
+</script>
 @endsection

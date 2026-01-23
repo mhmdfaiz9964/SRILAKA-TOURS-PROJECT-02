@@ -21,4 +21,9 @@ class Cheque extends Model
     {
         return $this->hasMany(Payment::class);
     }
+
+    public function reminders()
+    {
+        return $this->hasMany(Reminder::class);
+    }
 }

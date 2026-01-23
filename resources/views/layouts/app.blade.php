@@ -19,6 +19,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <style>
         .toast-container {
@@ -31,18 +32,16 @@
 
     <style>
         :root {
-            --sidebar-width: 280px;
-            --primary-color: #6366f1;
-            --primary-light: #eef2ff;
-            --bg-light: #f9fafb;
-            --text-dark: #111827;
-            --text-muted: #6b7280;
-            --sidebar-bg: #ffffff;
-            --sidebar-hover: #f3f4f6;
-            --sidebar-active: #eef2ff;
-            --sidebar-active-text: #6366f1;
-            --border-color: #f3f4f6;
-            --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --sidebar-width: 260px;
+            --primary-color: #5551FF;
+            --primary-light: #EEF2FF;
+            --bg-light: #F8F9FA;
+            --text-dark: #1A1D1F;
+            --text-muted: #6F767E;
+            --sidebar-bg: #FFFFFF;
+            --sidebar-hover: #F4F4F4;
+            --sidebar-active: #F4F4F4;
+            --border-color: #EFEFEF;
         }
 
         body {
@@ -51,12 +50,6 @@
             margin: 0;
             padding: 0;
             color: var(--text-dark);
-            overflow-x: hidden;
-        }
-
-        #app {
-            display: flex;
-            min-height: 100vh;
         }
 
         /* Sidebar Styling */
@@ -69,21 +62,20 @@
             position: fixed;
             height: 100vh;
             z-index: 1000;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-header {
-            padding: 24px;
+            padding: 20px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            cursor: pointer;
         }
 
         .logo-section {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .logo-box {
@@ -96,43 +88,28 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 14px;
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
         }
 
         .brand-name {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--text-dark);
-            letter-spacing: -0.025em;
+            line-height: 1.2;
         }
 
-        .sidebar-actions {
-            padding: 0 24px 16px;
-        }
-
-        .btn-add-new {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            background: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-weight: 600;
-            color: var(--text-dark);
-            transition: all 0.2s;
-            text-decoration: none;
-            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-        }
-
-        .btn-add-new:hover {
-            background: var(--sidebar-hover);
+        .brand-plan {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
         .sidebar-search {
-            padding: 0 24px 20px;
+            padding: 0 16px 16px;
         }
 
         .search-wrapper {
@@ -145,51 +122,72 @@
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .search-input {
             width: 100%;
-            padding: 8px 12px 8px 36px;
-            background: #fdfdfd;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
+            padding: 8px 36px 8px 36px;
+            background: #F4F4F4;
+            border: 1px solid transparent;
+            border-radius: 10px;
             font-size: 0.9rem;
             outline: none;
-            transition: border-color 0.2s;
         }
 
-        .search-input:focus {
-            border-color: var(--primary-color);
+        .search-hint {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9A9FA5;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #fff;
+            padding: 1px 4px;
+            border-radius: 4px;
+            border: 1px solid #EFEFEF;
         }
 
         .sidebar-menu {
             flex-grow: 1;
-            padding: 0 12px 20px;
+            padding: 8px 12px;
             overflow-y: auto;
         }
 
-        .menu-label {
-            padding: 20px 12px 8px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .menu-item {
-            padding: 10px 12px;
+        .menu-label-wrapper {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            color: var(--text-muted);
+            padding: 16px 12px 8px;
+        }
+
+        .menu-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #9A9FA5;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
+        .menu-label-plus {
+            color: #9A9FA5;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .menu-item {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #1A1D1F;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.2s;
-            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 10px;
             margin-bottom: 2px;
+            transition: all 0.2s;
         }
 
         .menu-item-content {
@@ -202,79 +200,74 @@
             font-size: 1rem;
             width: 20px;
             text-align: center;
-            color: #000;
+            color: #1A1D1F;
+        }
+
+        .menu-item-hint {
+            font-size: 0.75rem;
+            color: #9A9FA5;
+            font-weight: 500;
         }
 
         .menu-item:hover {
             background: var(--sidebar-hover);
-            color: var(--text-dark);
         }
 
         .menu-item.active {
             background: var(--sidebar-active);
-            color: var(--primary-color);
-        }
-
-        .badge {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 6px;
         }
 
         .sidebar-footer {
-            padding: 16px 24px;
+            padding: 16px;
             border-top: 1px solid var(--border-color);
-            background: #fff;
         }
 
         .user-profile {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-profile:hover {
+            background: var(--sidebar-hover);
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .avatar-box {
-            position: relative;
+            gap: 10px;
         }
 
         .user-avatar {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
-            background: var(--primary-light);
+            background: #FFD2D2;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--primary-color);
-            font-weight: 700;
-            border: 1px solid #e0e7ff;
+            overflow: hidden;
         }
 
-        .status-dot {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 10px;
-            height: 10px;
-            background: #10b981;
-            border: 2px solid white;
-            border-radius: 50%;
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-details {
             display: flex;
             flex-direction: column;
+            line-height: 1.2;
         }
 
         .user-name {
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 0.85rem;
+            font-weight: 700;
             color: var(--text-dark);
         }
 
@@ -282,6 +275,13 @@
             font-size: 0.75rem;
             color: var(--text-muted);
         }
+
+        .profile-chevron {
+            color: #9A9FA5;
+            font-size: 0.8rem;
+        }
+
+        .hover-bg-light:hover { background-color: #f8fafc; transition: background 0.2s; }
 
         /* Main Content Styling */
         .main-content {
@@ -370,33 +370,33 @@
             <div class="sidebar-header">
                 <div class="logo-section">
                     <div class="logo-box">AP</div>
-                    <div class="brand-name">APEX CRM</div>
+                    <div class="brand-info">
+                        <span class="brand-name">Apex CRM</span>
+                        <span class="brand-plan">Enterprise Plan</span>
+                    </div>
                 </div>
-                <button class="btn btn-sm text-muted">
-                    <i class="fa-solid fa-square-poll-vertical"></i>
-                </button>
-            </div>
-
-            <div class="sidebar-actions">
-                <a href="#" class="btn-add-new">
-                    <i class="fa-solid fa-plus"></i>
-                    <span>Add New</span>
-                </a>
+                <i class="fa-solid fa-chevron-up-down profile-chevron"></i>
             </div>
 
             <div class="sidebar-search">
                 <div class="search-wrapper">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" class="search-input" placeholder="Search...">
+                    <input type="text" class="search-input" placeholder="Search">
+                    <span class="search-hint">⌘1</span>
                 </div>
             </div>
 
             <div class="sidebar-menu">
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">Main</span>
+                </div>
+                
                 <a href="{{ route('home') }}" class="menu-item {{ request()->routeIs('home') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-house"></i>
                         <span>Dashboard</span>
                     </div>
+                    <span class="menu-item-hint">⌘2</span>
                 </a>
 
                 <a href="{{ route('users.index') }}" class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
@@ -404,26 +404,32 @@
                         <i class="fa-solid fa-user-gear"></i>
                         <span>Users</span>
                     </div>
+                    <span class="menu-item-hint">⌘3</span>
                 </a>
+
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">Finance</span>
+                    <i class="fa-solid fa-plus menu-label-plus"></i>
+                </div>
 
                 <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.index') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-money-check-dollar"></i>
-                        <span>Cheque Management</span>
+                        <span>RTN Cheque</span>
                     </div>
                 </a>
 
                 <a href="{{ route('cheques.payment') }}" class="menu-item {{ request()->routeIs('cheques.payment') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-clock-rotate-left"></i>
-                        <span>Payment Cheques</span>
+                        <span>Payment BY Cheque</span>
                     </div>
                 </a>
 
                 <a href="{{ route('cheques.paid') }}" class="menu-item {{ request()->routeIs('cheques.paid') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-circle-check"></i>
-                        <span>Paid Cheques</span>
+                        <span>Completed Cheque</span>
                     </div>
                 </a>
 
@@ -434,12 +440,10 @@
                     </div>
                 </a>
 
-                <a href="{{ route('system.index') }}" class="menu-item {{ request()->routeIs('system.*') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-microchip"></i>
-                        <span>System</span>
-                    </div>
-                </a>
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">Management</span>
+                    <i class="fa-solid fa-plus menu-label-plus"></i>
+                </div>
 
                 <a href="#" class="menu-item">
                     <div class="menu-item-content">
@@ -455,28 +459,17 @@
                     </div>
                 </a>
 
-                <a href="#" class="menu-item">
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">System</span>
+                </div>
+
+                <a href="{{ route('system.index') }}" class="menu-item {{ request()->routeIs('system.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
-                        <i class="fa-solid fa-truck-field"></i>
-                        <span>Supplier</span>
+                        <i class="fa-solid fa-microchip"></i>
+                        <span>System Settings</span>
                     </div>
                 </a>
-
-                <a href="#" class="menu-item">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-user-tag"></i>
-                        <span>Customer</span>
-                    </div>
-                </a>
-
-                <a href="#" class="menu-item">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <span>Stage</span>
-                    </div>
-                </a>
-
-                <div class="menu-label">System</div>
+                
                 <a href="javascript:void(0)" onclick="updateSystem()" class="menu-item">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-rotate"></i>
@@ -486,24 +479,17 @@
             </div>
 
             <div class="sidebar-footer">
-                <div class="user-profile">
+                <div class="user-profile" onclick="confirmLogout()">
                     <div class="user-info">
-                        <div class="avatar-box">
-                            <div class="user-avatar">
-                                {{ substr(Auth::user()->name, 0, 1) }}
-                            </div>
-                            <div class="status-dot"></div>
+                        <div class="user-avatar text-white fw-bold" style="background: #FF6A6A;">
+                            {{ substr(Auth::user()->name, 0, 1) }}
                         </div>
                         <div class="user-details">
                             <span class="user-name">{{ Auth::user()->name }}</span>
                             <span class="user-email">Pro Member</span>
                         </div>
                     </div>
-                    <a href="javascript:void(0)" 
-                       class="text-muted"
-                       onclick="confirmLogout()">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </a>
+                    <i class="fa-solid fa-chevron-up-down profile-chevron"></i>
                 </div>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                     @csrf
@@ -529,7 +515,60 @@
                         <input type="text" placeholder="Search in items...">
                     </div>
                     <div class="d-flex align-items-center gap-3">
-                        <i class="fa-regular fa-bell text-black cursor-pointer"></i>
+                        <div class="dropdown">
+                            <div class="position-relative cursor-pointer" data-bs-toggle="dropdown">
+                                <i class="fa-regular fa-bell text-black" style="font-size: 1.1rem;"></i>
+                                @if(isset($reminderCount) && $reminderCount > 0)
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.5rem; padding: 0.25rem 0.4rem;">
+                                        {{ $reminderCount }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-0 mt-2" style="width: 300px;">
+                                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 fw-bold">Notifications</h6>
+                                    @if(isset($reminderCount) && $reminderCount > 0)
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill small">{{ $reminderCount }} New</span>
+                                    @endif
+                                </div>
+                                <div class="notification-list" style="max-height: 300px; overflow-y: auto;">
+                                    @if(isset($dueReminders) && $dueReminders->count() > 0)
+                                        @foreach($dueReminders as $reminder)
+                                            <div class="p-3 border-bottom hover-bg-light cursor-pointer">
+                                                <div class="d-flex gap-2">
+                                                    <div class="flex-shrink-0">
+                                                        <div class="rounded-circle bg-primary-subtle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                            <i class="fa-solid fa-clock text-primary small"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex justify-content-between align-items-start">
+                                                            <div class="small fw-bold text-dark">{{ $reminder->cheque->payer_name ?? 'Cheque' }}</div>
+                                                            <form action="{{ route('reminders.complete', $reminder) }}" method="POST">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-sm btn-icon border-0 text-success p-0 shadow-none" title="Mark as Completed">
+                                                                    <i class="fa-solid fa-circle-check"></i>
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                        <div class="text-muted small text-truncate" style="max-width: 180px;">{{ $reminder->notes }}</div>
+                                                        <div class="text-primary mt-1" style="font-size: 0.65rem;">{{ \Carbon\Carbon::parse($reminder->reminder_date)->format('H:i A') }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="p-4 text-center text-muted small">
+                                            <i class="fa-regular fa-bell-slash d-block mb-2 fs-4"></i>
+                                            No reminders for today
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="p-2 text-center border-top">
+                                    <a href="#" class="text-primary small fw-bold text-decoration-none">View All Notifications</a>
+                                </div>
+                            </div>
+                        </div>
                         <i class="fa-regular fa-comment-dots text-black cursor-pointer"></i>
                     </div>
                 </div>

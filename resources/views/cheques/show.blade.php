@@ -10,8 +10,8 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('cheques.index') }}" class="btn btn-light btn-sm px-3 border-light">Back to List</a>
-                <button class="btn btn-outline-secondary btn-sm bg-white border-light shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#updateThirdPartyModal">
-                    <i class="fa-solid fa-pen-to-square me-1"></i> Update 3rd Party Status
+                <button class="btn btn-warning btn-sm text-white px-3 shadow-sm border-0 d-flex align-items-center gap-2" style="background: #f97316;" data-bs-toggle="modal" data-bs-target="#updateThirdPartyModal">
+                    <i class="fa-solid fa-user-tag"></i> Update 3rd Party Status
                 </button>
                 @if($cheque->payment_status != 'paid')
                     <button class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;" data-bs-toggle="modal" data-bs-target="#addPaymentModal">

@@ -7,6 +7,10 @@ use App\Models\Cheque;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ChequesExport;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Reminder;
 
 class ChequeController extends Controller
 {
@@ -17,11 +21,13 @@ class ChequeController extends Controller
         $this->applySorting($query, $request);
 
         $cheques = $query->paginate(10)->withQueryString();
+        $total_balance = $query->get()->sum(fn($c) => $c->amount - ($c->payments_sum_amount ?? 0));
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
 
-        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties'));
+        $page_title = 'RTN Cheque';
+        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties', 'total_balance', 'page_title'));
     }
 
     public function paymentCheques(Request $request)
@@ -31,11 +37,12 @@ class ChequeController extends Controller
         $this->applySorting($query, $request);
 
         $cheques = $query->paginate(10)->withQueryString();
+        $total_balance = $query->get()->sum(fn($c) => $c->amount - ($c->payments_sum_amount ?? 0));
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
 
-        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties'))->with('page_title', 'Payment Cheques');
+        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties', 'total_balance'))->with('page_title', 'Payment Cheques');
     }
 
     public function paidCheques(Request $request)
@@ -45,11 +52,41 @@ class ChequeController extends Controller
         $this->applySorting($query, $request);
 
         $cheques = $query->paginate(10)->withQueryString();
+        $total_balance = $query->get()->sum(fn($c) => $c->amount - ($c->payments_sum_amount ?? 0));
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
 
-        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties'))->with('page_title', 'Paid Cheques');
+        return view('cheques.index', compact('cheques', 'banks', 'payers', 'third_parties', 'total_balance'))->with('page_title', 'Paid Cheques');
+    }
+
+    public function export(Request $request)
+    {
+        $format = $request->get('format', 'excel');
+        $query = Cheque::with(['bank'])->withSum('payments', 'amount');
+        
+        // Context-aware export based on the current view
+        if ($request->has('view')) {
+            if ($request->view == 'payment') {
+                $query->whereHas('payments')->where('payment_status', '!=', 'paid');
+            } elseif ($request->view == 'paid') {
+                $query->where('payment_status', 'paid');
+            } else {
+                $query->where('payment_status', '!=', 'paid');
+            }
+        }
+
+        $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
+        
+        $cheques = $query->get();
+
+        if ($format == 'pdf') {
+            $pdf = Pdf::loadView('cheques.pdf', compact('cheques'));
+            return $pdf->download('cheques_report_' . now()->format('YmdHis') . '.pdf');
+        }
+
+        return Excel::download(new ChequesExport($cheques), 'cheques_export_' . now()->format('YmdHis') . '.xlsx');
     }
 
     private function applyFilters($query, $request)
@@ -196,5 +233,27 @@ class ChequeController extends Controller
     {
         $cheque->delete();
         return redirect()->route('cheques.index')->with('success', 'Cheque deleted successfully');
+    }
+
+    public function storeReminder(Request $request, Cheque $cheque)
+    {
+        $request->validate([
+            'reminder_date' => 'required|date',
+            'notes' => 'nullable|string'
+        ]);
+
+        Reminder::create([
+            'cheque_id' => $cheque->id,
+            'reminder_date' => $request->reminder_date,
+            'notes' => $request->notes
+        ]);
+
+        return back()->with('success', 'Reminder set successfully');
+    }
+
+    public function completeReminder(Reminder $reminder)
+    {
+        $reminder->update(['is_read' => true]);
+        return back()->with('success', 'Reminder marked as completed');
     }
 }
