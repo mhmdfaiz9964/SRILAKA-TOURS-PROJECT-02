@@ -57,9 +57,12 @@ class InChequeController extends Controller
             }
         }
 
-        // Single date filter (cheque_date)
-        if ($request->cheque_date) {
-            $query->whereDate('cheque_date', $request->cheque_date);
+        // Date range filter
+        if ($request->from_date) {
+            $query->whereDate('cheque_date', '>=', $request->from_date);
+        }
+        if ($request->to_date) {
+            $query->whereDate('cheque_date', '<=', $request->to_date);
         }
 
         $cheques = $query->latest()->paginate(10)->withQueryString();

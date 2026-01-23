@@ -87,8 +87,10 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted mb-1">Cheque Date</label>
-                    <input type="date" name="cheque_date" value="{{ request('cheque_date') }}" class="form-control form-control-sm border-light rounded-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Cheque Date Range</label>
+                    <input type="text" id="daterange-out" class="form-control form-control-sm border-light rounded-3" placeholder="Select date range..." readonly>
+                    <input type="hidden" name="from_date" id="from_date_out" value="{{ request('from_date') }}">
+                    <input type="hidden" name="to_date" id="to_date_out" value="{{ request('to_date') }}">
                 </div>
                 <div class="col-md-2">
                     <div class="d-flex gap-2">
@@ -105,6 +107,47 @@
                 </div>
             </form>
         </div>
+
+        <script>
+        $(function() {
+            var start = moment('{{ request("from_date") }}' || null);
+            var end = moment('{{ request("to_date") }}' || null);
+
+            function cb(start, end) {
+                if (start.isValid() && end.isValid()) {
+                    $('#daterange-out').val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+                    $('#from_date_out').val(start.format('YYYY-MM-DD'));
+                    $('#to_date_out').val(end.format('YYYY-MM-DD'));
+                } else {
+                    $('#daterange-out').val('');
+                    $('#from_date_out').val('');
+                    $('#to_date_out').val('');
+                }
+            }
+
+            $('#daterange-out').daterangepicker({
+                autoUpdateInput: false,
+                locale: {
+                    cancelLabel: 'Clear',
+                    format: 'DD/MM/YYYY'
+                }
+            });
+
+            $('#daterange-out').on('apply.daterangepicker', function(ev, picker) {
+                cb(picker.startDate, picker.endDate);
+            });
+
+            $('#daterange-out').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+                $('#from_date_out').val('');
+                $('#to_date_out').val('');
+            });
+
+            @if(request('from_date') && request('to_date'))
+                cb(start, end);
+            @endif
+        });
+        </script>
 
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
