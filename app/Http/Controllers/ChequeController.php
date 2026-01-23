@@ -12,10 +12,11 @@ class ChequeController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Cheque::with(['bank'])->where('payment_status', '!=', 'paid');
+        $query = Cheque::with(['bank'])->withSum('payments', 'amount')->where('payment_status', '!=', 'paid');
         $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
 
-        $cheques = $query->latest()->paginate(10);
+        $cheques = $query->paginate(10)->withQueryString();
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
@@ -25,10 +26,11 @@ class ChequeController extends Controller
 
     public function paymentCheques(Request $request)
     {
-        $query = Cheque::with(['bank'])->whereHas('payments')->where('payment_status', '!=', 'paid');
+        $query = Cheque::with(['bank'])->withSum('payments', 'amount')->whereHas('payments')->where('payment_status', '!=', 'paid');
         $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
 
-        $cheques = $query->latest()->paginate(10);
+        $cheques = $query->paginate(10)->withQueryString();
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
@@ -38,10 +40,11 @@ class ChequeController extends Controller
 
     public function paidCheques(Request $request)
     {
-        $query = Cheque::with(['bank'])->where('payment_status', 'paid');
+        $query = Cheque::with(['bank'])->withSum('payments', 'amount')->where('payment_status', 'paid');
         $this->applyFilters($query, $request);
+        $this->applySorting($query, $request);
 
-        $cheques = $query->latest()->paginate(10);
+        $cheques = $query->paginate(10)->withQueryString();
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
@@ -64,7 +67,35 @@ class ChequeController extends Controller
             $query->whereBetween('cheque_date', [$request->start_date, $request->end_date]);
         }
         if ($request->search) {
-            $query->where('cheque_number', 'like', "%{$request->search}%");
+            $query->where(function($q) use ($request) {
+                $q->where('cheque_number', 'like', "%{$request->search}%")
+                  ->orWhere('payer_name', 'like', "%{$request->search}%")
+                  ->orWhere('payee_name', 'like', "%{$request->search}%");
+            });
+        }
+    }
+
+    private function applySorting($query, $request)
+    {
+        $sort = $request->get('sort', 'latest');
+        
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('cheque_date', 'asc');
+                break;
+            case 'amount_high':
+                $query->orderBy('amount', 'desc');
+                break;
+            case 'amount_low':
+                $query->orderBy('amount', 'asc');
+                break;
+            case 'name_asc':
+                $query->orderBy('payer_name', 'asc');
+                break;
+            case 'latest':
+            default:
+                $query->latest();
+                break;
         }
     }
 
