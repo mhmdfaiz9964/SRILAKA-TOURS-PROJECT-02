@@ -159,75 +159,136 @@
         </script>
 
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr class="bg-light bg-opacity-10 border-bottom">
-                        <th class="ps-4 py-3 text-muted small text-uppercase">Type</th>
-                        <th class="py-3 text-muted small text-uppercase">Cheq Date</th>
-                        <th class="py-3 text-muted small text-uppercase">Cheq #</th>
-                        <th class="py-3 text-muted small text-uppercase">Bank</th>
-                        <th class="py-3 text-muted small text-uppercase">Payer Name</th>
-                        <th class="py-3 text-muted small text-uppercase text-end">Amount</th>
-                        <th class="py-3 text-muted small text-uppercase text-center">Status</th>
-                        <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($cheques as $cheque)
-                    <tr>
-                        <td class="ps-4">
-                            <span class="badge rounded-pill px-2 py-1" style="background: #eff6ff; color: #3b82f6; font-size: 0.65rem;">
-                                IN
-                            </span>
-                        </td>
-                        <td class="small text-muted">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
-                        <td class="small fw-bold">#{{ $cheque->cheque_number }}</td>
-                        <td class="small">{{ $cheque->bank->name }}</td>
-                        <td class="small fw-bold text-dark">{{ $cheque->payer_name }}</td>
-                        <td class="small fw-bold text-end">LKR {{ number_format($cheque->amount, 2) }}</td>
-                        <td class="text-center">
-                            @php
-                                $statusColors = [
-                                    'received' => ['bg' => '#fffbeb', 'text' => '#f59e0b', 'label' => 'Hand'],
-                                    'deposited' => ['bg' => '#eff6ff', 'text' => '#3b82f6', 'label' => 'Deposited'],
-                                    'transferred_to_third_party' => ['bg' => '#f5f3ff', 'text' => '#8b5cf6', 'label' => 'Transferred'],
-                                    'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Realized'],
-                                    'returned' => ['bg' => '#fef2f2', 'text' => '#ef4444', 'label' => 'Returned'],
-                                ];
-                                $st = $statusColors[$cheque->status] ?? ['bg' => '#eee', 'text' => '#666', 'label' => $cheque->status];
-                            @endphp
-                            <span class="badge rounded-pill px-2 py-1" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
-                                {{ $st['label'] }}
-                            </span>
-                        </td>
-                        <td class="text-end pe-4">
-                            <div class="d-flex justify-content-end gap-1">
-                                <a href="{{ route('in-cheques.edit', $in_cheque = $cheque) }}" class="btn btn-sm btn-icon border-0 text-dark shadow-none">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <form action="{{ route('in-cheques.destroy', $cheque) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-icon border-0 text-danger shadow-none">
+            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
+                @csrf
+                <div class="p-2 border-bottom bg-light d-flex gap-2" id="bulkActions" style="display:none !important;">
+                    <select name="status" class="form-select form-select-sm" style="width: 150px;" id="bulkStatusSelect" required>
+                        <option value="">Select Action</option>
+                        <option value="deposited">Mark Deposited</option>
+                        <option value="realized">Mark Realized</option>
+                        <option value="returned">Mark Returned</option>
+                        <option value="third_party">Transfer to 3rd Party</option>
+                    </select>
+                    <input type="text" name="third_party_name" id="bulkThirdPartyName" class="form-control form-control-sm d-none" placeholder="3rd Party Name" style="width: 200px;">
+                    <button type="submit" class="btn btn-primary btn-sm">Update Selected</button>
+                    <span class="ms-auto small text-muted align-self-center"><span id="selectedCount">0</span> selected</span>
+                </div>
+
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="bg-light bg-opacity-10 border-bottom">
+                            <th class="ps-4 py-3" style="width: 40px;"><input type="checkbox" id="selectAll"></th>
+                            <th class="py-3 text-muted small text-uppercase">Type</th>
+                            <th class="py-3 text-muted small text-uppercase">Cheq Date</th>
+                            <th class="py-3 text-muted small text-uppercase">Cheq #</th>
+                            <th class="py-3 text-muted small text-uppercase">Bank</th>
+                            <th class="py-3 text-muted small text-uppercase">Payer Name</th>
+                            <th class="py-3 text-muted small text-uppercase text-end">Amount</th>
+                            <th class="py-3 text-muted small text-uppercase text-center">Status</th>
+                            <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($cheques as $cheque)
+                        <tr>
+                            <td class="ps-4"><input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox"></td>
+                            <td>
+                                <span class="badge rounded-pill px-2 py-1" style="background: #eff6ff; color: #3b82f6; font-size: 0.65rem;">
+                                    IN
+                                </span>
+                            </td>
+                            <td class="small text-muted">{{ \Carbon\Carbon::parse($cheque->cheque_date)->format('d/m/Y') }}</td>
+                            <td class="small fw-bold">#{{ $cheque->cheque_number }}</td>
+                            <td class="small">{{ $cheque->bank->name }}</td>
+                            <td class="small fw-bold text-dark">{{ $cheque->payer_name }}</td>
+                            <td class="small fw-bold text-end">LKR {{ number_format($cheque->amount, 2) }}</td>
+                            <td class="text-center">
+                                @php
+                                    $statusColors = [
+                                        'received' => ['bg' => '#fffbeb', 'text' => '#f59e0b', 'label' => 'Hand'],
+                                        'deposited' => ['bg' => '#eff6ff', 'text' => '#3b82f6', 'label' => 'Deposited'],
+                                        'transferred_to_third_party' => ['bg' => '#f5f3ff', 'text' => '#8b5cf6', 'label' => 'Transferred'],
+                                        'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Realized'],
+                                        'returned' => ['bg' => '#fef2f2', 'text' => '#ef4444', 'label' => 'Returned'],
+                                    ];
+                                    $st = $statusColors[$cheque->status] ?? ['bg' => '#eee', 'text' => '#666', 'label' => $cheque->status];
+                                @endphp
+                                <span class="badge rounded-pill px-2 py-1" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
+                                    {{ $st['label'] }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="{{ route('in-cheques.edit', $in_cheque = $cheque) }}" class="btn btn-sm btn-icon border-0 text-dark shadow-none">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-icon border-0 text-danger shadow-none" onclick="confirmDeleteCheque('{{ route('in-cheques.destroy', $cheque) }}')">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center py-5 text-muted small">No records found.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted small">No records found.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </form>
         </div>
         <div class="p-4 border-top">
             {{ $cheques->links() }}
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.cheque-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateBulkActions();
+    });
+
+    document.querySelectorAll('.cheque-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateBulkActions);
+    });
+
+    function updateBulkActions() {
+        const checkedCount = document.querySelectorAll('.cheque-checkbox:checked').length;
+        const bulkActions = document.getElementById('bulkActions');
+        document.getElementById('selectedCount').innerText = checkedCount;
+        if(checkedCount > 0) {
+            bulkActions.style.display = 'flex';
+            bulkActions.style.setProperty('display', 'flex', 'important');
+        } else {
+            bulkActions.style.display = 'none';
+            bulkActions.style.setProperty('display', 'none', 'important');
+        }
+    }
+
+    document.getElementById('bulkStatusSelect').addEventListener('change', function() {
+        const thirdPartyInput = document.getElementById('bulkThirdPartyName');
+        if(this.value === 'third_party') {
+            thirdPartyInput.classList.remove('d-none');
+            thirdPartyInput.required = true;
+        } else {
+            thirdPartyInput.classList.add('d-none');
+            thirdPartyInput.required = false;
+        }
+    });
+
+    function confirmDeleteCheque(url) {
+        if(confirm('Delete this record?')) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.innerHTML = '@csrf @method("DELETE")';
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
 
 <style>
     .card-stat { transition: all 0.2s ease-in-out; border: 1px solid transparent !important; }
