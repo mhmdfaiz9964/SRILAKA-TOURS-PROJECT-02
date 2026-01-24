@@ -25,8 +25,10 @@ class InvestorController extends Controller
 
         $investors = $query->latest()->paginate(10)->withQueryString();
         $total_invested = Investor::sum('invest_amount');
+        $active_investment = Investor::where('status', 'active')->sum('invest_amount');
+        $total_paid_profit = Investor::sum('paid_profit');
         
-        return view('investors.index', compact('investors', 'total_invested'));
+        return view('investors.index', compact('investors', 'total_invested', 'active_investment', 'total_paid_profit'));
     }
 
     public function create()

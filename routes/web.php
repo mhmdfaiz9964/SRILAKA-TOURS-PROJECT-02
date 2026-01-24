@@ -41,6 +41,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/cheques/{cheque}/add-payment', [App\Http\Controllers\ChequeController::class, 'addPayment'])->name('cheques.add-payment');
     Route::post('/cheques/{cheque}/update-third-party', [App\Http\Controllers\ChequeController::class, 'updateThirdPartyStatus'])->name('cheques.update-third-party');
     
+    Route::resource('categories', App\Http\Controllers\CategoryController::class);
+    Route::resource('products', App\Http\Controllers\ProductController::class);
+    Route::resource('customers', App\Http\Controllers\CustomerController::class);
+    Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
+    Route::resource('sales', App\Http\Controllers\SaleController::class);
+    Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
+    
     Route::post('/cheque-reasons', [App\Http\Controllers\ChequeReasonController::class, 'store'])->name('cheque-reasons.store');
     Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
     Route::get('/system', [App\Http\Controllers\SystemController::class, 'index'])->name('system.index');

@@ -13,6 +13,7 @@ class Investor extends Model
         'paid_profit',
         'collect_date',
         'refund_date',
-        'notes'
+        'notes',
+        'status'
     ];
 }

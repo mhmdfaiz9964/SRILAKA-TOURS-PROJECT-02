@@ -486,10 +486,24 @@
                     <i class="fa-solid fa-plus menu-label-plus"></i>
                 </div>
 
-                <a href="#" class="menu-item">
+                <a href="{{ route('products.index') }}" class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-box"></i>
                         <span>Product</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('customers.index') }}" class="menu-item {{ request()->routeIs('customers.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Customer</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('suppliers.index') }}" class="menu-item {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-truck-field"></i>
+                        <span>Supplier</span>
                     </div>
                 </a>
 
@@ -497,6 +511,24 @@
                     <div class="menu-item-content">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                         <span>Investors</span>
+                    </div>
+                </a>
+
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">Transactions</span>
+                </div>
+
+                <a href="{{ route('sales.index') }}" class="menu-item {{ request()->routeIs('sales.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span>Sales</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('purchases.index') }}" class="menu-item {{ request()->routeIs('purchases.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-cart-flatbed"></i>
+                        <span>Purchases</span>
                     </div>
                 </a>
 

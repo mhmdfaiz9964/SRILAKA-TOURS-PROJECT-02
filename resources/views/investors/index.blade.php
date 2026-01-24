@@ -11,15 +11,38 @@
             </div>
             
             <!-- Summary Balance Card -->
-            <div class="d-flex align-items-center bg-white border border-primary border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3" style="background: #f5f3ff !important; min-width: 250px;">
+            <div class="d-flex align-items-center bg-white border border-primary border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3" style="background: #f5f3ff !important; min-width: 200px;">
                 <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: #6366f1; color: #fff;">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #111827; line-height: 1;">Total Invest</div>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="fw-bold text-primary" style="font-size: 0.9rem;">LKR {{ number_format($total_invested ?? 0, 2) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center bg-white border border-warning border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3" style="background: #fffbeb !important; min-width: 200px;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: #f59e0b; color: #fff;">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #111827; line-height: 1;">Pending Invest</div>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="fw-bold text-warning" style="font-size: 0.9rem;">LKR {{ number_format($active_investment ?? 0, 2) }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center bg-white border border-success border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3" style="background: #ecfdf5 !important; min-width: 200px;">
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: #10b981; color: #fff;">
                     <i class="fa-solid fa-hand-holding-dollar"></i>
                 </div>
                 <div>
-                    <div class="fw-bold" style="font-size: 1.1rem; color: #111827; line-height: 1;">Total Invested</div>
+                    <div class="fw-bold" style="font-size: 1.1rem; color: #111827; line-height: 1;">Total Paid Profit</div>
                     <div class="d-flex align-items-center gap-2 mt-1">
-                        <span class="text-muted" style="font-size: 0.75rem;">Total Value:</span>
-                        <span class="fw-bold text-primary" style="font-size: 0.9rem;">LKR {{ number_format($total_invested ?? 0, 2) }}</span>
+                         <span class="fw-bold text-success" style="font-size: 0.9rem;">LKR {{ number_format($total_paid_profit ?? 0, 2) }}</span>
                     </div>
                 </div>
             </div>
@@ -99,19 +122,27 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr class="bg-light bg-opacity-10 border-bottom">
-                        <th class="ps-4 py-3 text-muted small text-uppercase">Investor Name</th>
+                        <th class="ps-4 py-3 text-muted small text-uppercase">Status</th>
+                        <th class="py-3 text-muted small text-uppercase">Investor Name</th>
+                        <th class="py-3 text-muted small text-uppercase">Collect Date</th>
+                        <th class="py-3 text-muted small text-uppercase">Refund Date</th>
                         <th class="py-3 text-muted small text-uppercase">Invested</th>
                         <th class="py-3 text-muted small text-uppercase">Exp. Profit</th>
                         <th class="py-3 text-muted small text-uppercase">Paid Profit</th>
-                        <th class="py-3 text-muted small text-uppercase">Collect Date</th>
-                        <th class="py-3 text-muted small text-uppercase">Refund Date</th>
                         <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($investors as $investor)
                     <tr>
-                        <td class="ps-4">
+                         <td class="ps-4">
+                            @if($investor->status == 'active')
+                                <span class="badge bg-warning-subtle text-warning border border-0 px-2 py-1 rounded-pill">Pending</span>
+                            @else
+                                <span class="badge bg-success-subtle text-success border border-0 px-2 py-1 rounded-pill">Paid</span>
+                            @endif
+                        </td>
+                        <td>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #6366f1; width: 30px; height: 30px; font-size: 0.75rem;">
                                     {{ substr($investor->name, 0, 1) }}
@@ -119,11 +150,16 @@
                                 <div class="fw-bold text-dark small">{{ $investor->name }}</div>
                             </div>
                         </td>
+                         <td class="small text-muted">{{ $investor->collect_date ? \Carbon\Carbon::parse($investor->collect_date)->format('d/m/Y') : '-' }}</td>
+                        <td class="small text-muted">{{ $investor->refund_date ? \Carbon\Carbon::parse($investor->refund_date)->format('d/m/Y') : '-' }}</td>
                         <td class="small fw-bold text-nowrap">LKR {{ number_format($investor->invest_amount, 2) }}</td>
                         <td class="small text-success fw-bold text-nowrap">LKR {{ number_format($investor->expect_profit, 2) }}</td>
-                        <td class="small text-primary fw-bold text-nowrap">LKR {{ number_format($investor->paid_profit, 2) }}</td>
-                        <td class="small text-muted">{{ $investor->collect_date ? \Carbon\Carbon::parse($investor->collect_date)->format('d/m/Y') : '-' }}</td>
-                        <td class="small text-muted">{{ $investor->refund_date ? \Carbon\Carbon::parse($investor->refund_date)->format('d/m/Y') : '-' }}</td>
+                        <td class="small text-primary fw-bold text-nowrap">
+                            LKR {{ number_format($investor->paid_profit, 2) }}
+                            @if($investor->expect_profit > 0)
+                                <small class="text-muted ms-1">({{ round(($investor->paid_profit / $investor->expect_profit) * 100, 1) }}%)</small>
+                            @endif
+                        </td>
                         <td class="text-end pe-4">
                             <div class="d-flex justify-content-end gap-1">
                                 <a href="{{ route('investors.edit', $investor) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
@@ -142,7 +178,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="text-center py-5 text-muted small">No investors found.</td>
+                        <td colspan="8" class="text-center py-5 text-muted small">No investors found.</td>
                     </tr>
                     @endforelse
                 </tbody>
