@@ -120,8 +120,46 @@
 
                         <!-- Payments Tab -->
                         <div class="tab-pane fade" id="payments">
-                            <div class="alert alert-light border border-dashed text-center">
-                                <p class="mb-0 text-muted small">Payment history would be listed here.</p>
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6 class="fw-bold text-gray-800">Payment History</h6>
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                                    <i class="fa-solid fa-plus me-1"></i> Add Payment
+                                </button>
+                            </div>
+
+                             <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3 small fw-bold">Date</th>
+                                            <th class="small fw-bold">Method</th>
+                                            <th class="small fw-bold">Amount</th>
+                                            <th class="small fw-bold">Details</th>
+                                            <th class="small fw-bold">Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($customer->payments as $payment)
+                                        <tr>
+                                            <td class="ps-3 small">{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}</td>
+                                            <td class="small text-uppercase">{{ str_replace('_', ' ', $payment->payment_method) }}</td>
+                                            <td class="small fw-bold text-success">{{ number_format($payment->amount, 2) }}</td>
+                                            <td class="small text-muted">
+                                                @if($payment->payment_method == 'cheque')
+                                                    Cheque #: {{ $payment->payment_cheque_number }} ({{ $payment->bank->name ?? '-' }})
+                                                @elseif($payment->payment_method == 'bank_transfer')
+                                                    Ref: {{ $payment->reference_number }} ({{ $payment->bank->name ?? '-' }})
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td class="small">{{ $payment->notes ?? '-' }}</td>
+                                        </tr>
+                                        @empty
+                                        <tr><td colspan="5" class="text-center text-muted small py-3">No payments recorded</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -130,4 +168,113 @@
         </div>
     </div>
 </div>
+
+<!-- Add Payment Modal -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Add Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <form action="{{ route('payments.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="payable_type" value="App\Models\Customer">
+                    <input type="hidden" name="payable_id" value="{{ $customer->id }}">
+                    <input type="hidden" name="type" value="in">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" name="amount" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Payment Date</label>
+                        <input type="date" class="form-control" name="payment_date" value="{{ date('Y-m-d') }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Payment Method</label>
+                        <select class="form-select" name="payment_method" id="custPaymentMethod" onchange="toggleCustPaymentFields()">
+                            <option value="cash">Cash</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <!-- Cheque Details -->
+                    <div id="custChequeFields" class="d-none border rounded p-3 bg-light mb-3">
+                        <h6 class="small fw-bold mb-2">Cheque Information</h6>
+                        <div class="mb-2">
+                            <label class="small text-muted">Cheque Number</label>
+                            <input type="text" class="form-control form-control-sm" name="payment_cheque_number">
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted">Bank</label>
+                            @php $banks = \App\Models\Bank::all(); @endphp
+                            <select class="form-select form-select-sm" name="bank_id">
+                                <option value="">Select Bank</option>
+                                @foreach($banks as $bank)
+                                    <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                         <div class="mb-2">
+                            <label class="small text-muted">Cheque Date</label>
+                            <input type="date" class="form-control form-control-sm" name="payment_cheque_date">
+                        </div>
+                        <div class="mb-0">
+                            <label class="small text-muted">Payer Name</label>
+                            <input type="text" class="form-control form-control-sm" name="payer_name" value="{{ $customer->full_name }}">
+                        </div>
+                    </div>
+
+                     <!-- Bank Transfer Details -->
+                    <div id="custBankFields" class="d-none border rounded p-3 bg-light mb-3">
+                         <div class="mb-2">
+                            <label class="small text-muted">Reference Number</label>
+                            <input type="text" class="form-control form-control-sm" name="reference_number">
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted">Our Bank Account</label>
+                             <select class="form-select form-select-sm" name="payment_bank_id">
+                                <option value="">Select Bank</option>
+                                @foreach($banks as $bank)
+                                    <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                         <label class="form-label fw-bold small">Notes</label>
+                         <textarea class="form-control" name="notes" rows="2"></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill py-2">Save Payment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleCustPaymentFields() {
+        const method = document.getElementById('custPaymentMethod').value;
+        const cheque = document.getElementById('custChequeFields');
+        const bank = document.getElementById('custBankFields');
+        
+        cheque.classList.add('d-none');
+        bank.classList.add('d-none');
+        
+        if(method === 'cheque') cheque.classList.remove('d-none');
+        if(method === 'bank_transfer') bank.classList.remove('d-none');
+    }
+</script>
 @endsection

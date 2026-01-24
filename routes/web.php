@@ -40,6 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('third-party-cheques', App\Http\Controllers\ThirdPartyChequeController::class);
     Route::post('/cheques/{cheque}/add-payment', [App\Http\Controllers\ChequeController::class, 'addPayment'])->name('cheques.add-payment');
     Route::post('/cheques/{cheque}/update-third-party', [App\Http\Controllers\ChequeController::class, 'updateThirdPartyStatus'])->name('cheques.update-third-party');
+    Route::post('/cheques/bulk-update', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('cheques.bulk-update');
     
     Route::resource('categories', App\Http\Controllers\CategoryController::class);
     Route::resource('products', App\Http\Controllers\ProductController::class);

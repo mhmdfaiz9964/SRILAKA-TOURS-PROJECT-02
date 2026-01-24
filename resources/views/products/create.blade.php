@@ -19,19 +19,59 @@
                                 <h6 class="fw-bold text-muted text-uppercase small mb-3">Product Information</h6>
                             </div>
                             
+                            <!-- Category and Type -->
+                            <div class="col-12 mb-2">
+                                <div class="p-3 bg-light rounded-3">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">Category</label>
+                                            <div class="input-group">
+                                                <select class="form-select" name="category_id" id="category_id">
+                                                    <option value="">Select Category</option>
+                                                    @foreach($categories as $category)
+                                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#createCategoryModal"><i class="fa-solid fa-plus"></i></button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                             <label class="form-label fw-bold small">Product Type</label>
+                                             <div class="d-flex gap-3 mt-1">
+                                                 <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="is_main_product" id="mainProductYes" value="1" checked onchange="toggleParentProduct()">
+                                                    <label class="form-check-label small" for="mainProductYes">Main Product</label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="is_main_product" id="mainProductNo" value="0" onchange="toggleParentProduct()">
+                                                    <label class="form-check-label small" for="mainProductNo">Sub Product</label>
+                                                </div>
+                                             </div>
+                                        </div>
+                                        <div class="col-12 d-none" id="parentProductField">
+                                            <label class="form-label fw-bold small">Parent Product</label>
+                                            <select class="form-select" name="parent_product_id">
+                                                <option value="">Select Main Product</option>
+                                                @foreach($mainProducts as $mainProduct)
+                                                    <option value="{{ $mainProduct->id }}">{{ $mainProduct->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="col-md-6">
                                 <label for="name" class="form-label fw-bold small">Product Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
                                 @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
-
                             <div class="col-md-6">
                                 <label for="code" class="form-label fw-bold small">Product Code / SKU <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code') }}" required>
                                 @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
-
-                            <div class="col-md-4">
+                            <div class="col-md-12">
                                 <label for="units" class="form-label fw-bold small">Units</label>
                                 <input type="text" class="form-control @error('units') is-invalid @enderror" id="units" name="units" value="{{ old('units') }}" placeholder="e.g. Kg, Pcs">
                                 @error('units') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -81,3 +121,76 @@
     </div>
 </div>
 @endsection
+
+<!-- Create Category Modal -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Create New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createCategoryForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Category Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                         <label class="form-label fw-bold small">Code (Optional)</label>
+                        <input type="text" class="form-control" name="code">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Create Category</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleParentProduct() {
+        const isMain = document.getElementById('mainProductYes').checked;
+        const field = document.getElementById('parentProductField');
+        if(!isMain) {
+            field.classList.remove('d-none');
+        } else {
+            field.classList.add('d-none');
+        }
+    }
+
+    document.getElementById('createCategoryForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        // Add CSRF token
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch('{{ route("categories.store") }}', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // Add to select and select it
+                const select = document.getElementById('category_id');
+                const option = new Option(data.category.name, data.category.id);
+                select.add(option, undefined);
+                select.value = data.category.id;
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createCategoryModal'));
+                modal.hide();
+                this.reset();
+            } else {
+                alert('Error creating category');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>

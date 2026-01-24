@@ -20,11 +20,22 @@
     <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
         <div class="card-header bg-white border-bottom-0 py-3 px-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-light btn-sm px-3 border-light">
-                        <i class="fa-solid fa-filter me-1 text-black"></i> Filter
-                    </button>
-                </div>
+                <form action="{{ route('products.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap flex-grow-1">
+                    <select class="form-select form-select-sm" style="width: 150px;" name="category_id" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                    <select class="form-select form-select-sm" style="width: 150px;" name="is_main_product" onchange="this.form.submit()">
+                        <option value="">All Types</option>
+                        <option value="1" {{ request('is_main_product') == '1' ? 'selected' : '' }}>Main Product</option>
+                        <option value="0" {{ request('is_main_product') == '0' ? 'selected' : '' }}>Sub Product</option>
+                    </select>
+                     <input type="text" name="search" class="form-control form-control-sm" style="width: 200px;" placeholder="Search products..." value="{{ request('search') }}">
+                     <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <a href="{{ route('products.index') }}" class="btn btn-light btn-sm"><i class="fa-solid fa-rotate"></i></a>
+                </form>
                 <div class="d-flex align-items-center gap-3">
                     <span class="text-muted small">{{ count($products) }} Results</span>
                 </div>

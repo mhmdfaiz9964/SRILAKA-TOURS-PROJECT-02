@@ -46,48 +46,221 @@
             </div>
         </div>
 
-        <!-- Purchases History -->
+        <!-- Tabs section -->
         <div class="col-md-9">
              <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white border-bottom-0 py-3 px-4">
-                    <h5 class="fw-bold mb-0">Purchase History</h5>
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <ul class="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-pill" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active rounded-pill fw-bold small" data-bs-toggle="tab" href="#purchases">
+                                <i class="fa-solid fa-cart-flatbed me-1"></i> Purchase History
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#payments">
+                                <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4 py-3 small fw-bold">Date</th>
-                                    <th class="py-3 small fw-bold">Invoice #</th>
-                                    <th class="py-3 small fw-bold">Total</th>
-                                    <th class="py-3 small fw-bold">Status</th>
-                                    <th class="text-end pe-4 py-3 small fw-bold">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($supplier->purchases as $purchase)
-                                <tr>
-                                    <td class="ps-4 small">{{ $purchase->purchase_date }}</td>
-                                    <td class="small fw-bold">{{ $purchase->invoice_number ?? '-' }}</td>
-                                    <td class="small">{{ number_format($purchase->total_amount, 2) }}</td>
-                                    <td class="small">
-                                        <span class="badge bg-{{ $purchase->status == 'paid' ? 'success' : ($purchase->status == 'partial' ? 'warning' : 'danger') }}-subtle text-{{ $purchase->status == 'paid' ? 'success' : ($purchase->status == 'partial' ? 'warning' : 'danger') }} border-0">
-                                            {{ ucfirst($purchase->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <a href="{{ route('purchases.show', $purchase->id) }}" class="btn btn-sm btn-light"><i class="fa-regular fa-eye"></i></a>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr><td colspan="5" class="text-center text-muted small py-4">No purchases found</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+
+                <div class="card-body p-4">
+                    <div class="tab-content">
+                        <!-- Purchases Tab -->
+                        <div class="tab-pane fade show active" id="purchases">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3 small fw-bold">Date</th>
+                                            <th class="small fw-bold">Invoice #</th>
+                                            <th class="small fw-bold">Total</th>
+                                            <th class="small fw-bold">Status</th>
+                                            <th class="text-end pe-3 small fw-bold">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($supplier->purchases as $purchase)
+                                        <tr>
+                                            <td class="ps-3 small">{{ $purchase->purchase_date }}</td>
+                                            <td class="small fw-bold">{{ $purchase->invoice_number ?? '-' }}</td>
+                                            <td class="small">{{ number_format($purchase->total_amount, 2) }}</td>
+                                            <td class="small">
+                                                <span class="badge bg-{{ $purchase->status == 'paid' ? 'success' : ($purchase->status == 'partial' ? 'warning' : 'danger') }}-subtle text-{{ $purchase->status == 'paid' ? 'success' : ($purchase->status == 'partial' ? 'warning' : 'danger') }} border-0">
+                                                    {{ ucfirst($purchase->status) }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                <a href="{{ route('purchases.show', $purchase->id) }}" class="btn btn-sm btn-light"><i class="fa-regular fa-eye"></i></a>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr><td colspan="5" class="text-center text-muted small py-4">No purchases found</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                         <!-- Payments Tab -->
+                        <div class="tab-pane fade" id="payments">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h6 class="fw-bold text-gray-800">Payment History</h6>
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#addSupPaymentModal">
+                                    <i class="fa-solid fa-plus me-1"></i> Add Payment
+                                </button>
+                            </div>
+
+                             <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3 small fw-bold">Date</th>
+                                            <th class="small fw-bold">Method</th>
+                                            <th class="small fw-bold">Amount</th>
+                                            <th class="small fw-bold">Details</th>
+                                            <th class="small fw-bold">Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($supplier->payments as $payment)
+                                        <tr>
+                                            <td class="ps-3 small">{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}</td>
+                                            <td class="small text-uppercase">{{ str_replace('_', ' ', $payment->payment_method) }}</td>
+                                            <td class="small fw-bold text-danger">-{{ number_format($payment->amount, 2) }}</td>
+                                            <td class="small text-muted">
+                                                @if($payment->payment_method == 'cheque')
+                                                    Cheque #: {{ $payment->payment_cheque_number }} ({{ $payment->bank->name ?? '-' }})
+                                                @elseif($payment->payment_method == 'bank_transfer')
+                                                    Ref: {{ $payment->reference_number }} ({{ $payment->bank->name ?? '-' }})
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td class="small">{{ $payment->notes ?? '-' }}</td>
+                                        </tr>
+                                        @empty
+                                        <tr><td colspan="5" class="text-center text-muted small py-3">No payments recorded</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Add Supplier Payment Modal -->
+<div class="modal fade" id="addSupPaymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Add Outgoing Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <form action="{{ route('payments.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="payable_type" value="App\Models\Supplier">
+                    <input type="hidden" name="payable_id" value="{{ $supplier->id }}">
+                    <input type="hidden" name="type" value="out">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" step="0.01" class="form-control" name="amount" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Payment Date</label>
+                        <input type="date" class="form-control" name="payment_date" value="{{ date('Y-m-d') }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Payment Method</label>
+                        <select class="form-select" name="payment_method" id="supPaymentMethod" onchange="toggleSupPaymentFields()">
+                            <option value="cash">Cash</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <!-- Cheque Details -->
+                    <div id="supChequeFields" class="d-none border rounded p-3 bg-light mb-3">
+                        <h6 class="small fw-bold mb-2">Cheque Information</h6>
+                        <div class="mb-2">
+                            <label class="small text-muted">Cheque Number</label>
+                            <input type="text" class="form-control form-control-sm" name="payment_cheque_number">
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted">Bank</label>
+                            @php $banks = \App\Models\Bank::all(); @endphp
+                            <select class="form-select form-select-sm" name="bank_id">
+                                <option value="">Select Bank</option>
+                                @foreach($banks as $bank)
+                                    <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                         <div class="mb-2">
+                            <label class="small text-muted">Cheque Date</label>
+                            <input type="date" class="form-control form-control-sm" name="payment_cheque_date">
+                        </div>
+                        <div class="mb-0">
+                            <label class="small text-muted">Payee Name</label>
+                            <input type="text" class="form-control form-control-sm" name="payee_name" value="{{ $supplier->full_name }}">
+                        </div>
+                    </div>
+
+                     <!-- Bank Transfer Details -->
+                    <div id="supBankFields" class="d-none border rounded p-3 bg-light mb-3">
+                         <div class="mb-2">
+                            <label class="small text-muted">Reference Number</label>
+                            <input type="text" class="form-control form-control-sm" name="reference_number">
+                        </div>
+                        <div class="mb-2">
+                            <label class="small text-muted">Our Bank Account</label>
+                             <select class="form-select form-select-sm" name="payment_bank_id">
+                                <option value="">Select Bank</option>
+                                @foreach($banks as $bank)
+                                    <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                         <label class="form-label fw-bold small">Notes</label>
+                         <textarea class="form-control" name="notes" rows="2"></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary rounded-pill py-2">Save Payment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleSupPaymentFields() {
+        const method = document.getElementById('supPaymentMethod').value;
+        const cheque = document.getElementById('supChequeFields');
+        const bank = document.getElementById('supBankFields');
+        
+        cheque.classList.add('d-none');
+        bank.classList.add('d-none');
+        
+        if(method === 'cheque') cheque.classList.remove('d-none');
+        if(method === 'bank_transfer') bank.classList.remove('d-none');
+    }
+</script>
     </div>
 </div>
 @endsection
