@@ -119,32 +119,45 @@ class PurchaseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+         $purchase = \App\Models\Purchase::with('items.product', 'supplier')->findOrFail($id);
+         return view('purchases.show', compact('purchase'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function edit($id)
     {
-        //
+         $purchase = \App\Models\Purchase::with('items')->findOrFail($id);
+         $suppliers = \App\Models\Supplier::where('status', true)->get();
+         $products = \App\Models\Product::all();
+         $banks = \App\Models\Bank::all();
+         return view('purchases.edit', compact('purchase', 'suppliers', 'products', 'banks'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        //
+        $purchase = \App\Models\Purchase::findOrFail($id);
+        
+        $request->validate([
+            'supplier_id' => 'required',
+            'purchase_date' => 'required|date',
+        ]);
+        
+        $purchase->update([
+            'supplier_id' => $request->supplier_id,
+            'purchase_date' => $request->purchase_date,
+            'notes' => $request->notes,
+            'invoice_number' => $request->invoice_number,
+        ]);
+        
+        return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        $purchase = \App\Models\Purchase::findOrFail($id);
+        $purchase->items()->delete();
+        $purchase->delete();
+        return redirect()->route('purchases.index')->with('success', 'Purchase deleted successfully');
     }
 }

@@ -161,17 +161,34 @@
         <div class="table-responsive">
             <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
                 @csrf
-                <div class="p-2 border-bottom bg-light d-flex gap-2" id="bulkActions" style="display:none !important;">
-                    <select name="status" class="form-select form-select-sm" style="width: 150px;" id="bulkStatusSelect" required>
-                        <option value="">Select Action</option>
-                        <option value="deposited">Mark Deposited</option>
-                        <option value="realized">Mark Realized</option>
-                        <option value="returned">Mark Returned</option>
-                        <option value="third_party">Transfer to 3rd Party</option>
-                    </select>
-                    <input type="text" name="third_party_name" id="bulkThirdPartyName" class="form-control form-control-sm d-none" placeholder="3rd Party Name" style="width: 200px;">
-                    <button type="submit" class="btn btn-primary btn-sm">Update Selected</button>
-                    <span class="ms-auto small text-muted align-self-center"><span id="selectedCount">0</span> selected</span>
+                <div class="p-2 border-bottom bg-light d-flex gap-2 align-items-center" id="bulkActions" style="display:none !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="status" class="form-select form-select-sm" style="width: 160px;" id="bulkStatusSelect" required>
+                            <option value="">Select Action...</option>
+                            <option value="deposited">Mark Deposited</option>
+                            <option value="realized">Mark Realized</option>
+                            <option value="returned">Mark Returned</option>
+                            <option value="third_party">Transfer to 3rd Party</option>
+                        </select>
+                        
+                        <div id="thirdPartyContainer" class="d-none align-items-center gap-2">
+                            <select name="third_party_name" id="bulkThirdPartyName" class="form-select form-select-sm" style="width: 200px;">
+                                <option value="">Select 3rd Party</option>
+                                @php $thirdParties = \App\Models\ThirdParty::all(); @endphp
+                                @foreach($thirdParties as $tp)
+                                    <option value="{{ $tp->name }}">{{ $tp->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#createThirdPartyModal" title="Add New Third Party">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <button type="submit" id="bulkUpdateBtn" class="btn btn-primary btn-sm px-3 shadow-sm" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-check me-1"></i> Update Selected
+                        </button>
+                    </div>
+                    <span class="ms-auto small text-muted fw-bold"><span id="selectedCount" class="text-primary">0</span> records selected</span>
                 </div>
 
                 <table class="table table-hover align-middle mb-0">
@@ -235,13 +252,32 @@
                         @endforelse
                     </tbody>
                 </table>
-            </form>
+
+        <!-- Modals -->
+        <!-- Create Third Party Modal -->
+        <div class="modal fade" id="createThirdPartyModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content rounded-4 border-0">
+                    <div class="modal-header border-bottom-0">
+                        <h6 class="modal-title fw-bold">New Third Party</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-0">
+                        <form id="createThirdPartyForm">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Name</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Contact (Optional)</label>
+                                <input type="text" class="form-control" name="contact_number">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill btn-sm">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="p-4 border-top">
-            {{ $cheques->links() }}
-        </div>
-    </div>
-</div>
 
 <script>
     document.getElementById('selectAll').addEventListener('change', function() {
@@ -268,15 +304,65 @@
     }
 
     document.getElementById('bulkStatusSelect').addEventListener('change', function() {
-        const thirdPartyInput = document.getElementById('bulkThirdPartyName');
+        const container = document.getElementById('thirdPartyContainer');
+        const input = document.getElementById('bulkThirdPartyName');
+        
         if(this.value === 'third_party') {
-            thirdPartyInput.classList.remove('d-none');
-            thirdPartyInput.required = true;
+            container.classList.remove('d-none');
+            container.classList.add('d-flex');
+            input.required = true;
         } else {
-            thirdPartyInput.classList.add('d-none');
-            thirdPartyInput.required = false;
+            container.classList.add('d-none');
+            container.classList.remove('d-flex');
+            input.required = false;
         }
     });
+
+    document.getElementById('bulkUpdateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const count = document.querySelectorAll('.cheque-checkbox:checked').length;
+        Swal.fire({
+            title: 'Update ' + count + ' Cheques?',
+            text: "Are you sure you want to update the status of these records?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#6366f1',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, update them!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.submit();
+            }
+        });
+    });
+
+    document.getElementById('createThirdPartyForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch('{{ route("third-parties.store") }}', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                const select = document.getElementById('bulkThirdPartyName');
+                const option = new Option(data.third_party.name, data.third_party.name);
+                select.add(option, undefined);
+                select.value = data.third_party.name;
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createThirdPartyModal'));
+                modal.hide();
+                this.reset();
+                Swal.fire({ position: 'top-end', icon: 'success', title: 'Third Party Saved', showConfirmButton: false, timer: 1500 });
+            }
+        });
+    });
+
 
     function confirmDeleteCheque(url) {
         if(confirm('Delete this record?')) {

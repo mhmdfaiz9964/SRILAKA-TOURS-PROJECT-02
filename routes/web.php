@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('investors', App\Http\Controllers\InvestorController::class);
 
     Route::resource('in-cheques', App\Http\Controllers\InChequeController::class);
+    Route::post('/third-parties', [App\Http\Controllers\ThirdPartyController::class, 'store'])->name('third-parties.store');
     Route::resource('out-cheques', App\Http\Controllers\OutChequeController::class);
     Route::resource('third-party-cheques', App\Http\Controllers\ThirdPartyChequeController::class);
     Route::post('/cheques/{cheque}/add-payment', [App\Http\Controllers\ChequeController::class, 'addPayment'])->name('cheques.add-payment');
