@@ -536,6 +536,13 @@
                     <span class="menu-label">System</span>
                 </div>
 
+                <a href="{{ route('settings.index') }}" class="menu-item {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
+                    </div>
+                </a>
+
                 <a href="{{ route('system.index') }}" class="menu-item {{ request()->routeIs('system.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-microchip"></i>

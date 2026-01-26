@@ -23,12 +23,13 @@ class SaleController extends Controller
         $customers = \App\Models\Customer::where('status', true)->get();
         $products = \App\Models\Product::all();
         $banks = \App\Models\Bank::all();
+        $salesmen = \App\Models\User::all();
         // Calculate new invoice number (e.g., INV-0001)
         $lastSale = \App\Models\Sale::latest()->first();
         $nextId = $lastSale ? $lastSale->id + 1 : 1;
         $invoiceNumber = 'INV-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
         
-        return view('sales.create', compact('customers', 'products', 'banks', 'invoiceNumber'));
+        return view('sales.create', compact('customers', 'products', 'banks', 'invoiceNumber', 'salesmen'));
     }
 
     /**
@@ -44,6 +45,8 @@ class SaleController extends Controller
             'items.*.product_id' => 'required',
             'items.*.quantity' => 'required|numeric|min:1',
             'paid_amount' => 'nullable|numeric',
+            'transport_cost' => 'nullable|numeric',
+            'salesman_id' => 'nullable|exists:users,id',
         ]);
 
         \DB::transaction(function () use ($request) {
@@ -62,8 +65,11 @@ class SaleController extends Controller
                 'sale_date' => $request->sale_date,
                 'total_amount' => $total,
                 'discount_amount' => $request->discount_amount ?? 0,
+                'transport_cost' => $request->transport_cost ?? 0,
                 'paid_amount' => $paid,
                 'status' => $status,
+                'payment_method' => $request->payment_method,
+                'salesman_id' => $request->salesman_id,
                 'notes' => $request->notes,
             ]);
 
@@ -125,8 +131,9 @@ class SaleController extends Controller
      */
     public function show($id)
     {
-        $sale = \App\Models\Sale::with('items.product', 'customer')->findOrFail($id);
-        return view('sales.show', compact('sale'));
+        $sale = \App\Models\Sale::with('items.product', 'customer', 'salesman')->findOrFail($id);
+        $banks = \App\Models\Bank::all();
+        return view('sales.show', compact('sale', 'banks'));
     }
 
     public function edit($id)
@@ -169,8 +176,67 @@ class SaleController extends Controller
     public function destroy($id)
     {
         $sale = \App\Models\Sale::findOrFail($id);
-        $sale->items()->delete(); // Cascade ?
+        $sale->items()->delete(); 
         $sale->delete();
         return redirect()->route('sales.index')->with('success', 'Sale deleted successfully');
+    }
+
+    public function addPayment(Request $request, $id)
+    {
+        $sale = \App\Models\Sale::findOrFail($id);
+        
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required',
+            // Conditional validation for cheque
+            'cheque_number' => 'required_if:payment_method,cheque|nullable|size:6',
+            'cheque_date' => 'required_if:payment_method,cheque|nullable|date',
+            'bank_id' => 'required_if:payment_method,cheque|nullable|exists:banks,id',
+            'payer_name' => 'required_if:payment_method,cheque|nullable|string',
+        ]);
+
+        $amount = $request->amount;
+        
+        // Update Paid Amount
+        $sale->paid_amount += $amount;
+        if($sale->paid_amount >= $sale->total_amount) {
+            $sale->status = 'paid';
+        } else {
+            $sale->status = 'partial';
+        }
+        // Update method to latest
+        $sale->payment_method = $request->payment_method;
+        $sale->save();
+
+        // Handle Cheque Creation
+        $chequeId = null;
+        if($request->payment_method === 'cheque') {
+            $cheque = \App\Models\InCheque::create([
+                'cheque_date' => $request->cheque_date,
+                'amount' => $amount,
+                'cheque_number' => $request->cheque_number,
+                'bank_id' => $request->bank_id,
+                'payer_name' => $request->payer_name,
+                'status' => 'received',
+                'notes' => 'Payment for ' . $sale->invoice_number . '. ' . $request->notes,
+            ]);
+            $chequeId = $cheque->id;
+        }
+
+        // Register Payment
+        $payment = \App\Models\Payment::create([
+            'transaction_id' => $sale->id,
+            'transaction_type' => \App\Models\Sale::class,
+            'payable_id' => $sale->customer_id,
+            'payable_type' => \App\Models\Customer::class,
+            'type' => 'in',
+            'amount' => $amount,
+            'payment_date' => now(),
+            'payment_method' => $request->payment_method,
+            'cheque_id' => $chequeId,
+            'notes' => $request->notes,
+        ]);
+
+        return redirect()->back()->with('success', 'Payment added successfully');
     }
 }

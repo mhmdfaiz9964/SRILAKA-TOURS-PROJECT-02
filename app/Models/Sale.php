@@ -15,6 +15,10 @@ class Sale extends Model
         'paid_amount',
         'status',
         'notes',
+        'transport_cost',
+        'transport_cost',
+        'salesman_id',
+        'payment_method',
     ];
 
     public function customer()
@@ -25,5 +29,15 @@ class Sale extends Model
     public function items()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function salesman()
+    {
+        return $this->belongsTo(User::class, 'salesman_id');
+    }
+
+    public function payments()
+    {
+        return $this->morphMany(Payment::class, 'transaction');
     }
 }

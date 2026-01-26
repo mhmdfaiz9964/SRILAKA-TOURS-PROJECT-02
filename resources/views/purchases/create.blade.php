@@ -14,7 +14,14 @@
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">Type</label>
+                                <select class="form-select" name="purchase_type">
+                                    <option value="local">Local</option>
+                                    <option value="import">Import</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
                                 <label class="form-label fw-bold small">Supplier <span class="text-danger">*</span></label>
                                 <select class="form-select select2" name="supplier_id" required>
                                     <option value="">Select Supplier</option>
@@ -38,7 +45,7 @@
                             <table class="table table-bordered align-middle" id="itemsTable">
                                 <thead class="bg-light">
                                     <tr>
-                                        <th style="width: 40%;">Product (Select or Type New)</th>
+                                        <th style="width: 40%;">Product</th>
                                         <th style="width: 15%;">Cost Price</th>
                                         <th style="width: 10%;">Qty</th>
                                         <th style="width: 20%;">Total</th>
@@ -140,11 +147,7 @@
     </form>
 </div>
 
-<datalist id="productList">
-    @foreach($products as $product)
-        <option value="{{ $product->name }}">{{ $product->code ?? '' }}</option>
-    @endforeach
-</datalist>
+
 
 <script>
     // Embed products for price lookup if exists
@@ -155,8 +158,10 @@
         const html = `
             <tr id="row_${rowId}">
                 <td>
-                    <input type="text" class="form-control form-control-sm" list="productList" name="items[${rowId}][product_name]" onchange="checkExistingProduct(this, ${rowId})" placeholder="Search or type new...">
-                    <input type="hidden" name="items[${rowId}][existing_product_id]" id="prodId_${rowId}">
+                    <select class="form-select form-select-sm product-select" name="items[${rowId}][existing_product_id]" onchange="updateProductDetails(this, ${rowId})">
+                        <option value="">Select Product...</option>
+                        ${existingProducts.map(p => `<option value="${p.id}" data-cost="${p.cost_price}">${p.name} - ${p.code ?? ''}</option>`).join('')}
+                    </select>
                 </td>
                 <td><input type="number" step="0.01" class="form-control form-control-sm" name="items[${rowId}][cost_price]" id="price_${rowId}" oninput="calcRowTotal(${rowId})"></td>
                 <td><input type="number" step="1" class="form-control form-control-sm" name="items[${rowId}][quantity]" id="qty_${rowId}" value="1" oninput="calcRowTotal(${rowId})"></td>
@@ -170,15 +175,13 @@
         document.getElementById('productRows').insertAdjacentHTML('beforeend', html);
     }
 
-    function checkExistingProduct(input, rowId) {
-        const val = input.value;
-        const found = existingProducts.find(p => p.name === val || p.code === val);
-        if(found) {
-            document.getElementById(`prodId_${rowId}`).value = found.id;
-            document.getElementById(`price_${rowId}`).value = found.cost_price;
+    function updateProductDetails(select, rowId) {
+        const option = select.options[select.selectedIndex];
+        const cost = option.getAttribute('data-cost') || 0;
+        
+        if(cost > 0) {
+            document.getElementById(`price_${rowId}`).value = cost;
             calcRowTotal(rowId);
-        } else {
-             document.getElementById(`prodId_${rowId}`).value = ''; // New product
         }
     }
 

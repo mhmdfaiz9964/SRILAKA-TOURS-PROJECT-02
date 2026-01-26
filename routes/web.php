@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('customers', App\Http\Controllers\CustomerController::class);
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::resource('sales', App\Http\Controllers\SaleController::class);
+    Route::post('/sales/{sale}/add-payment', [App\Http\Controllers\SaleController::class, 'addPayment'])->name('sales.add-payment');
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
     
     Route::post('/cheque-reasons', [App\Http\Controllers\ChequeReasonController::class, 'store'])->name('cheque-reasons.store');
@@ -55,4 +56,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/system', [App\Http\Controllers\SystemController::class, 'index'])->name('system.index');
     Route::post('/system/update', [App\Http\Controllers\SystemController::class, 'update'])->name('system.update');
     Route::post('/system/storage-link', [App\Http\Controllers\SystemController::class, 'linkStorage'])->name('system.storage-link');
+    
+    Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
 });

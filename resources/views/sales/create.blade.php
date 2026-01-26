@@ -10,6 +10,16 @@
         @csrf
         <div class="row">
             <!-- Left Side: Invoice Details -->
+             @if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
@@ -28,7 +38,16 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Invoice Number</label>
-                                <input type="text" class="form-control" name="invoice_number" value="{{ $invoiceNumber }}" required>
+                                <input type="text" class="form-control" name="invoice_number" required placeholder="Enter Invoice No">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">Salesman</label>
+                                <select class="form-select" name="salesman_id">
+                                    <option value="">Select Salesman</option>
+                                    @foreach($salesmen as $man)
+                                        <option value="{{ $man->id }}">{{ $man->name }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Date</label>
@@ -41,11 +60,10 @@
                             <table class="table table-bordered align-middle" id="itemsTable">
                                 <thead class="bg-light">
                                     <tr>
-                                        <th style="width: 35%;">Product</th>
+                                        <th style="width: 40%;">Product</th>
                                         <th style="width: 10%;">Unit</th>
-                                        <th style="width: 15%;">Price</th>
+                                        <th style="width: 20%;">Price</th>
                                         <th style="width: 10%;">Qty</th>
-                                        <th style="width: 10%;">Disc %</th>
                                         <th style="width: 15%;">Total</th>
                                         <th style="width: 5%;"></th>
                                     </tr>
@@ -72,6 +90,10 @@
                                     <span class="fw-bold" id="subTotal">0.00</span>
                                 </div>
                                 <div class="d-flex justify-content-between mb-2 align-items-center">
+                                    <span class="text-muted fw-bold">Transport:</span>
+                                    <input type="number" step="0.01" class="form-control form-control-sm text-end w-50" name="transport_cost" id="transport_cost" value="0" oninput="calculateGrandTotal()">
+                                </div>
+                                <div class="d-flex justify-content-between mb-2 align-items-center">
                                     <span class="text-muted fw-bold">Round Discount:</span>
                                     <input type="number" step="0.01" class="form-control form-control-sm text-end w-50" name="discount_amount" id="discount_amount" value="0" oninput="calculateGrandTotal()">
                                 </div>
@@ -92,57 +114,72 @@
                     <div class="card-body p-4">
                         <h6 class="fw-bold text-uppercase text-muted small mb-3">Payment Details</h6>
                         
+                        <!-- Payment Type Toggle -->
                         <div class="mb-3">
-                            <label class="form-label fw-bold small">Payment Method</label>
-                            <select class="form-select" name="payment_method" id="paymentMethod" onchange="togglePaymentFields()">
-                                <option value="cash">Cash</option>
-                                <option value="cheque">Cheque</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="credit">Credit / Unpaid</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Amount Paid</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" step="0.01" class="form-control" name="paid_amount" id="paidAmount" value="0">
+                            <label class="form-label fw-bold small">Payment Status</label>
+                            <div class="d-flex gap-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_status_type" id="statusPaid" value="paid" checked onchange="togglePaymentFields()">
+                                    <label class="form-check-label" for="statusPaid">Cash Paid</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="payment_status_type" id="statusCredit" value="credit" onchange="togglePaymentFields()">
+                                    <label class="form-check-label" for="statusCredit">Outstanding (Credit)</label>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Cheque Details -->
-                        <div id="chequeFields" class="d-none border rounded p-3 bg-light mb-3">
-                            <h6 class="small fw-bold mb-2">Cheque Information</h6>
-                            <div class="mb-2">
-                                <label class="small text-muted">Cheque Number</label>
-                                <input type="text" class="form-control form-control-sm" name="cheque_number">
-                            </div>
-                            <div class="mb-2">
-                                <label class="small text-muted">Bank</label>
-                                <select class="form-select form-select-sm" name="bank_id">
-                                    <option value="">Select Bank</option>
-                                    @foreach($banks as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
-                                    @endforeach
+                        <div id="paymentOptions">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Payment Method</label>
+                                <select class="form-select" name="payment_method" id="paymentMethod" onchange="toggleMethodFields()">
+                                    <option value="cash">Cash</option>
+                                    <option value="cheque">Cheque</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
                                 </select>
                             </div>
-                            <div class="mb-2">
-                                <label class="small text-muted">Cheque Date</label>
-                                <input type="date" class="form-control form-control-sm" name="cheque_date">
-                            </div>
-                            <div class="mb-0">
-                                <label class="small text-muted">Payer Name</label>
-                                <input type="text" class="form-control form-control-sm" name="payer_name">
-                            </div>
-                        </div>
 
-                        <!-- Bank Transfer Details -->
-                        <div id="bankFields" class="d-none border rounded p-3 bg-light mb-3">
-                            <h6 class="small fw-bold mb-2">Transfer Information</h6>
-                            <div class="mb-2">
-                                <label class="small text-muted">Reference Number</label>
-                                <input type="text" class="form-control form-control-sm" name="transfer_ref">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small">Amount Paid</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" step="0.01" class="form-control" name="paid_amount" id="paidAmount" value="0">
+                                </div>
                             </div>
+
+                            <!-- Cheque Details -->
+                            <div id="chequeFields" class="d-none border rounded p-3 bg-light mb-3">
+                                <h6 class="small fw-bold mb-2">Cheque Information</h6>
+                                <div class="mb-2">
+                                    <label class="small text-muted">Cheque Number (6 Digits)</label>
+                                    <input type="text" class="form-control form-control-sm" name="cheque_number" maxlength="6" minlength="6" placeholder="######">
+                                </div>
+                                <div class="mb-2">
+                                    <label class="small text-muted">Bank</label>
+                                    <select class="form-select form-select-sm" name="bank_id">
+                                        <option value="">Select Bank</option>
+                                        @foreach($banks as $bank)
+                                            <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="small text-muted">Cheque Date</label>
+                                    <input type="date" class="form-control form-control-sm" name="cheque_date">
+                                </div>
+                                <div class="mb-0">
+                                    <label class="small text-muted">Payer Name</label>
+                                    <input type="text" class="form-control form-control-sm" name="payer_name">
+                                </div>
+                            </div>
+
+                            <!-- Bank Transfer Details -->
+                            <div id="bankFields" class="d-none border rounded p-3 bg-light mb-3">
+                                <h6 class="small fw-bold mb-2">Transfer Information</h6>
+                                <div class="mb-2">
+                                    <label class="small text-muted">Reference Number</label>
+                                    <input type="text" class="form-control form-control-sm" name="transfer_ref">
+                                </div>
                              <div class="mb-2">
                                 <label class="small text-muted">Bank</label>
                                 <select class="form-select form-select-sm" name="transfer_bank_id">
@@ -152,7 +189,8 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
+                            </div>
+                        </div> <!-- End Payment Options -->
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Notes</label>
@@ -160,7 +198,7 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary py-2 fw-bold" style="background: #6366f1; border: none;">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold" id="submitBtn" style="background: #6366f1; border: none;">
                                 <i class="fa-solid fa-check me-2"></i> Complete Sale
                             </button>
                         </div>
@@ -188,7 +226,6 @@
                 <td><input type="text" class="form-control form-control-sm bg-light" id="unit_${rowId}" readonly></td>
                 <td><input type="number" step="0.01" class="form-control form-control-sm" name="items[${rowId}][unit_price]" id="price_${rowId}" oninput="calcRowTotal(${rowId})"></td>
                 <td><input type="number" step="1" class="form-control form-control-sm" name="items[${rowId}][quantity]" id="qty_${rowId}" value="1" oninput="calcRowTotal(${rowId})"></td>
-                <td><input type="number" step="0.01" class="form-control form-control-sm" name="items[${rowId}][discount_percentage]" id="disc_${rowId}" value="0" oninput="calcRowTotal(${rowId})"></td>
                 <td class="text-end fw-bold" id="total_${rowId}">0.00</td>
                 <input type="hidden" name="items[${rowId}][total_price]" id="hiddenTotal_${rowId}">
                 <td class="text-center">
@@ -212,12 +249,9 @@
     function calcRowTotal(rowId) {
         const price = parseFloat(document.getElementById(`price_${rowId}`).value) || 0;
         const qty = parseFloat(document.getElementById(`qty_${rowId}`).value) || 0;
-        const disc = parseFloat(document.getElementById(`disc_${rowId}`).value) || 0;
         
+        // No discount per row
         let total = price * qty;
-        if(disc > 0) {
-            total = total - (total * (disc/100));
-        }
         
         document.getElementById(`total_${rowId}`).innerText = total.toFixed(2);
         document.getElementById(`hiddenTotal_${rowId}`).value = total.toFixed(2);
@@ -236,20 +270,50 @@
         });
         
         const roundDisc = parseFloat(document.getElementById('discount_amount').value) || 0;
-        const grandTotal = subtotal - roundDisc;
+        const transport = parseFloat(document.getElementById('transport_cost').value) || 0;
+        
+        const grandTotal = subtotal + transport - roundDisc;
         
         document.getElementById('subTotal').innerText = subtotal.toFixed(2);
         document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
         document.getElementById('hiddenTotalAmount').value = grandTotal.toFixed(2);
         
-        // Auto-fill paid amount if not "credit"
-        const method = document.getElementById('paymentMethod').value;
-        if(method !== 'credit') {
+        // Auto-fill paid amount if "Paid" status
+        const isPaid = document.getElementById('statusPaid').checked;
+        if(isPaid) {
             document.getElementById('paidAmount').value = grandTotal.toFixed(2);
+        } else {
+            document.getElementById('paidAmount').value = 0;
         }
     }
 
     function togglePaymentFields() {
+        const isPaid = document.getElementById('statusPaid').checked;
+        const options = document.getElementById('paymentOptions');
+        const btn = document.getElementById('submitBtn');
+        
+        if(isPaid) {
+            options.classList.remove('d-none');
+            // Trigger method toggle to show correct sub-fields
+            toggleMethodFields();
+            calculateGrandTotal(); // updates paid amount
+            
+            // Update button for Paid
+            btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Complete Sale';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+        } else {
+            options.classList.add('d-none');
+            document.getElementById('paidAmount').value = 0;
+            
+            // Update button for Credit
+            btn.innerHTML = '<i class="fa-solid fa-save me-2"></i> Save Invoice';
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-success');
+        }
+    }
+
+    function toggleMethodFields() {
         const method = document.getElementById('paymentMethod').value;
         const cheque = document.getElementById('chequeFields');
         const bank = document.getElementById('bankFields');
@@ -259,12 +323,6 @@
         
         if(method === 'cheque') cheque.classList.remove('d-none');
         if(method === 'bank_transfer') bank.classList.remove('d-none');
-        
-        if(method === 'credit') {
-            document.getElementById('paidAmount').value = 0;
-        } else {
-            calculateGrandTotal(); // Reset paid amount to total
-        }
     }
 
     function checkCreditLimit() {

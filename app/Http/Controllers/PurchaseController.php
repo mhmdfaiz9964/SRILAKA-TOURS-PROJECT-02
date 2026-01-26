@@ -33,6 +33,7 @@ class PurchaseController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required',
+            'purchase_type' => 'required',
             'purchase_date' => 'required|date',
             'items' => 'required|array',
             'paid_amount' => 'nullable|numeric',
@@ -50,6 +51,7 @@ class PurchaseController extends Controller
             // 2. Create Purchase
             $purchase = \App\Models\Purchase::create([
                 'supplier_id' => $request->supplier_id,
+                'purchase_type' => $request->purchase_type,
                 'invoice_number' => $request->invoice_number,
                 'purchase_date' => $request->purchase_date,
                 'total_amount' => $total,
