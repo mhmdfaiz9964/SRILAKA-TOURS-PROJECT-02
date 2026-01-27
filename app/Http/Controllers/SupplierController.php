@@ -38,7 +38,15 @@ class SupplierController extends Controller
             'company_name' => 'nullable',
         ]);
 
-        \App\Models\Supplier::create($request->all());
+        $supplier = \App\Models\Supplier::create($request->all());
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'supplier' => $supplier,
+                'message' => 'Supplier created successfully.'
+            ]);
+        }
 
         return redirect()->route('suppliers.index')->with('success', 'Supplier created successfully.');
     }

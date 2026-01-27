@@ -124,9 +124,25 @@
                     <td class="text-end text-muted small p-1">Broker</td>
                     <td class="text-end p-1">{{ number_format($purchase->broker_cost, 2) }}</td>
                 </tr>
-                 <tr>
-                    <td class="text-end text-muted small p-1">Duty + Kuli</td>
-                    <td class="text-end p-1">{{ number_format($purchase->duty_cost + $purchase->kuli_cost, 2) }}</td>
+                <tr>
+                    <td class="text-end text-muted small p-1">Loading</td>
+                    <td class="text-end p-1">{{ number_format($purchase->loading_cost, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end text-muted small p-1">Unloading</td>
+                    <td class="text-end p-1">{{ number_format($purchase->unloading_cost, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end text-muted small p-1">Labour Charges</td>
+                    <td class="text-end p-1">{{ number_format($purchase->labour_cost, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end text-muted small p-1">Air Ticket</td>
+                    <td class="text-end p-1">{{ number_format($purchase->air_ticket_cost, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="text-end text-muted small p-1">Other Expenses</td>
+                    <td class="text-end p-1">{{ number_format($purchase->other_expenses, 2) }}</td>
                 </tr>
                 <tr style="background: #eee;">
                     <td class="text-end fw-bold p-1 h6 mb-0">Grand Total</td>

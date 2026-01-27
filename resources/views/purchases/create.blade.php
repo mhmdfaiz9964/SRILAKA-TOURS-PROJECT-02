@@ -87,12 +87,24 @@
                                 <input type="number" step="0.01" class="form-control form-control-sm" name="transport_cost" id="transport_cost" value="0" oninput="calculateTotal()">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label small fw-bold">Duty</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" name="duty_cost" id="duty_cost" value="0" oninput="calculateTotal()">
+                                <label class="form-label small fw-bold">Loading</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="loading_cost" id="loading_cost" value="0" oninput="calculateTotal()">
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label small fw-bold">Kuli / Labor</label>
-                                <input type="number" step="0.01" class="form-control form-control-sm" name="kuli_cost" id="kuli_cost" value="0" oninput="calculateTotal()">
+                                <label class="form-label small fw-bold">Unloading</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="unloading_cost" id="unloading_cost" value="0" oninput="calculateTotal()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Labour Charges</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="labour_cost" id="labour_cost" value="0" oninput="calculateTotal()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Air Ticket</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="air_ticket_cost" id="air_ticket_cost" value="0" oninput="calculateTotal()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Other Expenses</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="other_expenses" id="other_expenses" value="0" oninput="calculateTotal()">
                             </div>
                         </div>
 
@@ -304,49 +316,22 @@
 
     // Initialize with one row
     addProductRow();
-    
-    // Add Supplier Modal Script
-    document.getElementById('createSupplierForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        formData.append('_token', '{{ csrf_token() }}');
 
-        fetch('{{ route("suppliers.store") }}', {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                const select = document.getElementById('supplier_id');
-                const option = new Option(`${data.supplier.company_name} - ${data.supplier.full_name}`, data.supplier.id);
-                select.add(option, undefined);
-                select.value = data.supplier.id;
-                
-                const modal = bootstrap.Modal.getInstance(document.getElementById('createSupplierModal'));
-                modal.hide();
-                this.reset();
-            } else {
-                alert('Error creating supplier');
-            }
-        });
-    });
-
-    // Override calculateTotal to include additional costs
-     function calculateTotal() {
+    function calculateTotal() {
         let total = 0;
         document.querySelectorAll('[id^="hiddenTotal_"]').forEach(el => {
             total += parseFloat(el.value) || 0;
         });
 
-        // Add costs
         const broker = parseFloat(document.getElementById('broker_cost').value) || 0;
         const transport = parseFloat(document.getElementById('transport_cost').value) || 0;
-        const duty = parseFloat(document.getElementById('duty_cost').value) || 0;
-        const kuli = parseFloat(document.getElementById('kuli_cost').value) || 0;
+        const loading = parseFloat(document.getElementById('loading_cost').value) || 0;
+        const unloading = parseFloat(document.getElementById('unloading_cost').value) || 0;
+        const labour = parseFloat(document.getElementById('labour_cost').value) || 0;
+        const air = parseFloat(document.getElementById('air_ticket_cost').value) || 0;
+        const other = parseFloat(document.getElementById('other_expenses').value) || 0;
         
-        const finalTotal = total + broker + transport + duty + kuli;
+        const finalTotal = total + broker + transport + loading + unloading + labour + air + other;
         
         document.getElementById('totalAmountDisplay').innerText = finalTotal.toFixed(2);
         document.getElementById('hiddenTotalAmount').value = finalTotal.toFixed(2);
@@ -388,4 +373,57 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Supplier Modal Script
+        document.getElementById('createSupplierForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            // Combine names for backend
+            const fullName = `${formData.get('first_name')} ${formData.get('last_name')}`;
+            formData.append('full_name', fullName);
+            formData.append('contact_number', formData.get('mobile_number'));
+            formData.append('_token', '{{ csrf_token() }}');
+
+            fetch('{{ route("suppliers.store") }}', {
+                method: 'POST',
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const select = document.getElementById('supplier_id');
+                    const text = `${data.supplier.company_name} - ${data.supplier.full_name}`;
+                    const val = data.supplier.id;
+                    
+                    // Add to select2 if initialized
+                    if ($(select).hasClass("select2-hidden-accessible")) {
+                        var newOption = new Option(text, val, true, true);
+                        $(select).append(newOption).trigger('change');
+                    } else {
+                        const option = new Option(text, val);
+                        select.add(option, undefined);
+                        select.value = val;
+                    }
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createSupplierModal'));
+                    modal.hide();
+                    this.reset();
+                } else {
+                    alert('Error creating supplier: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error creating supplier. Check console.');
+            });
+        });
+    });
+</script>
 @endsection

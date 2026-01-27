@@ -17,6 +17,11 @@ class Purchase extends Model
         'grn_number',
         'broker_cost',
         'transport_cost',
+        'loading_cost',
+        'unloading_cost',
+        'labour_cost',
+        'air_ticket_cost',
+        'other_expenses',
         'duty_cost',
         'kuli_cost',
     ];

@@ -45,12 +45,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Salesman</label>
-                                <select class="form-select select2" name="salesman_id">
-                                    <option value="">Select Salesman</option>
-                                    @foreach($salesmen as $man)
-                                        <option value="{{ $man->id }}">{{ $man->name }}</option>
-                                    @endforeach
-                                </select>
+                                <input type="text" class="form-control" name="salesman_name" id="salesman_name" placeholder="Name">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Date</label>
@@ -348,37 +343,6 @@
 
     // Initialize with one row
     addProductRow();
-
-    document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        formData.append('_token', '{{ csrf_token() }}');
-
-        fetch('{{ route("customers.store") }}', {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                const select = document.getElementById('customer_id');
-                const option = new Option(`${data.customer.first_name} ${data.customer.last_name} (${data.customer.mobile_number})`, data.customer.id);
-                option.setAttribute('data-credit', data.customer.credit_limit);
-                select.add(option, undefined);
-                select.value = data.customer.id;
-                // Trigger change to update credit check if needed
-                select.dispatchEvent(new Event('change'));
-
-                const modal = bootstrap.Modal.getInstance(document.getElementById('createCustomerModal'));
-                modal.hide();
-                this.reset();
-            } else {
-                alert('Error creating customer');
-            }
-        })
-       .catch(err => console.error(err));
-    });
 </script>
 
 <!-- Create Customer Modal -->
@@ -425,4 +389,67 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            // Combine First and Last ID to Full Name for backend
+            const fullName = `${formData.get('first_name')} ${formData.get('last_name')}`;
+            formData.append('full_name', fullName);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            fetch('{{ route("customers.store") }}', {
+                method: 'POST',
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const select = document.getElementById('customer_id');
+                    // Check if names exist, otherwise use full_name if user provided that or fallback
+                    // The Controller uses Customer::create($request->all()).
+                    // Customer model likely has 'full_name' as fillable, but form sends first_name/last_name.
+                    // I should check Customer model fillables.
+                    // Wait, CustomerController validation asks for 'full_name'.
+                    // But the form sends 'first_name' and 'last_name'.
+                    // The user's request log showed `first_name=ApexWeb&last_name=Innovations`.
+                    // The Controller validation: 'full_name' => 'required'.
+                    // This validation will FAIL if 'full_name' is not in request.
+                    // I need to intercept the form data and construct full_name OR update logic.
+                    // Let me check Customer Model again.
+                    
+                    const name = data.customer.full_name || `${data.customer.first_name || ''} ${data.customer.last_name || ''}`;
+                    const option = new Option(`${name} (${data.customer.mobile_number})`, data.customer.id);
+                    option.setAttribute('data-credit', data.customer.credit_limit);
+                    
+                    // Add to select2 if initialized
+                    if ($(select).hasClass("select2-hidden-accessible")) {
+                        var newOption = new Option(option.text, option.value, true, true);
+                        $(select).append(newOption).trigger('change');
+                    } else {
+                        select.add(option, undefined);
+                        select.value = data.customer.id;
+                    }
+
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createCustomerModal'));
+                    modal.hide();
+                    this.reset();
+                } else {
+                    alert('Error creating customer: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error creating customer. Please check console.');
+            });
+        });
+    });
+</script>
 @endsection

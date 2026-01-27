@@ -68,6 +68,37 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                        <!-- Additional Costs Editing -->
+                        <div class="row g-3 mb-4 bg-light p-3 rounded-3 mx-0">
+                            <div class="col-12"><h6 class="fw-bold small text-uppercase text-muted">Additional Costs</h6></div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Broker</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="broker_cost" value="{{ $purchase->broker_cost }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Transport</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="transport_cost" value="{{ $purchase->transport_cost }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Loading</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="loading_cost" value="{{ $purchase->loading_cost }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Unloading</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="unloading_cost" value="{{ $purchase->unloading_cost }}">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Labour Charges</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="labour_cost" value="{{ $purchase->labour_cost }}">
+                            </div>
+                             <div class="col-md-3">
+                                <label class="form-label small fw-bold">Air Ticket</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="air_ticket_cost" value="{{ $purchase->air_ticket_cost }}">
+                            </div>
+                             <div class="col-md-3">
+                                <label class="form-label small fw-bold">Other Expenses</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="other_expenses" value="{{ $purchase->other_expenses }}">
+                            </div>
                         </div>
 
                         <div class="mb-3">

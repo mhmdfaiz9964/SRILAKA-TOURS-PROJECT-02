@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-            $table->nullableMorphs('transaction'); // sale_id or purchase_id
+            if (!Schema::hasColumn('payments', 'transaction_type')) {
+                $table->nullableMorphs('transaction'); // sale_id or purchase_id
+            }
         });
     }
 

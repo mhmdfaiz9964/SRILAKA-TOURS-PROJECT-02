@@ -28,12 +28,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Salesman</label>
-                                <select class="form-select select2" name="salesman_id">
-                                    <option value="">Select Salesman</option>
-                                    @foreach($salesmen as $man)
-                                        <option value="{{ $man->id }}" {{ $sale->salesman_id == $man->id ? 'selected' : '' }}>{{ $man->name }}</option>
-                                    @endforeach
-                                </select>
+                                <input type="text" class="form-control" name="salesman_name" value="{{ $sale->salesman_name }}" placeholder="Name">
                             </div>
                         </div>
                         

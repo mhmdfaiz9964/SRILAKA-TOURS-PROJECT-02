@@ -64,8 +64,11 @@ class PurchaseController extends Controller
                 'paid_amount' => $paid,
                 'broker_cost' => $request->broker_cost ?? 0,
                 'transport_cost' => $request->transport_cost ?? 0,
-                'duty_cost' => $request->duty_cost ?? 0,
-                'kuli_cost' => $request->kuli_cost ?? 0,
+                'loading_cost' => $request->loading_cost ?? 0,
+                'unloading_cost' => $request->unloading_cost ?? 0,
+                'labour_cost' => $request->labour_cost ?? 0,
+                'air_ticket_cost' => $request->air_ticket_cost ?? 0,
+                'other_expenses' => $request->other_expenses ?? 0,
                 'status' => $status,
                 'notes' => $request->notes,
             ]);
@@ -177,7 +180,27 @@ class PurchaseController extends Controller
             'notes' => $request->notes,
             'invoice_number' => $request->invoice_number,
             'grn_number' => $request->grn_number,
+            'broker_cost' => $request->broker_cost,
+            'transport_cost' => $request->transport_cost,
+            'loading_cost' => $request->loading_cost,
+            'unloading_cost' => $request->unloading_cost,
+            'labour_cost' => $request->labour_cost,
+            'air_ticket_cost' => $request->air_ticket_cost,
+            'other_expenses' => $request->other_expenses,
         ]);
+        
+        // Recalculate Total Amount
+        $itemsTotal = $purchase->items->sum('total_price');
+        $newTotal = $itemsTotal + 
+                    $purchase->broker_cost + 
+                    $purchase->transport_cost + 
+                    $purchase->loading_cost + 
+                    $purchase->unloading_cost + 
+                    $purchase->labour_cost + 
+                    $purchase->air_ticket_cost + 
+                    $purchase->other_expenses;
+        
+        $purchase->update(['total_amount' => $newTotal]);
         
         return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');
     }

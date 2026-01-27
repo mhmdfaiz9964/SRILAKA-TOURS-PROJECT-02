@@ -53,7 +53,9 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|numeric|min:1',
             'paid_amount' => 'nullable|numeric',
             'transport_cost' => 'nullable|numeric',
-            'salesman_id' => 'nullable|exists:users,id',
+            'paid_amount' => 'nullable|numeric',
+            'transport_cost' => 'nullable|numeric',
+            'salesman_name' => 'nullable|string',
         ]);
 
         \DB::transaction(function () use ($request) {
@@ -76,7 +78,8 @@ class SaleController extends Controller
                 'paid_amount' => $paid,
                 'status' => $status,
                 'payment_method' => $request->payment_method,
-                'salesman_id' => $request->salesman_id,
+                'payment_method' => $request->payment_method,
+                'salesman_name' => $request->salesman_name,
                 'notes' => $request->notes,
             ]);
 
@@ -172,7 +175,9 @@ class SaleController extends Controller
         $sale->update([
             'customer_id' => $request->customer_id,
             'sale_date' => $request->sale_date,
-            'salesman_id' => $request->salesman_id,
+            'customer_id' => $request->customer_id,
+            'sale_date' => $request->sale_date,
+            'salesman_name' => $request->salesman_name,
             'notes' => $request->notes,
         ]);
         

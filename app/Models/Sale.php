@@ -18,6 +18,7 @@ class Sale extends Model
         'transport_cost',
         'transport_cost',
         'salesman_id',
+        'salesman_name',
         'payment_method',
     ];
 
