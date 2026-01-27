@@ -17,10 +17,27 @@ class PurchaseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $purchases = \App\Models\Purchase::with('supplier')->orderByDesc('created_at')->get();
-        return view('purchases.index', compact('purchases'));
+        $query = \App\Models\Purchase::with('supplier')->orderByDesc('created_at');
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('purchase_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('purchase_date', '<=', $request->end_date);
+        }
+        if ($request->filled('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+        if ($request->filled('type')) {
+            $query->where('purchase_type', $request->type);
+        }
+
+        $purchases = $query->get();
+        $suppliers = \App\Models\Supplier::select('id', 'full_name')->orderBy('full_name')->get();
+
+        return view('purchases.index', compact('purchases', 'suppliers'));
     }
 
     /**
@@ -97,7 +114,8 @@ class PurchaseController extends Controller
                             'code' => strtoupper(substr($item['product_name'], 0, 3) . rand(100, 999)), // Auto gen code
                             'cost_price' => $item['cost_price'],
                             'sale_price' => $item['cost_price'] * 1.2, // Default markup 20%
-                            'stock_alert' => $item['quantity'], // Set initial stock
+                            'stock_alert' => 10, // Default alert
+                            'current_stock' => $item['quantity'], // Set initial stock
                         ]);
                         $productId = $newProduct->id;
                     }
@@ -117,7 +135,7 @@ class PurchaseController extends Controller
                     // Update Stock & Cost
                     $product = \App\Models\Product::find($productId);
                     if ($product) {
-                        $product->increment('stock_alert', $item['quantity']); // Using stock_alert as stock per current db state
+                        $product->increment('current_stock', $item['quantity']);
                         $product->update(['cost_price' => $item['cost_price']]); // Update latest cost
                     }
                 }
@@ -205,7 +223,7 @@ class PurchaseController extends Controller
             // 1. Reverse old stock impact
             foreach ($purchase->items as $item) {
                 if ($item->product) {
-                    $item->product->decrement('stock_alert', $item->quantity);
+                    $item->product->decrement('current_stock', $item->quantity);
                 }
             }
             
@@ -243,7 +261,7 @@ class PurchaseController extends Controller
 
                     $product = \App\Models\Product::find($item['existing_product_id']);
                     if ($product) {
-                        $product->increment('stock_alert', $item['quantity']);
+                        $product->increment('current_stock', $item['quantity']);
                         $product->update(['cost_price' => $item['cost_price']]);
                     }
                 }

@@ -366,7 +366,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Mobile</label>
-                            <input type="text" class="form-control form-control-sm" name="mobile_number" required>
+                            <input type="text" class="form-control form-control-sm" name="mobile_number">
                         </div>
                          <div class="col-md-6">
                             <label class="form-label small fw-bold">Email</label>

@@ -63,7 +63,13 @@
 
                             <div class="col-md-12">
                                 <label for="units" class="form-label fw-bold small">Units</label>
-                                <input type="text" class="form-control @error('units') is-invalid @enderror" id="units" name="units" value="{{ old('units') }}" placeholder="e.g. Kg, Pcs">
+                                <select class="form-select @error('units') is-invalid @enderror" id="units" name="units">
+                                    <option value="">Select Unit</option>
+                                    <option value="KG" {{ old('units') == 'KG' ? 'selected' : '' }}>KG</option>
+                                    <option value="Yard" {{ old('units') == 'Yard' ? 'selected' : '' }}>Yard</option>
+                                    <option value="Meter" {{ old('units') == 'Meter' ? 'selected' : '' }}>Meter</option>
+                                    <option value="PCS" {{ old('units') == 'PCS' ? 'selected' : '' }}>PCS</option>
+                                </select>
                                 @error('units') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
@@ -73,7 +79,16 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="stock_alert" class="form-label fw-bold small">Stock Alert Level</label>
+                                <label for="current_stock" class="form-label fw-bold small">Initial Stock</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-boxes-stacked text-muted"></i></span>
+                                    <input type="number" step="0.01" class="form-control border-start-0 @error('current_stock') is-invalid @enderror" id="current_stock" name="current_stock" value="{{ old('current_stock', 0) }}">
+                                </div>
+                                @error('current_stock') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="stock_alert" class="form-label fw-bold small">Low Stock Alert</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-bell text-muted"></i></span>
                                     <input type="number" class="form-control border-start-0 @error('stock_alert') is-invalid @enderror" id="stock_alert" name="stock_alert" value="{{ old('stock_alert', 0) }}">

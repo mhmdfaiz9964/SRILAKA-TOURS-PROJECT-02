@@ -16,6 +16,7 @@ class Product extends Model
         'category_id',
         'is_main_product',
         'parent_product_id',
+        'current_stock',
     ];
 
     protected $casts = [

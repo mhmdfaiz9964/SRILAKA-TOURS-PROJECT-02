@@ -128,6 +128,7 @@
                         <th class="py-3 text-muted small text-uppercase">Investor Name</th>
                         <th class="py-3 text-muted small text-uppercase">Collect Date</th>
                         <th class="py-3 text-muted small text-uppercase">Refund Date</th>
+                        <th class="py-3 text-muted small text-uppercase">Duration</th>
                         <th class="py-3 text-muted small text-uppercase">Invested</th>
                         <th class="py-3 text-muted small text-uppercase">Exp. Profit</th>
                         <th class="py-3 text-muted small text-uppercase">Paid Profit</th>
@@ -139,21 +140,29 @@
                     <tr>
                          <td class="ps-4">
                             @if($investor->status == 'active')
-                                <span class="badge bg-warning-subtle text-warning border border-0 px-2 py-1 rounded-pill">Pending</span>
-                            @else
+                                <span class="badge bg-warning-subtle text-warning border border-0 px-2 py-1 rounded-pill">Active</span>
+                            @elseif($investor->status == 'paid')
                                 <span class="badge bg-success-subtle text-success border border-0 px-2 py-1 rounded-pill">Paid</span>
+                            @elseif($investor->status == 'pending')
+                                <span class="badge bg-info-subtle text-info border border-0 px-2 py-1 rounded-pill">Pending</span>
+                            @elseif($investor->status == 'waiting')
+                                <span class="badge bg-secondary-subtle text-secondary border border-0 px-2 py-1 rounded-pill">Waiting</span>
+                            @else
+                                <span class="badge bg-light text-muted border border-0 px-2 py-1 rounded-pill">{{ ucfirst($investor->status) }}</span>
                             @endif
                         </td>
                         <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #6366f1; width: 30px; height: 30px; font-size: 0.75rem;">
-                                    {{ substr($investor->name, 0, 1) }}
-                                </div>
-                                <div class="fw-bold text-dark small">{{ $investor->name }}</div>
-                            </div>
+                            <div class="fw-bold text-dark small">{{ $investor->name }}</div>
                         </td>
                          <td class="small text-muted">{{ $investor->collect_date ? \Carbon\Carbon::parse($investor->collect_date)->format('d/m/Y') : '-' }}</td>
                         <td class="small text-muted">{{ $investor->refund_date ? \Carbon\Carbon::parse($investor->refund_date)->format('d/m/Y') : '-' }}</td>
+                        <td class="small fw-bold text-primary">
+                            @if($investor->collect_date && $investor->refund_date)
+                                {{ \Carbon\Carbon::parse($investor->collect_date)->diffInDays(\Carbon\Carbon::parse($investor->refund_date)) }} Days
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td class="small fw-bold text-nowrap">LKR {{ number_format($investor->invest_amount, 2) }}</td>
                         <td class="small text-success fw-bold text-nowrap">LKR {{ number_format($investor->expect_profit, 2) }}</td>
                         <td class="small text-primary fw-bold text-nowrap">

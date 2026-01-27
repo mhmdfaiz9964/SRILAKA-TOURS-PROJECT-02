@@ -47,6 +47,7 @@ class InvestorController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'status' => 'required|in:active,paid,pending,waiting',
             'invest_amount' => 'required|numeric|min:0',
             'expect_profit' => 'required|numeric|min:0',
             'paid_profit' => 'nullable|numeric|min:0',
@@ -69,6 +70,7 @@ class InvestorController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'status' => 'required|in:active,paid,pending,waiting',
             'invest_amount' => 'required|numeric|min:0',
             'expect_profit' => 'required|numeric|min:0',
             'paid_profit' => 'nullable|numeric|min:0',

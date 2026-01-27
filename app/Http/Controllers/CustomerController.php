@@ -41,7 +41,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             'full_name' => 'required',
-            'mobile_number' => 'required',
+            'mobile_number' => 'nullable',
             'credit_limit' => 'nullable|numeric',
             'company_name' => 'nullable',
         ]);
@@ -122,7 +122,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             'full_name' => 'required',
-            'mobile_number' => 'required',
+            'mobile_number' => 'nullable',
             'credit_limit' => 'nullable|numeric',
             'company_name' => 'nullable',
         ]);

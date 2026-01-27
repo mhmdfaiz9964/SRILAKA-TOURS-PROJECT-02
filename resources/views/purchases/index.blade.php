@@ -21,10 +21,44 @@
         <div class="card-header bg-white border-bottom-0 py-3 px-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-light btn-sm px-3 border-light">
-                        <i class="fa-solid fa-filter me-1 text-black"></i> Filter
-                    </button>
-                    <!-- Search could go here -->
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm px-3 border-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-filter me-1 text-black"></i> Filter
+                        </button>
+                        <div class="dropdown-menu p-3 shadow-lg border-0 rounded-4" style="width: 320px;">
+                            <form action="{{ route('purchases.index') }}" method="GET">
+                                <div class="mb-2">
+                                    <label class="small fw-bold text-muted">Date Range</label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="date" class="form-control" name="start_date" value="{{ request('start_date') }}">
+                                        <span class="input-group-text">-</span>
+                                        <input type="date" class="form-control" name="end_date" value="{{ request('end_date') }}">
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="small fw-bold text-muted">Supplier</label>
+                                    <select class="form-select form-select-sm" name="supplier_id">
+                                        <option value="">All Suppliers</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->full_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="small fw-bold text-muted">Transaction Type</label>
+                                    <select class="form-select form-select-sm" name="type">
+                                        <option value="">All Types</option>
+                                        <option value="local" {{ request('type') == 'local' ? 'selected' : '' }}>Local</option>
+                                        <option value="import" {{ request('type') == 'import' ? 'selected' : '' }}>Import</option>
+                                    </select>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary btn-sm" style="background: #6366f1; border: none;">Apply Filters</button>
+                                    <a href="{{ route('purchases.index') }}" class="btn btn-light btn-sm">Reset</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <span class="text-muted small">{{ count($purchases) }} Results</span>
