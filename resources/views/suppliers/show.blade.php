@@ -57,6 +57,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#ledger">
+                                <i class="fa-solid fa-list-ul me-1"></i> Ledger
+                            </a>
+                        </li>
+                         <li class="nav-item">
                             <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#payments">
                                 <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
                             </a>
@@ -66,6 +71,48 @@
 
                 <div class="card-body p-4">
                     <div class="tab-content">
+                        <!-- Ledger Tab -->
+                        <div class="tab-pane fade" id="ledger">
+                             <div class="table-responsive">
+                                <table class="table table-bordered align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr class="text-uppercase small fw-bold text-muted">
+                                            <th class="ps-3">Date</th>
+                                            <th>Description</th>
+                                            <th class="text-end">Debit (Purchase)</th>
+                                            <th class="text-end">Credit (Payment)</th>
+                                            <th class="text-end pe-3">Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php $runningBalance = 0; @endphp
+                                        @forelse($ledger as $item)
+                                        @php 
+                                            $runningBalance += ($item['debit'] - $item['credit']);
+                                        @endphp
+                                        <tr>
+                                            <td class="ps-3 small">{{ $item['date'] }}</td>
+                                            <td class="small">
+                                                @if($item['url'] != '#')
+                                                    <a href="{{ $item['url'] }}" class="text-decoration-none fw-bold text-primary">{{ $item['description'] }}</a>
+                                                @else
+                                                    {{ $item['description'] }}
+                                                @endif
+                                            </td>
+                                            <td class="text-end small text-danger fw-bold">{{ $item['debit'] > 0 ? number_format($item['debit'], 2) : '-' }}</td>
+                                            <td class="text-end small text-success fw-bold">{{ $item['credit'] > 0 ? number_format($item['credit'], 2) : '-' }}</td>
+                                            <td class="text-end pe-3 small fw-bold {{ $runningBalance > 0 ? 'text-danger' : 'text-success' }}">
+                                                {{ number_format($runningBalance, 2) }}
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr><td colspan="5" class="text-center py-4">No transactions found</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- Purchases Tab -->
                         <div class="tab-pane fade show active" id="purchases">
                             <div class="table-responsive">

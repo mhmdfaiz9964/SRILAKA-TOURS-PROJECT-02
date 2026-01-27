@@ -28,6 +28,8 @@ class PaymentController extends Controller
                 'payable_id' => $request->payable_id,
                 'type' => $request->type ?? 'in', // Default 'in'
                 'cheque_id' => $request->cheque_id, // If existing cheque payment
+                'transaction_id' => $request->transaction_id,
+                'transaction_type' => $request->transaction_type,
             ]);
 
             // 2. Handle Cheque Creation (if payment method is cheque)

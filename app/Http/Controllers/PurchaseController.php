@@ -130,16 +130,34 @@ class PurchaseController extends Controller
                 }
             }
             
-            // 4. Handle Cheque Payment (Out Cheque)
+            // 4. Create Payment Record (Transaction Log)
+            if ($paid > 0) {
+                \App\Models\Payment::create([
+                    'amount' => $paid,
+                    'payment_date' => $purchase->purchase_date,
+                    'payment_method' => $request->payment_method ?? 'cash',
+                    'bank_id' => $request->bank_id,
+                    'payable_type' => 'App\Models\Supplier',
+                    'payable_id' => $purchase->supplier_id,
+                    'type' => 'out',
+                    'transaction_id' => $purchase->id,
+                    'transaction_type' => 'App\Models\Purchase',
+                    'notes' => 'Initial payment for Purchase ' . ($purchase->invoice_number ?? $purchase->id),
+                    'payment_cheque_number' => $request->cheque_number,
+                    'payment_cheque_date' => $request->cheque_date,
+                ]);
+            }
+
+            // 5. Handle Cheque Payment (Out Cheque)
             if ($request->payment_method === 'cheque' && $paid > 0) {
                 \App\Models\OutCheque::create([
                     'cheque_date' => $request->cheque_date,
                     'amount' => $paid,
                     'cheque_number' => $request->cheque_number,
                     'bank_id' => $request->bank_id,
-                    'payee_name' => $request->payee_name ?? config('app.name'),
+                    'payee_name' => $request->payee_name ?? $purchase->supplier->full_name,
                     'status' => 'sent',
-                    'notes' => 'Payment for Purchase ' . ($purchase->invoice_number ?? $purchase->id),
+                    'notes' => 'Cheque for Purchase ' . ($purchase->invoice_number ?? $purchase->id),
                 ]);
             }
         });
@@ -172,35 +190,63 @@ class PurchaseController extends Controller
         $request->validate([
             'supplier_id' => 'required',
             'purchase_date' => 'required|date',
+            'items' => 'required|array',
         ]);
-        
-        $purchase->update([
-            'supplier_id' => $request->supplier_id,
-            'purchase_date' => $request->purchase_date,
-            'notes' => $request->notes,
-            'invoice_number' => $request->invoice_number,
-            'grn_number' => $request->grn_number,
-            'broker_cost' => $request->broker_cost,
-            'transport_cost' => $request->transport_cost,
-            'loading_cost' => $request->loading_cost,
-            'unloading_cost' => $request->unloading_cost,
-            'labour_cost' => $request->labour_cost,
-            'air_ticket_cost' => $request->air_ticket_cost,
-            'other_expenses' => $request->other_expenses,
-        ]);
-        
-        // Recalculate Total Amount
-        $itemsTotal = $purchase->items->sum('total_price');
-        $newTotal = $itemsTotal + 
-                    $purchase->broker_cost + 
-                    $purchase->transport_cost + 
-                    $purchase->loading_cost + 
-                    $purchase->unloading_cost + 
-                    $purchase->labour_cost + 
-                    $purchase->air_ticket_cost + 
-                    $purchase->other_expenses;
-        
-        $purchase->update(['total_amount' => $newTotal]);
+
+        \DB::transaction(function () use ($request, $purchase) {
+            // 1. Reverse old stock impact
+            foreach ($purchase->items as $item) {
+                if ($item->product) {
+                    $item->product->decrement('stock_alert', $item->quantity);
+                }
+            }
+            
+            // 2. Clear old items
+            $purchase->items()->delete();
+
+            // 3. Update Purchase core details
+            $purchase->update([
+                'supplier_id' => $request->supplier_id,
+                'purchase_date' => $request->purchase_date,
+                'notes' => $request->notes,
+                'invoice_number' => $request->invoice_number,
+                'grn_number' => $request->grn_number,
+                'broker_cost' => $request->broker_cost ?? 0,
+                'transport_cost' => $request->transport_cost ?? 0,
+                'loading_cost' => $request->loading_cost ?? 0,
+                'unloading_cost' => $request->unloading_cost ?? 0,
+                'labour_cost' => $request->labour_cost ?? 0,
+                'air_ticket_cost' => $request->air_ticket_cost ?? 0,
+                'other_expenses' => $request->other_expenses ?? 0,
+                'total_amount' => $request->total_amount,
+            ]);
+
+            // 4. Record new items and apply stock
+            foreach ($request->items as $item) {
+                if (!empty($item['existing_product_id'])) {
+                    \App\Models\PurchaseItem::create([
+                        'purchase_id' => $purchase->id,
+                        'product_id' => $item['existing_product_id'],
+                        'quantity' => $item['quantity'],
+                        'description' => $item['description'] ?? null,
+                        'cost_price' => $item['cost_price'],
+                        'total_price' => $item['total_price'],
+                    ]);
+
+                    $product = \App\Models\Product::find($item['existing_product_id']);
+                    if ($product) {
+                        $product->increment('stock_alert', $item['quantity']);
+                        $product->update(['cost_price' => $item['cost_price']]);
+                    }
+                }
+            }
+            
+            // 5. Update Status based on current paid_amount
+            $status = 'unpaid';
+            if ($purchase->paid_amount >= $purchase->total_amount) $status = 'paid';
+            elseif ($purchase->paid_amount > 0) $status = 'partial';
+            $purchase->update(['status' => $status]);
+        });
         
         return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');
     }

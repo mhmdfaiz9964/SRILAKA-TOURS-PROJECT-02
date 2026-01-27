@@ -354,7 +354,7 @@
                 <form id="createSupplierForm">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Company Name</label>
-                        <input type="text" class="form-control" name="company_name" required>
+                        <input type="text" class="form-control" name="company_name">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Contact Person</label>
@@ -365,7 +365,7 @@
                     </div>
                      <div class="mb-3">
                         <label class="form-label small fw-bold">Mobile</label>
-                        <input type="text" class="form-control" name="mobile_number" required>
+                        <input type="text" class="form-control" name="mobile_number">
                     </div>
                     <button type="submit" class="btn btn-primary w-100 rounded-pill btn-sm">Save Supplier</button>
                 </form>

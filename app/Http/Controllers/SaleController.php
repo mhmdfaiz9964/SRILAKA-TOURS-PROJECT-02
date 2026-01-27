@@ -120,16 +120,34 @@ class SaleController extends Controller
                 }
             }
             
-            // 4. Handle Cheque Payment
+            // 4. Create Payment Record (Transaction Log)
+            if ($paid > 0) {
+                \App\Models\Payment::create([
+                    'amount' => $paid,
+                    'payment_date' => $sale->sale_date,
+                    'payment_method' => $request->payment_method ?? 'cash',
+                    'bank_id' => $request->bank_id,
+                    'payable_type' => 'App\Models\Customer',
+                    'payable_id' => $sale->customer_id,
+                    'type' => 'in',
+                    'transaction_id' => $sale->id,
+                    'transaction_type' => 'App\Models\Sale',
+                    'notes' => 'Initial payment for Invoice ' . $sale->invoice_number,
+                    'payment_cheque_number' => $request->cheque_number,
+                    'payment_cheque_date' => $request->cheque_date,
+                ]);
+            }
+
+            // 5. Handle Cheque Details
             if ($request->payment_method === 'cheque' && $paid > 0) {
                 \App\Models\InCheque::create([
                     'cheque_date' => $request->cheque_date,
                     'amount' => $paid,
                     'cheque_number' => $request->cheque_number,
                     'bank_id' => $request->bank_id,
-                    'payer_name' => $request->payer_name,
+                    'payer_name' => $sale->customer->full_name,
                     'status' => 'received',
-                    'notes' => 'Payment for Invoice ' . $sale->invoice_number,
+                    'notes' => 'Cheque for Invoice ' . $sale->invoice_number,
                 ]);
             }
         });

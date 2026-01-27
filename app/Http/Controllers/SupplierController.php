@@ -34,7 +34,7 @@ class SupplierController extends Controller
     {
         $request->validate([
             'full_name' => 'required',
-            'contact_number' => 'required',
+            'contact_number' => 'nullable',
             'company_name' => 'nullable',
         ]);
 
@@ -56,7 +56,47 @@ class SupplierController extends Controller
      */
     public function show(\App\Models\Supplier $supplier)
     {
-        return view('suppliers.show', compact('supplier'));
+        // Load relationships
+        $supplier->load('purchases', 'payments');
+
+        // Build Ledger
+        $ledger = collect();
+
+        // Add Purchases (Debits - We owe them more)
+        foreach ($supplier->purchases as $purchase) {
+            $ledger->push([
+                'date' => $purchase->purchase_date,
+                'updated_at' => $purchase->created_at,
+                'type' => 'invoice',
+                'description' => 'Purchase #' . ($purchase->invoice_number ?? $purchase->id) . ($purchase->grn_number ? ' [GRN: '.$purchase->grn_number.']' : ''),
+                'debit' => $purchase->total_amount,
+                'credit' => 0,
+                'url' => route('purchases.show', $purchase->id)
+            ]);
+        }
+
+        // Add Payments (Credits - We paid them)
+        foreach ($supplier->payments as $payment) {
+            $ledger->push([
+                'date' => \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d'),
+                'updated_at' => $payment->created_at,
+                'type' => 'payment',
+                'description' => 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                'debit' => 0,
+                'credit' => $payment->amount,
+                'url' => '#' 
+            ]);
+        }
+
+        // Sort by Date, then Created At
+        $ledger = $ledger->sort(function ($a, $b) {
+            if ($a['date'] === $b['date']) {
+                return $a['updated_at'] <=> $b['updated_at'];
+            }
+            return $a['date'] <=> $b['date'];
+        });
+
+        return view('suppliers.show', compact('supplier', 'ledger'));
     }
 
     /**

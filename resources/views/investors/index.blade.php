@@ -156,8 +156,8 @@
                         <td class="small text-success fw-bold text-nowrap">LKR {{ number_format($investor->expect_profit, 2) }}</td>
                         <td class="small text-primary fw-bold text-nowrap">
                             LKR {{ number_format($investor->paid_profit, 2) }}
-                            @if($investor->expect_profit > 0)
-                                <small class="text-muted ms-1">({{ round(($investor->paid_profit / $investor->expect_profit) * 100, 1) }}%)</small>
+                            @if($investor->invest_amount > 0)
+                                <small class="text-muted ms-1">({{ round(($investor->paid_profit / $investor->invest_amount) * 100, 1) }}%)</small>
                             @endif
                         </td>
                         <td class="text-end pe-4">
