@@ -56,7 +56,11 @@
                             </td>
                             <td class="small">{{ $customer->company_name ?? '-' }}</td>
                             <td class="small">{{ $customer->mobile_number }}</td>
-                            <td class="small">{{ number_format($customer->credit_limit, 2) }}</td>
+                            <td class="small">
+                                <span class="badge {{ $customer->outstanding >= ($customer->credit_limit ?? 0) ? 'bg-danger' : 'bg-success' }} rounded-pill">
+                                    {{ number_format($customer->credit_limit, 2) }}
+                                </span>
+                            </td>
                             <td class="small fw-bold {{ $customer->outstanding >= ($customer->credit_limit ?? 0) ? 'text-danger' : 'text-success' }}">
                                 {{ number_format($customer->outstanding, 2) }}
                             </td>
