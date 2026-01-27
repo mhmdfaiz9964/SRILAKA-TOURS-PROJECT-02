@@ -24,6 +24,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class);
+    Route::resource('roles', App\Http\Controllers\RoleController::class);
     Route::resource('banks', App\Http\Controllers\BankController::class);
     Route::get('/payment-cheques', [App\Http\Controllers\ChequeController::class, 'paymentCheques'])->name('cheques.payment');
     Route::get('/paid-cheques', [App\Http\Controllers\ChequeController::class, 'paidCheques'])->name('cheques.paid');

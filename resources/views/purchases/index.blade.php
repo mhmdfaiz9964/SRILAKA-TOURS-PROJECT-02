@@ -83,6 +83,11 @@
                                     <a href="{{ route('purchases.show', $purchase->id) }}" class="btn btn-sm btn-icon border-0 text-muted">
                                         <i class="fa-regular fa-eye"></i>
                                     </a>
+                                    @can('purchase-edit')
+                                    <a href="{{ route('purchases.edit', $purchase->id) }}" class="btn btn-sm btn-icon border-0 text-muted">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </a>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

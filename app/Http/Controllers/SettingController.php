@@ -7,6 +7,10 @@ use App\Models\Setting;
 
 class SettingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:settings-manage');
+    }
     public function index()
     {
         $settings = Setting::all()->pluck('value', 'key');

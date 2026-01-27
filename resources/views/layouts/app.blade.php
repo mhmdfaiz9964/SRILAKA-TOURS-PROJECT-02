@@ -407,6 +407,7 @@
                     <span class="menu-label">Main</span>
                 </div>
                 
+                @can('dashboard-view')
                 <a href="{{ route('home') }}" class="menu-item {{ request()->routeIs('home') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-house"></i>
@@ -414,7 +415,9 @@
                     </div>
                     <span class="menu-item-hint">⌘2</span>
                 </a>
+                @endcan
 
+                @can('user-list')
                 <a href="{{ route('users.index') }}" class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-user-gear"></i>
@@ -422,32 +425,49 @@
                     </div>
                     <span class="menu-item-hint">⌘3</span>
                 </a>
+                @endcan
 
+                @can('role-list')
+                <a href="{{ route('roles.index') }}" class="menu-item {{ request()->routeIs('roles.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span>Roles</span>
+                    </div>
+                </a>
+                @endcan
+
+                @can('cheque-list')
                 <div class="menu-label-wrapper">
                     <span class="menu-label">Cheque Operation</span>
                     <i class="fa-solid fa-plus menu-label-plus"></i>
                 </div>
 
+                @can('in-cheque-list')
                 <a href="{{ route('in-cheques.index') }}" class="menu-item {{ request()->routeIs('in-cheques.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-file-import"></i>
                         <span>In Cheque</span>
                     </div>
                 </a>
+                @endcan
 
+                @can('out-cheque-list')
                 <a href="{{ route('out-cheques.index') }}" class="menu-item {{ request()->routeIs('out-cheques.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-file-export"></i>
                         <span>Out Cheque</span>
                     </div>
                 </a>
+                @endcan
 
+                @can('third-party-cheque-list')
                 <a href="{{ route('third-party-cheques.index') }}" class="menu-item {{ request()->routeIs('third-party-cheques.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-users-viewfinder"></i>
                         <span>3rd Party Cheque</span>
                     </div>
                 </a>
+                @endcan
 
                 <div class="menu-label-wrapper mt-3">
                     <span class="menu-label">Returns & Payments</span>
@@ -474,75 +494,94 @@
                     </div>
                 </a>
 
+                @can('bank-list')
                 <a href="{{ route('banks.index') }}" class="menu-item {{ request()->routeIs('banks.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-building-columns"></i>
                         <span>Banks</span>
                     </div>
                 </a>
+                @endcan
+                @endcan
 
                 <div class="menu-label-wrapper">
                     <span class="menu-label">Management</span>
                     <i class="fa-solid fa-plus menu-label-plus"></i>
                 </div>
 
+                @can('product-list')
                 <a href="{{ route('products.index') }}" class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-box"></i>
                         <span>Product</span>
                     </div>
                 </a>
+                @endcan
 
+                @can('customer-list')
                 <a href="{{ route('customers.index') }}" class="menu-item {{ request()->routeIs('customers.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-users"></i>
                         <span>Customer</span>
                     </div>
                 </a>
+                @endcan
 
+                @can('supplier-list')
                 <a href="{{ route('suppliers.index') }}" class="menu-item {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-truck-field"></i>
                         <span>Supplier</span>
                     </div>
                 </a>
+                @endcan
 
+                @can('investor-list')
                 <a href="{{ route('investors.index') }}" class="menu-item {{ request()->routeIs('investors.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-hand-holding-dollar"></i>
                         <span>Investors</span>
                     </div>
                 </a>
+                @endcan
 
                 <div class="menu-label-wrapper">
                     <span class="menu-label">Transactions</span>
                 </div>
 
+                @can('sale-list')
                 <a href="{{ route('sales.index') }}" class="menu-item {{ request()->routeIs('sales.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-cart-shopping"></i>
                         <span>Sales</span>
                     </div>
                 </a>
+                @endcan
 
+                @can('purchase-list')
                 <a href="{{ route('purchases.index') }}" class="menu-item {{ request()->routeIs('purchases.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-cart-flatbed"></i>
                         <span>Purchases</span>
                     </div>
                 </a>
+                @endcan
 
+                @if(auth()->user()->can('settings-manage') || auth()->user()->can('system-manage'))
                 <div class="menu-label-wrapper">
                     <span class="menu-label">System</span>
                 </div>
 
+                @can('settings-manage')
                 <a href="{{ route('settings.index') }}" class="menu-item {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-gear"></i>
                         <span>Settings</span>
                     </div>
                 </a>
+                @endcan
 
+                @can('system-manage')
                 <a href="{{ route('system.index') }}" class="menu-item {{ request()->routeIs('system.*') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-microchip"></i>
@@ -556,6 +595,8 @@
                         <span>System Update</span>
                     </div>
                 </a>
+                @endcan
+                @endif
             </div>
 
             <div class="sidebar-footer">

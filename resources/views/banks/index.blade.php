@@ -12,9 +12,11 @@
                 <button class="btn btn-outline-secondary btn-sm bg-white border-light shadow-sm px-3">
                     <i class="fa-solid fa-file-export me-1"></i> Export
                 </button>
+                @can('bank-create')
                 <a href="{{ route('banks.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                     <i class="fa-solid fa-plus"></i> Add Bank
                 </a>
+                @endcan
             </div>
         </div>
     </div>
@@ -75,9 +77,12 @@
                             <td class="small">{{ $bank->code ?? '-' }}</td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-1">
+                                    @can('bank-edit')
                                     <a href="{{ route('banks.edit', $bank) }}" class="btn btn-sm btn-icon border-0 text-muted">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
+                                    @endcan
+                                    @can('bank-delete')
                                     <button type="button" class="btn btn-sm btn-icon border-0 text-muted" 
                                             onclick="confirmDelete({{ $bank->id }}, 'delete-bank-{{ $bank->id }}')">
                                         <i class="fa-solid fa-trash-can"></i>
@@ -86,6 +91,7 @@
                                         @csrf
                                         @method('DELETE')
                                     </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

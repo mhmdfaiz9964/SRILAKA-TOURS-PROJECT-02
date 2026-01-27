@@ -45,9 +45,11 @@
                 <hr class="my-4">
 
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    @can('settings-manage')
                     <button type="submit" class="btn btn-primary fw-bold px-4">
                         <i class="fa-solid fa-save me-2"></i> Save Settings
                     </button>
+                    @endcan
                 </div>
             </form>
         </div>

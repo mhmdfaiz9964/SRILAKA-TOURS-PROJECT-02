@@ -122,9 +122,11 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
+            @can('cheque-create')
             <a href="{{ route('cheques.create') }}" class="btn btn-primary btn-sm px-4 rounded-3 d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                 <i class="fa-solid fa-plus"></i> Add New
             </a>
+            @endcan
             <div class="dropdown">
                 <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2 dropdown-toggle shadow-sm" data-bs-toggle="dropdown">
                     <i class="fa-solid fa-file-export text-black"></i> Export
@@ -260,16 +262,21 @@
                                 @php 
                                     $targetCheque = ($page_title ?? '') == 'Payment Cheques' ? $cheque->cheque : $cheque;
                                 @endphp
+                                @can('cheque-operation')
                                 <button type="button" class="btn btn-sm btn-icon border-0 text-primary shadow-none btn-notification-animate" 
                                         onclick="openReminderModal({{ $targetCheque->id }}, '{{ $targetCheque->payer_name }}')">
                                     <i class="fa-solid fa-bell"></i>
                                 </button>
+                                @endcan
                                 <a href="{{ route('cheques.show', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
                                     <i class="fa-solid fa-eye"></i>
                                 </a>
+                                @can('cheque-edit')
                                 <a href="{{ route('cheques.edit', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
                                     <i class="fa-solid fa-pen-to-square"></i>
                                 </a>
+                                @endcan
+                                @can('cheque-delete')
                                 <button type="button" class="btn btn-sm btn-icon border-0 text-black shadow-none" 
                                         onclick="confirmDelete({{ $targetCheque->id }}, 'delete-cheque-{{ $targetCheque->id }}')">
                                     <i class="fa-solid fa-trash-can"></i>
@@ -278,6 +285,8 @@
                                     @csrf
                                     @method('DELETE')
                                 </form>
+                                @endcan
+                            </div>
                             </div>
                         </td>
                     </tr>

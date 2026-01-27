@@ -6,6 +6,14 @@ use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:purchase-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission:purchase-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:purchase-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:purchase-delete', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of the resource.
      */

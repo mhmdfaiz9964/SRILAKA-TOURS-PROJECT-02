@@ -9,9 +9,11 @@
                 <p class="text-muted small mb-0">Manage customer relationships and credit limits</p>
             </div>
             <div class="d-flex align-items-center gap-2">
+                @can('customer-create')
                 <a href="{{ route('customers.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                     <i class="fa-solid fa-plus"></i> Add Customer
                 </a>
+                @endcan
             </div>
         </div>
     </div>
@@ -63,9 +65,12 @@
                             </td>
                             <td class="text-end pe-4" onclick="event.stopPropagation();">
                                 <div class="d-flex justify-content-end gap-1">
+                                    @can('customer-edit')
                                     <a href="{{ route('customers.edit', $customer->id) }}" class="btn btn-sm btn-icon border-0 text-muted">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
+                                    @endcan
+                                    @can('customer-delete')
                                     <button type="button" class="btn btn-sm btn-icon border-0 text-muted" 
                                             onclick="confirmDelete({{ $customer->id }}, 'delete-customer-{{ $customer->id }}')">
                                         <i class="fa-solid fa-trash-can"></i>
@@ -74,6 +79,7 @@
                                         @csrf
                                         @method('DELETE')
                                     </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

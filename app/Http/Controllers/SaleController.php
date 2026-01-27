@@ -6,6 +6,13 @@ use Illuminate\Http\Request;
 
 class SaleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:sale-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission:sale-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:sale-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:sale-delete', ['only' => ['destroy']]);
+    }
     /**
      * Display a listing of the resource.
      */

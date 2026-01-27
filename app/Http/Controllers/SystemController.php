@@ -9,6 +9,10 @@ use Symfony\Component\Process\Process;
 
 class SystemController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:system-manage');
+    }
     public function index()
     {
         $logs = ChangeLog::latest()->get();

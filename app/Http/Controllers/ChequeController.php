@@ -14,6 +14,14 @@ use App\Models\Reminder;
 
 class ChequeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:cheque-list', ['only' => ['index', 'show', 'paymentCheques', 'paidCheques', 'export']]);
+        $this->middleware('permission:cheque-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:cheque-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:cheque-delete', ['only' => ['destroy']]);
+        $this->middleware('permission:cheque-operation', ['only' => ['addPayment', 'storeReminder', 'completeReminder', 'updateThirdPartyStatus']]);
+    }
     public function index(Request $request)
     {
         $query = Cheque::with(['bank'])->withSum('payments', 'amount')->where('payment_status', '!=', 'paid');

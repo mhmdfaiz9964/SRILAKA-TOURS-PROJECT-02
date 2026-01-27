@@ -9,6 +9,12 @@ use App\Models\InCheque;
 
 class ThirdPartyChequeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:third-party-cheque-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission:third-party-cheque-edit', ['only' => ['update']]);
+        $this->middleware('permission:third-party-cheque-delete', ['only' => ['destroy']]);
+    }
     public function index(Request $request)
     {
         $query = ThirdPartyCheque::with('inCheque.bank');

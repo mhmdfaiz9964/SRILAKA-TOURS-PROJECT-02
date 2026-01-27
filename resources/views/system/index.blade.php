@@ -8,6 +8,7 @@
             <p class="text-muted small mb-0">Monitor system health, updates and change logs</p>
         </div>
         <div class="d-flex gap-2">
+            @can('system-manage')
             <form action="{{ route('system.storage-link') }}" method="POST">
                 @csrf
                 <button type="submit" class="btn btn-white btn-sm px-3 shadow-sm border-light d-flex align-items-center gap-2">
@@ -20,6 +21,7 @@
                     <i class="fa-solid fa-cloud-arrow-up"></i> Update System
                 </button>
             </form>
+            @endcan
         </div>
     </div>
 

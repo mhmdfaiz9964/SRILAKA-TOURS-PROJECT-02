@@ -9,9 +9,11 @@
                 <p class="text-muted small mb-0">Manage your sales, invoices, and payments</p>
             </div>
             <div class="d-flex align-items-center gap-2">
+                @can('sale-create')
                 <a href="{{ route('sales.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                     <i class="fa-solid fa-plus"></i> New Sale
                 </a>
+                @endcan
             </div>
         </div>
 

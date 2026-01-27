@@ -10,6 +10,13 @@ use App\Models\Bank;
 
 class OutChequeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:out-cheque-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission:out-cheque-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:out-cheque-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:out-cheque-delete', ['only' => ['destroy']]);
+    }
     public function index(Request $request)
     {
         $query = OutCheque::with('bank');

@@ -11,6 +11,13 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvestorController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:investor-list', ['only' => ['index', 'show', 'export']]);
+        $this->middleware('permission:investor-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:investor-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:investor-delete', ['only' => ['destroy']]);
+    }
     public function index(Request $request)
     {
         $query = Investor::query();

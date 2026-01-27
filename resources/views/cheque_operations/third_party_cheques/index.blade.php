@@ -177,6 +177,7 @@
                                 ];
                                 $st = $statusColors[$cheque->status] ?? ['bg' => '#eee', 'text' => '#666', 'label' => $cheque->status];
                             @endphp
+                            @can('third-party-cheque-edit')
                             <div class="dropdown d-inline-block">
                                 <span class="badge rounded-pill px-2 py-1 cursor-pointer dropdown-toggle" data-bs-toggle="dropdown" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
                                     {{ $st['label'] }}
@@ -198,8 +199,14 @@
                                     </li>
                                 </ul>
                             </div>
+                            @else
+                            <span class="badge rounded-pill px-2 py-1" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
+                                {{ $st['label'] }}
+                            </span>
+                            @endcan
                         </td>
                         <td class="text-end pe-4">
+                             @can('third-party-cheque-delete')
                              <form action="{{ route('third-party-cheques.destroy', $cheque) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
                                 @csrf
                                 @method('DELETE')
@@ -207,6 +214,7 @@
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </form>
+                            @endcan
                         </td>
                     </tr>
                     @empty

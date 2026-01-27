@@ -6,18 +6,27 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:user-list', ['only' => ['index']]);
+        $this->middleware('permission:user-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:user-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:user-delete', ['only' => ['destroy']]);
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $users = \App\Models\User::all();
+        $users = \App\Models\User::with('roles')->get();
         return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        return view('users.create');
+        $roles = \Spatie\Permission\Models\Role::pluck('name','name')->all();
+        return view('users.create', compact('roles'));
     }
 
     public function store(Request $request)
@@ -26,20 +35,25 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8',
+            'roles' => 'required'
         ]);
 
-        \App\Models\User::create([
+        $user = \App\Models\User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => \Hash::make($request->password),
         ]);
+        
+        $user->assignRole($request->input('roles'));
 
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
 
     public function edit(\App\Models\User $user)
     {
-        return view('users.edit', compact('user'));
+        $roles = \Spatie\Permission\Models\Role::pluck('name','name')->all();
+        $userRole = $user->roles->pluck('name','name')->all();
+        return view('users.edit', compact('user', 'roles', 'userRole'));
     }
 
     public function update(Request $request, \App\Models\User $user)
@@ -47,6 +61,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
+            'roles' => 'required'
         ]);
 
         $user->update($request->only('name', 'email'));
@@ -54,6 +69,8 @@ class UserController extends Controller
         if ($request->filled('password')) {
             $user->update(['password' => \Hash::make($request->password)]);
         }
+        
+        $user->syncRoles($request->input('roles'));
 
         return redirect()->route('users.index')->with('success', 'User updated successfully');
     }

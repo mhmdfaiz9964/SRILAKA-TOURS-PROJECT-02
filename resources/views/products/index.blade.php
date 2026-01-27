@@ -9,9 +9,11 @@
                 <p class="text-muted small mb-0">Manage all your products and inventory</p>
             </div>
             <div class="d-flex align-items-center gap-2">
+                @can('product-create')
                 <a href="{{ route('products.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                     <i class="fa-solid fa-plus"></i> Add Product
                 </a>
+                @endcan
             </div>
         </div>
         <!-- Cost Value Card -->
@@ -87,9 +89,12 @@
                             <td class="small fw-bold text-primary">{{ number_format($product->sale_price, 2) }}</td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-1">
+                                    @can('product-edit')
                                     <a href="{{ route('products.edit', $product->id) }}" class="btn btn-sm btn-icon border-0 text-muted">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
+                                    @endcan
+                                    @can('product-delete')
                                     <button type="button" class="btn btn-sm btn-icon border-0 text-muted" 
                                             onclick="confirmDelete({{ $product->id }}, 'delete-product-{{ $product->id }}')">
                                         <i class="fa-solid fa-trash-can"></i>
@@ -98,6 +103,8 @@
                                         @csrf
                                         @method('DELETE')
                                     </form>
+                                    @endcan
+                                </div>
                                 </div>
                             </td>
                         </tr>

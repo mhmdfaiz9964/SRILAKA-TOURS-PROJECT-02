@@ -12,6 +12,13 @@ use Carbon\Carbon;
 
 class InChequeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:in-cheque-list', ['only' => ['index', 'show']]);
+        $this->middleware('permission:in-cheque-create', ['only' => ['create', 'store']]);
+        $this->middleware('permission:in-cheque-edit', ['only' => ['edit', 'update']]);
+        $this->middleware('permission:in-cheque-delete', ['only' => ['destroy']]);
+    }
     public function index(Request $request)
     {
         $query = InCheque::with('bank');

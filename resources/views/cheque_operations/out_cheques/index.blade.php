@@ -7,9 +7,11 @@
             <h4 class="fw-bold mb-0">Out Cheque Management</h4>
             <p class="text-muted small">Track all cheques issued from your accounts.</p>
         </div>
+        @can('out-cheque-create')
         <a href="{{ route('out-cheques.create') }}" class="btn btn-primary px-4 rounded-3 shadow-sm" style="background: #6366f1; border: none;">
             <i class="fa-solid fa-plus me-2"></i> Add New Out Cheque
         </a>
+        @endcan
     </div>
 
     <!-- Stats Cards -->
@@ -190,18 +192,22 @@
                             </span>
                         </td>
                         <td class="text-end pe-4">
-                            <div class="d-flex justify-content-end gap-1">
-                                <a href="{{ route('out-cheques.edit', $cheque) }}" class="btn btn-sm btn-icon border-0 text-dark shadow-none">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                <form action="{{ route('out-cheques.destroy', $cheque) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-icon border-0 text-danger shadow-none">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </form>
-                            </div>
+        <div class="d-flex justify-content-end gap-1">
+            @can('out-cheque-edit')
+            <a href="{{ route('out-cheques.edit', $cheque) }}" class="btn btn-sm btn-icon border-0 text-dark shadow-none">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </a>
+            @endcan
+            @can('out-cheque-delete')
+            <form action="{{ route('out-cheques.destroy', $cheque) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-sm btn-icon border-0 text-danger shadow-none">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </form>
+            @endcan
+        </div>
                         </td>
                     </tr>
                     @empty

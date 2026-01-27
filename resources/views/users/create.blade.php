@@ -25,6 +25,17 @@
                             @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label for="roles" class="form-label fw-bold">Role</label>
+                            <select class="form-select @error('roles') is-invalid @enderror" id="roles" name="roles[]" required>
+                                <option value="" disabled selected>Select Role</option>
+                                @foreach($roles as $role)
+                                    <option value="{{ $role }}" {{ in_array($role, old('roles', [])) ? 'selected' : '' }}>{{ $role }}</option>
+                                @endforeach
+                            </select>
+                            @error('roles') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+
                         <div class="mb-4">
                             <label for="password" class="form-label fw-bold">Password</label>
                             <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" placeholder="Enter password" required>

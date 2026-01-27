@@ -8,9 +8,11 @@
             <h4 class="fw-bold mb-0">In Cheque Management</h4>
             <p class="text-muted small">Manage all incoming cheques from clients.</p>
         </div>
+        @can('in-cheque-create')
         <a href="{{ route('in-cheques.create') }}" class="btn btn-primary px-4 rounded-3 shadow-sm" style="background: #6366f1; border: none;">
             <i class="fa-solid fa-plus me-2"></i> Add New In Cheque
         </a>
+        @endcan
     </div>
 
     <!-- Stats Cards -->
@@ -235,14 +237,18 @@
                                 </span>
                             </td>
                             <td class="text-end pe-4">
-                                <div class="d-flex justify-content-end gap-1">
-                                    <a href="{{ route('in-cheques.edit', $in_cheque = $cheque) }}" class="btn btn-sm btn-icon border-0 text-dark shadow-none">
-                                        <i class="fa-solid fa-pen-to-square"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-icon border-0 text-danger shadow-none" onclick="confirmDeleteCheque('{{ route('in-cheques.destroy', $cheque) }}')">
-                                        <i class="fa-solid fa-trash-can"></i>
-                                    </button>
-                                </div>
+        <div class="d-flex justify-content-end gap-1">
+            @can('in-cheque-edit')
+            <a href="{{ route('in-cheques.edit', $in_cheque = $cheque) }}" class="btn btn-sm btn-icon border-0 text-dark shadow-none">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </a>
+            @endcan
+            @can('in-cheque-delete')
+            <button type="button" class="btn btn-sm btn-icon border-0 text-danger shadow-none" onclick="confirmDeleteCheque('{{ route('in-cheques.destroy', $cheque) }}')">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
+            @endcan
+        </div>
                             </td>
                         </tr>
                         @empty

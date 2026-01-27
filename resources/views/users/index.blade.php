@@ -12,9 +12,11 @@
                 <button class="btn btn-outline-secondary btn-sm bg-white border-light shadow-sm px-3">
                     <i class="fa-solid fa-file-export me-1"></i> Export
                 </button>
+                @can('user-create')
                 <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                     <i class="fa-solid fa-plus"></i> Add New User
                 </a>
+                @endcan
             </div>
         </div>
     </div>
@@ -51,6 +53,7 @@
                             </th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">User Name</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Email Address</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Role</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
                         </tr>
@@ -73,6 +76,13 @@
                                 </div>
                             </td>
                             <td class="small">{{ $user->email }}</td>
+                            <td class="small">
+                                @if(!empty($user->getRoleNames()))
+                                    @foreach($user->getRoleNames() as $v)
+                                       <span class="badge bg-light text-dark border">{{ $v }}</span>
+                                    @endforeach
+                                @endif
+                            </td>
                             <td>
                                 <div class="d-flex align-items-center gap-1">
                                     <span class="status-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
@@ -81,9 +91,12 @@
                             </td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-1">
+                                    @can('user-edit')
                                     <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-icon border-0 text-muted">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
+                                    @endcan
+                                    @can('user-delete')
                                     <button type="button" class="btn btn-sm btn-icon border-0 text-muted" 
                                             onclick="confirmDelete({{ $user->id }}, 'delete-user-{{ $user->id }}')">
                                         <i class="fa-solid fa-trash-can"></i>
@@ -92,6 +105,7 @@
                                         @csrf
                                         @method('DELETE')
                                     </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
