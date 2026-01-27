@@ -56,6 +56,12 @@
                                 @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
+                            <div class="col-md-6">
+                                <label for="code" class="form-label fw-bold small">Product Code</label>
+                                <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code', $product->code) }}" placeholder="e.g. PRD001">
+                                @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+
                             <div class="col-md-12">
                                 <label for="units" class="form-label fw-bold small">Units</label>
                                 <input type="text" class="form-control @error('units') is-invalid @enderror" id="units" name="units" value="{{ old('units', $product->units) }}" placeholder="e.g. Kg, Pcs">

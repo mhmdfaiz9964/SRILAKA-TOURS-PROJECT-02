@@ -38,6 +38,7 @@
                         <tr>
                             <th class="ps-4 py-3 text-muted fw-semibold small text-uppercase">Date</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Inv / GRN</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Type</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Supplier</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Total Amount</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Paid / Due</th>
@@ -54,6 +55,11 @@
                                 @if($purchase->grn_number)
                                     <div class="text-muted" style="font-size: 0.7rem;">GRN: {{ $purchase->grn_number }}</div>
                                 @endif
+                            </td>
+                            <td class="small">
+                                <span class="badge bg-{{ $purchase->purchase_type == 'import' ? 'info' : 'secondary' }}-subtle text-{{ $purchase->purchase_type == 'import' ? 'info' : 'secondary' }} rounded-pill border-0 text-uppercase" style="font-size: 0.65rem;">
+                                    {{ $purchase->purchase_type ?? 'local' }}
+                                </span>
                             </td>
                             <td class="small fw-semibold">{{ $purchase->supplier->full_name }}</td>
                             <td class="small fw-bold">{{ number_format($purchase->total_amount, 2) }}</td>

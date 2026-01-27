@@ -13,12 +13,45 @@ class SaleController extends Controller
     {
         $query = \App\Models\Sale::with('customer')->orderByDesc('created_at');
         
+        // Status Filter
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $sales = $query->get();
-        return view('sales.index', compact('sales'));
+        // Customer Filter
+        if ($request->filled('customer_id')) {
+            $query->where('customer_id', $request->customer_id);
+        }
+
+        // Date Range Filter
+        if ($request->filled('start_date')) {
+            $query->whereDate('sale_date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->whereDate('sale_date', '<=', $request->end_date);
+        }
+
+        // Search Filter (Invoice # or Customer Name)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('invoice_number', 'LIKE', "%{$search}%")
+                  ->orWhereHas('customer', function($cq) use ($search) {
+                      $cq->where('full_name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        // Clone query for stats before pagination
+        $statsQuery = clone $query;
+        $totalSales = $statsQuery->sum('total_amount');
+        $totalPaid = $statsQuery->sum('paid_amount');
+        $totalOutstanding = $totalSales - $totalPaid;
+
+        $sales = $query->paginate(20)->withQueryString();
+        $customers = \App\Models\Customer::all();
+        
+        return view('sales.index', compact('sales', 'customers', 'totalSales', 'totalOutstanding'));
     }
 
     /**
