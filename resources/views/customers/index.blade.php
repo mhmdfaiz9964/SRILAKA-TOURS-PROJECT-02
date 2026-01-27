@@ -42,6 +42,7 @@
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Company</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Mobile</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Credit Limit</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Outstanding</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
                         </tr>
@@ -56,6 +57,9 @@
                             <td class="small">{{ $customer->company_name ?? '-' }}</td>
                             <td class="small">{{ $customer->mobile_number }}</td>
                             <td class="small">{{ number_format($customer->credit_limit, 2) }}</td>
+                            <td class="small fw-bold {{ $customer->outstanding >= ($customer->credit_limit ?? 0) ? 'text-danger' : 'text-success' }}">
+                                {{ number_format($customer->outstanding, 2) }}
+                            </td>
                             <td class="small">
                                 @if($customer->status)
                                     <span class="badge bg-success-subtle text-success rounded-pill border border-0">Active</span>
@@ -85,7 +89,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="text-muted">No customers found.</div>
                             </td>
                         </tr>

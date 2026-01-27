@@ -23,4 +23,11 @@ class Customer extends Model
     {
         return $this->morphMany(Payment::class, 'payable');
     }
+
+    public function getOutstandingAttribute()
+    {
+        $sales = $this->sales_sum_total_amount ?? $this->sales()->sum('total_amount');
+        $payments = $this->payments_sum_amount ?? $this->payments()->sum('amount');
+        return $sales - $payments;
+    }
 }
