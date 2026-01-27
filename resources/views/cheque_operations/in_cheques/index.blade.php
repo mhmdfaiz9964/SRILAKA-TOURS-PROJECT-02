@@ -22,7 +22,7 @@
                 ['label' => 'Deposited', 'key' => 'deposited', 'icon' => 'fa-building-columns', 'color' => '#3b82f6', 'bg' => '#eff6ff', 'status' => 'deposited'],
                 ['label' => 'Transferred', 'key' => 'transferred', 'icon' => 'fa-right-left', 'color' => '#8b5cf6', 'bg' => '#f5f3ff', 'status' => 'transferred_to_third_party'],
                 ['label' => 'Returned', 'key' => 'returned', 'icon' => 'fa-rotate-left', 'color' => '#ef4444', 'bg' => '#fef2f2', 'status' => 'returned'],
-                ['label' => 'Realized', 'key' => 'realized', 'icon' => 'fa-circle-check', 'color' => '#10b981', 'bg' => '#ecfdf5', 'status' => 'realized'],
+                ['label' => 'Received', 'key' => 'realized', 'icon' => 'fa-circle-check', 'color' => '#10b981', 'bg' => '#ecfdf5', 'status' => 'realized'],
                 ['label' => 'Deposit Today', 'key' => 'to_deposit_today', 'icon' => 'fa-calendar-day', 'color' => '#06b6d4', 'bg' => '#ecfeff', 'status' => 'today'],
                 ['label' => 'Overdue', 'key' => 'overdue', 'icon' => 'fa-clock', 'color' => '#7c3aed', 'bg' => '#f5f3ff', 'status' => 'overdue'],
             ];
@@ -89,7 +89,7 @@
                         <option value="received" {{ request('status') == 'received' ? 'selected' : '' }}>In Hand</option>
                         <option value="deposited" {{ request('status') == 'deposited' ? 'selected' : '' }}>Deposited</option>
                         <option value="transferred_to_third_party" {{ request('status') == 'transferred_to_third_party' ? 'selected' : '' }}>Transferred</option>
-                        <option value="realized" {{ request('status') == 'realized' ? 'selected' : '' }}>Realized</option>
+                        <option value="realized" {{ request('status') == 'realized' ? 'selected' : '' }}>Received</option>
                         <option value="returned" {{ request('status') == 'returned' ? 'selected' : '' }}>Returned</option>
                         <option value="today" {{ request('status') == 'today' ? 'selected' : '' }}>Deposit Today</option>
                         <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>Overdue</option>
@@ -166,7 +166,7 @@
                         <select name="status" class="form-select form-select-sm" style="width: 160px;" id="bulkStatusSelect" required>
                             <option value="">Select Action...</option>
                             <option value="deposited">Mark Deposited</option>
-                            <option value="realized">Mark Realized</option>
+                            <option value="realized">Mark Received</option>
                             <option value="returned">Mark Returned</option>
                             <option value="third_party">Transfer to 3rd Party</option>
                         </select>
@@ -225,7 +225,7 @@
                                         'received' => ['bg' => '#fffbeb', 'text' => '#f59e0b', 'label' => 'Hand'],
                                         'deposited' => ['bg' => '#eff6ff', 'text' => '#3b82f6', 'label' => 'Deposited'],
                                         'transferred_to_third_party' => ['bg' => '#f5f3ff', 'text' => '#8b5cf6', 'label' => 'Transferred'],
-                                        'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Realized'],
+                                        'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Received'],
                                         'returned' => ['bg' => '#fef2f2', 'text' => '#ef4444', 'label' => 'Returned'],
                                     ];
                                     $st = $statusColors[$cheque->status] ?? ['bg' => '#eee', 'text' => '#666', 'label' => $cheque->status];

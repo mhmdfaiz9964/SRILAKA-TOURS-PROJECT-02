@@ -23,16 +23,23 @@
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label fw-bold small">Supplier <span class="text-danger">*</span></label>
-                                <select class="form-select select2" name="supplier_id" required>
-                                    <option value="">Select Supplier</option>
-                                    @foreach($suppliers as $supplier)
-                                        <option value="{{ $supplier->id }}">{{ $supplier->full_name }} - {{ $supplier->company_name }}</option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-select select2" name="supplier_id" id="supplier_id" required>
+                                        <option value="">Select Supplier</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}">{{ $supplier->full_name }} - {{ $supplier->company_name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createSupplierModal"><i class="fa-solid fa-plus"></i></button>
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Supplier Invoice #</label>
                                 <input type="text" class="form-control" name="invoice_number" placeholder="Optional">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">GRN Number</label>
+                                <input type="text" class="form-control" name="grn_number" placeholder="GRN...">
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Date</label>
@@ -45,7 +52,8 @@
                             <table class="table table-bordered align-middle" id="itemsTable">
                                 <thead class="bg-light">
                                     <tr>
-                                        <th style="width: 40%;">Product</th>
+                                        <th style="width: 30%;">Product</th>
+                                        <th style="width: 20%;">Description</th>
                                         <th style="width: 15%;">Cost Price</th>
                                         <th style="width: 10%;">Qty</th>
                                         <th style="width: 20%;">Total</th>
@@ -60,6 +68,53 @@
                                         <td colspan="5" class="p-2">
                                             <button type="button" class="btn btn-light btn-sm w-100 fw-bold border-dashed text-primary" onclick="addProductRow()">
                                                 <i class="fa-solid fa-plus me-1"></i> Add Item
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Additional Costs -->
+                        <div class="row g-3 mb-4 bg-light p-3 rounded-3 mx-0">
+                            <div class="col-12"><h6 class="fw-bold small text-uppercase text-muted">Additional Costs</h6></div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Broker</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="broker_cost" id="broker_cost" value="0" oninput="calculateTotal()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Transport</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="transport_cost" id="transport_cost" value="0" oninput="calculateTotal()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Duty</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="duty_cost" id="duty_cost" value="0" oninput="calculateTotal()">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Kuli / Labor</label>
+                                <input type="number" step="0.01" class="form-control form-control-sm" name="kuli_cost" id="kuli_cost" value="0" oninput="calculateTotal()">
+                            </div>
+                        </div>
+
+                         <!-- Investors Section -->
+                         <div class="mb-4">
+                            <h6 class="fw-bold small text-uppercase text-muted mb-2">Investors</h6>
+                            <table class="table table-bordered table-sm" id="investorTable">
+                                <thead>
+                                    <tr>
+                                        <th>Investor Name</th>
+                                        <th width="30%">Amount</th>
+                                        <th width="5%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="investorRows">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3">
+                                            <button type="button" class="btn btn-light btn-sm w-100 fw-bold border-dashed text-primary" onclick="addInvestorRow()">
+                                                <i class="fa-solid fa-plus me-1"></i> Add Investor
                                             </button>
                                         </td>
                                     </tr>
@@ -163,6 +218,7 @@
                         ${existingProducts.map(p => `<option value="${p.id}" data-cost="${p.cost_price}">${p.name} - ${p.code ?? ''}</option>`).join('')}
                     </select>
                 </td>
+                <td><input type="text" class="form-control form-control-sm" name="items[${rowId}][description]" placeholder="Desc..."></td>
                 <td><input type="number" step="0.01" class="form-control form-control-sm" name="items[${rowId}][cost_price]" id="price_${rowId}" oninput="calcRowTotal(${rowId})"></td>
                 <td><input type="number" step="1" class="form-control form-control-sm" name="items[${rowId}][quantity]" id="qty_${rowId}" value="1" oninput="calcRowTotal(${rowId})"></td>
                 <td class="text-end fw-bold" id="total_${rowId}">0.00</td>
@@ -232,6 +288,104 @@
         }
     }
 
+    function addInvestorRow() {
+        const rowId = Date.now() + Math.random();
+        const html = `
+            <tr id="inv_row_${rowId}">
+                <td><input type="text" class="form-control form-control-sm" name="investors[${rowId}][name]" placeholder="Investor Name"></td>
+                <td><input type="number" step="0.01" class="form-control form-control-sm" name="investors[${rowId}][amount]" placeholder="0.00"></td>
+                <td class="text-center">
+                     <button type="button" class="btn btn-link text-danger p-0" onclick="document.getElementById('inv_row_${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>
+                </td>
+            </tr>
+        `;
+        document.getElementById('investorRows').insertAdjacentHTML('beforeend', html);
+    }
+
+    // Initialize with one row
     addProductRow();
+    
+    // Add Supplier Modal Script
+    document.getElementById('createSupplierForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch('{{ route("suppliers.store") }}', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                const select = document.getElementById('supplier_id');
+                const option = new Option(`${data.supplier.company_name} - ${data.supplier.full_name}`, data.supplier.id);
+                select.add(option, undefined);
+                select.value = data.supplier.id;
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createSupplierModal'));
+                modal.hide();
+                this.reset();
+            } else {
+                alert('Error creating supplier');
+            }
+        });
+    });
+
+    // Override calculateTotal to include additional costs
+     function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('[id^="hiddenTotal_"]').forEach(el => {
+            total += parseFloat(el.value) || 0;
+        });
+
+        // Add costs
+        const broker = parseFloat(document.getElementById('broker_cost').value) || 0;
+        const transport = parseFloat(document.getElementById('transport_cost').value) || 0;
+        const duty = parseFloat(document.getElementById('duty_cost').value) || 0;
+        const kuli = parseFloat(document.getElementById('kuli_cost').value) || 0;
+        
+        const finalTotal = total + broker + transport + duty + kuli;
+        
+        document.getElementById('totalAmountDisplay').innerText = finalTotal.toFixed(2);
+        document.getElementById('hiddenTotalAmount').value = finalTotal.toFixed(2);
+        
+        if(document.getElementById('paymentMethod').value !== 'credit') {
+            document.getElementById('paidAmount').value = finalTotal.toFixed(2);
+        }
+    }
 </script>
+
+<!-- Create Supplier Modal -->
+<div class="modal fade" id="createSupplierModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-bottom-0">
+                <h6 class="modal-title fw-bold">New Supplier</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="createSupplierForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Company Name</label>
+                        <input type="text" class="form-control" name="company_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Contact Person</label>
+                         <div class="row g-2">
+                             <div class="col-6"><input type="text" class="form-control" name="first_name" placeholder="First Name" required></div>
+                             <div class="col-6"><input type="text" class="form-control" name="last_name" placeholder="Last Name" required></div>
+                         </div>
+                    </div>
+                     <div class="mb-3">
+                        <label class="form-label small fw-bold">Mobile</label>
+                        <input type="text" class="form-control" name="mobile_number" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill btn-sm">Save Supplier</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

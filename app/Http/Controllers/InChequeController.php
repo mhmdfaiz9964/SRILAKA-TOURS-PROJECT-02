@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\InCheque;
 use App\Models\Bank;
 use App\Models\ThirdPartyCheque;
+use App\Models\ThirdParty;
 use Carbon\Carbon;
 
 class InChequeController extends Controller
@@ -74,7 +75,8 @@ class InChequeController extends Controller
     public function create()
     {
         $banks = Bank::all();
-        return view('cheque_operations.in_cheques.create', compact('banks'));
+        $thirdParties = ThirdParty::all();
+        return view('cheque_operations.in_cheques.create', compact('banks', 'thirdParties'));
     }
 
     public function store(Request $request)
@@ -119,7 +121,8 @@ class InChequeController extends Controller
     public function edit(InCheque $inCheque)
     {
         $banks = Bank::all();
-        return view('cheque_operations.in_cheques.edit', compact('inCheque', 'banks'));
+        $thirdParties = ThirdParty::all();
+        return view('cheque_operations.in_cheques.edit', compact('inCheque', 'banks', 'thirdParties'));
     }
 
     public function update(Request $request, InCheque $inCheque)

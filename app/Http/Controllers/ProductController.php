@@ -22,9 +22,17 @@ class ProductController extends Controller
         }
 
         $products = $query->get();
-        $categories = \App\Models\Category::all();
+        $products = $query->get();
+        // Calculate Total Cost Value (Current Stock * Cost Price)
+        // Using stock_alert as current_stock based on SaleController logic
+        $totalCostValue = $products->sum(function($product) {
+            return $product->stock_alert * $product->cost_price;
+        });
+        
+        // Sold Stock logic will be handled in view or here. 
+        // View is better for per-product, but Total Cost is here.
 
-        return view('products.index', compact('products', 'categories'));
+        return view('products.index', compact('products', 'totalCostValue'));
     }
 
     /**
@@ -44,8 +52,8 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'code' => 'required|unique:products,code',
-            'category_id' => 'nullable|exists:categories,id',
+            'code' => 'nullable', // Made nullable as per "Remove Product Code" (might act as internal ID if needed, or just ignore)
+            'category_id' => 'nullable',
             'is_main_product' => 'boolean',
             'parent_product_id' => 'nullable|required_if:is_main_product,0|exists:products,id',
         ]);
@@ -81,8 +89,8 @@ class ProductController extends Controller
     {
         $request->validate([
             'name' => 'required',
-            'code' => 'required|unique:products,code,' . $id,
-            'category_id' => 'nullable|exists:categories,id',
+            'code' => 'nullable',
+            'category_id' => 'nullable',
             'is_main_product' => 'boolean',
             'parent_product_id' => 'nullable|required_if:is_main_product,0|exists:products,id',
         ]);

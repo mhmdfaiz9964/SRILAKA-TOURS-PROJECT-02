@@ -35,7 +35,12 @@ class PurchaseController extends Controller
             'supplier_id' => 'required',
             'purchase_type' => 'required',
             'purchase_date' => 'required|date',
+            'grn_number' => 'nullable|string',
             'items' => 'required|array',
+            'items.*.description' => 'nullable|string',
+            'investors' => 'nullable|array',
+            'investors.*.name' => 'required_with:investors|string',
+            'investors.*.amount' => 'required_with:investors|numeric',
             'paid_amount' => 'nullable|numeric',
         ]);
 
@@ -53,9 +58,14 @@ class PurchaseController extends Controller
                 'supplier_id' => $request->supplier_id,
                 'purchase_type' => $request->purchase_type,
                 'invoice_number' => $request->invoice_number,
+                'grn_number' => $request->grn_number,
                 'purchase_date' => $request->purchase_date,
                 'total_amount' => $total,
                 'paid_amount' => $paid,
+                'broker_cost' => $request->broker_cost ?? 0,
+                'transport_cost' => $request->transport_cost ?? 0,
+                'duty_cost' => $request->duty_cost ?? 0,
+                'kuli_cost' => $request->kuli_cost ?? 0,
                 'status' => $status,
                 'notes' => $request->notes,
             ]);
@@ -88,6 +98,7 @@ class PurchaseController extends Controller
                         'purchase_id' => $purchase->id,
                         'product_id' => $productId,
                         'quantity' => $item['quantity'],
+                        'description' => $item['description'] ?? null,
                         'cost_price' => $item['cost_price'],
                         'total_price' => $item['total_price'],
                     ]);
@@ -97,6 +108,21 @@ class PurchaseController extends Controller
                     if ($product) {
                         $product->increment('stock_alert', $item['quantity']); // Using stock_alert as stock per current db state
                         $product->update(['cost_price' => $item['cost_price']]); // Update latest cost
+                    }
+                }
+            }
+            
+
+
+            // 3.5. Process Investors
+            if ($request->has('investors') && is_array($request->investors)) {
+                foreach ($request->investors as $inv) {
+                     if (!empty($inv['name']) && !empty($inv['amount'])) {
+                        \App\Models\PurchaseInvestor::create([
+                            'purchase_id' => $purchase->id,
+                            'investor_name' => $inv['name'],
+                            'amount' => $inv['amount'],
+                        ]);
                     }
                 }
             }
@@ -150,6 +176,7 @@ class PurchaseController extends Controller
             'purchase_date' => $request->purchase_date,
             'notes' => $request->notes,
             'invoice_number' => $request->invoice_number,
+            'grn_number' => $request->grn_number,
         ]);
         
         return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');

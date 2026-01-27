@@ -20,23 +20,11 @@
                                 <h6 class="fw-bold text-muted text-uppercase small mb-3">Product Information</h6>
                             </div>
                             
-                            <!-- Category and Type -->
+                            <!-- Type -->
                             <div class="col-12 mb-2">
                                 <div class="p-3 bg-light rounded-3">
                                     <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold small">Category</label>
-                                            <div class="input-group">
-                                                <select class="form-select" name="category_id" id="category_id">
-                                                    <option value="">Select Category</option>
-                                                    @foreach($categories as $category)
-                                                        <option value="{{ $category->id }}" {{ $product->category_id == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#createCategoryModal"><i class="fa-solid fa-plus"></i></button>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                              <label class="form-label fw-bold small">Product Type</label>
                                              <div class="d-flex gap-3 mt-1">
                                                  <div class="form-check">
@@ -67,11 +55,7 @@
                                 <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $product->name) }}" required>
                                 @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
-                            <div class="col-md-6">
-                                <label for="code" class="form-label fw-bold small">Product Code / SKU <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('code') is-invalid @enderror" id="code" name="code" value="{{ old('code', $product->code) }}" required>
-                                @error('code') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                            </div>
+
                             <div class="col-md-12">
                                 <label for="units" class="form-label fw-bold small">Units</label>
                                 <input type="text" class="form-control @error('units') is-invalid @enderror" id="units" name="units" value="{{ old('units', $product->units) }}" placeholder="e.g. Kg, Pcs">

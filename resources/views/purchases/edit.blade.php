@@ -27,6 +27,10 @@
                                 <input type="text" class="form-control" name="invoice_number" value="{{ $purchase->invoice_number }}">
                             </div>
                             <div class="col-md-3">
+                                <label class="form-label fw-bold small">GRN Number</label>
+                                <input type="text" class="form-control" name="grn_number" value="{{ $purchase->grn_number }}">
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label fw-bold small">Date</label>
                                 <input type="date" class="form-control" name="purchase_date" value="{{ $purchase->purchase_date }}" required>
                             </div>
@@ -51,7 +55,12 @@
                                 <tbody>
                                     @foreach($purchase->items as $item)
                                     <tr>
-                                        <td>{{ $item->product->name }}</td>
+                                        <td>
+                                            {{ $item->product->name }}
+                                            @if($item->description)
+                                                <br><small class="text-muted fst-italic">({{ $item->description }})</small>
+                                            @endif
+                                        </td>
                                         <td class="text-center">{{ $item->quantity }}</td>
                                         <td class="text-end">{{ number_format($item->cost_price, 2) }}</td>
                                         <td class="text-end">{{ number_format($item->total_price, 2) }}</td>

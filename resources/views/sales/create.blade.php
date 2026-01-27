@@ -26,12 +26,15 @@
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small">Customer <span class="text-danger">*</span></label>
-                                <select class="form-select select2" name="customer_id" id="customer_id" required onchange="checkCreditLimit()">
-                                    <option value="">Select Customer</option>
-                                    @foreach($customers as $customer)
-                                        <option value="{{ $customer->id }}" data-credit="{{ $customer->credit_limit }}" data-due="0">{{ $customer->full_name }} ({{ $customer->mobile_number }})</option>
-                                    @endforeach
-                                </select>
+                                <div class="input-group">
+                                    <select class="form-select select2" name="customer_id" id="customer_id" required onchange="checkCreditLimit()">
+                                        <option value="">Select Customer</option>
+                                        @foreach($customers as $customer)
+                                            <option value="{{ $customer->id }}" data-credit="{{ $customer->credit_limit }}" data-due="0">{{ $customer->full_name }} ({{ $customer->mobile_number }})</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createCustomerModal"><i class="fa-solid fa-plus"></i></button>
+                                </div>
                                 <div id="creditAlert" class="alert alert-danger mt-2 py-2 small d-none">
                                     <i class="fa-solid fa-triangle-exclamation me-1"></i> Credit Limit Exceeded! Limit: <span id="limitVal"></span>
                                 </div>
@@ -42,7 +45,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label fw-bold small">Salesman</label>
-                                <select class="form-select" name="salesman_id">
+                                <select class="form-select select2" name="salesman_id">
                                     <option value="">Select Salesman</option>
                                     @foreach($salesmen as $man)
                                         <option value="{{ $man->id }}">{{ $man->name }}</option>
@@ -60,7 +63,8 @@
                             <table class="table table-bordered align-middle" id="itemsTable">
                                 <thead class="bg-light">
                                     <tr>
-                                        <th style="width: 40%;">Product</th>
+                                        <th style="width: 30%;">Product</th>
+                                        <th style="width: 20%;">Type / Description</th>
                                         <th style="width: 10%;">Unit</th>
                                         <th style="width: 20%;">Price</th>
                                         <th style="width: 10%;">Qty</th>
@@ -124,7 +128,7 @@
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="payment_status_type" id="statusCredit" value="credit" onchange="togglePaymentFields()">
-                                    <label class="form-check-label" for="statusCredit">Outstanding (Credit)</label>
+                                    <label class="form-check-label" for="statusCredit">A/C (Credit)</label>
                                 </div>
                             </div>
                         </div>
@@ -223,6 +227,7 @@
                         ${products.map(p => `<option value="${p.id}" data-price="${p.sale_price}" data-unit="${p.units || ''}">${p.name} - ${p.code}</option>`).join('')}
                     </select>
                 </td>
+                <td><input type="text" class="form-control form-control-sm" name="items[${rowId}][description]" placeholder="Desc..."></td>
                 <td><input type="text" class="form-control form-control-sm bg-light" id="unit_${rowId}" readonly></td>
                 <td><input type="number" step="0.01" class="form-control form-control-sm" name="items[${rowId}][unit_price]" id="price_${rowId}" oninput="calcRowTotal(${rowId})"></td>
                 <td><input type="number" step="1" class="form-control form-control-sm" name="items[${rowId}][quantity]" id="qty_${rowId}" value="1" oninput="calcRowTotal(${rowId})"></td>
@@ -343,5 +348,81 @@
 
     // Initialize with one row
     addProductRow();
+
+    document.getElementById('createCustomerForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch('{{ route("customers.store") }}', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                const select = document.getElementById('customer_id');
+                const option = new Option(`${data.customer.first_name} ${data.customer.last_name} (${data.customer.mobile_number})`, data.customer.id);
+                option.setAttribute('data-credit', data.customer.credit_limit);
+                select.add(option, undefined);
+                select.value = data.customer.id;
+                // Trigger change to update credit check if needed
+                select.dispatchEvent(new Event('change'));
+
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createCustomerModal'));
+                modal.hide();
+                this.reset();
+            } else {
+                alert('Error creating customer');
+            }
+        })
+       .catch(err => console.error(err));
+    });
 </script>
+
+<!-- Create Customer Modal -->
+<div class="modal fade" id="createCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-bottom-0">
+                <h6 class="modal-title fw-bold">New Customer</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="createCustomerForm">
+                    <div class="row g-2">
+                         <div class="col-md-6">
+                            <label class="form-label small fw-bold">First Name</label>
+                            <input type="text" class="form-control form-control-sm" name="first_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Last Name</label>
+                            <input type="text" class="form-control form-control-sm" name="last_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Mobile</label>
+                            <input type="text" class="form-control form-control-sm" name="mobile_number" required>
+                        </div>
+                         <div class="col-md-6">
+                            <label class="form-label small fw-bold">Email</label>
+                            <input type="email" class="form-control form-control-sm" name="email">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">Company Name</label>
+                            <input type="text" class="form-control form-control-sm" name="company_name">
+                        </div>
+                         <div class="col-md-12">
+                            <label class="form-label small fw-bold">Credit Limit</label>
+                            <input type="number" step="0.01" class="form-control form-control-sm" name="credit_limit" value="0">
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill btn-sm">Save Customer</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

@@ -18,7 +18,7 @@
             $cards = [
                 ['label' => 'All Out Cheques', 'key' => 'all', 'icon' => 'fa-list', 'color' => '#64748b', 'bg' => '#f8fafc', 'status' => ''],
                 ['label' => 'Sent (Pending)', 'key' => 'sent', 'icon' => 'fa-paper-plane', 'color' => '#f59e0b', 'bg' => '#fffbeb', 'status' => 'sent'],
-                ['label' => 'Received', 'key' => 'realized', 'icon' => 'fa-circle-check', 'color' => '#10b981', 'bg' => '#ecfdf5', 'status' => 'realized'],
+                ['label' => 'Realized', 'key' => 'realized', 'icon' => 'fa-circle-check', 'color' => '#10b981', 'bg' => '#ecfdf5', 'status' => 'realized'],
                 ['label' => 'Bounced', 'key' => 'bounced', 'icon' => 'fa-rotate-left', 'color' => '#ef4444', 'bg' => '#fef2f2', 'status' => 'bounced'],
             ];
         @endphp
@@ -82,7 +82,7 @@
                     <select name="status" class="form-select form-select-sm border-light rounded-3">
                         <option value="">All Status</option>
                         <option value="sent" {{ request('status') == 'sent' ? 'selected' : '' }}>Sent</option>
-                        <option value="realized" {{ request('status') == 'realized' ? 'selected' : '' }}>Received</option>
+                        <option value="realized" {{ request('status') == 'realized' ? 'selected' : '' }}>Realized</option>
                         <option value="bounced" {{ request('status') == 'bounced' ? 'selected' : '' }}>Bounced</option>
                     </select>
                 </div>
@@ -180,7 +180,7 @@
                             @php
                                 $statusColors = [
                                     'sent' => ['bg' => '#fffbeb', 'text' => '#f59e0b', 'label' => 'Sent'],
-                                    'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Received'],
+                                    'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Realized'],
                                     'bounced' => ['bg' => '#fef2f2', 'text' => '#ef4444', 'label' => 'Bounced'],
                                 ];
                                 $st = $statusColors[$cheque->status] ?? ['bg' => '#eee', 'text' => '#666', 'label' => $cheque->status];

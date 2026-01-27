@@ -55,7 +55,7 @@
                             <thead class="bg-light">
                                 <tr>
                                     <th class="ps-3" style="width: 5%;">#</th>
-                                    <th style="width: 45%;">Preoduct Description</th>
+                                    <th style="width: 45%;">Product Description</th>
                                     <th class="text-center" style="width: 10%;">Qty</th>
                                     <th class="text-end" style="width: 15%;">Unit Price</th>
                                     <th class="text-end pe-3" style="width: 15%;">Total</th>
@@ -68,6 +68,9 @@
                                     <td>
                                         <div class="fw-bold small">{{ $item->product->name }}</div>
                                         <div class="text-muted small" style="font-size: 0.75rem;">{{ $item->product->code }}</div>
+                                        @if($item->description)
+                                        <div class="text-muted small fst-italic" style="font-size: 0.75rem;">{{ $item->description }}</div>
+                                        @endif
                                     </td>
                                     <td class="text-center">{{ $item->quantity }} {{ $item->product->units }}</td>
                                     <td class="text-end">Rs. {{ number_format($item->unit_price, 2) }}</td>
@@ -131,7 +134,14 @@
                                         @foreach($sale->payments as $payment)
                                         <tr>
                                             <td>{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d H:i') }}</td>
-                                            <td class="text-uppercase small fw-bold">{{ $payment->payment_method ?? 'N/A' }}</td>
+                                            <td class="text-uppercase small fw-bold">
+                                                {{ $payment->payment_method ?? 'N/A' }}
+                                                @if($payment->payment_method == 'cheque' && $payment->cheque)
+                                                    <div class="text-muted fw-normal" style="font-size: 0.7rem;">
+                                                        #{{ $payment->cheque->cheque_number }} - {{ $payment->cheque->bank->name ?? 'Bank' }}
+                                                    </div>
+                                                @endif
+                                            </td>
                                             <td class="fw-bold text-success">{{ number_format($payment->amount, 2) }}</td>
                                             <td class="text-muted small">{{ $payment->notes }}</td>
                                         </tr>
@@ -248,7 +258,10 @@
                     <tr>
                         <td class="text-center p-1">{{ $item->product->code }}</td>
                         <td class="text-center p-1">{{ $item->quantity }} {{ $item->product->units }}</td>
-                        <td class="p-1">{{ $item->product->name }}</td>
+                        <td class="p-1">
+                            {{ $item->product->name }}
+                            @if($item->description) <br><small class="text-muted fst-italic">({{ $item->description }})</small> @endif
+                        </td>
                         <td class="text-end p-1">{{ number_format($item->unit_price, 2) }}</td>
                         <td class="text-end fw-bold p-1">{{ number_format($item->total_price, 2) }}</td>
                     </tr>

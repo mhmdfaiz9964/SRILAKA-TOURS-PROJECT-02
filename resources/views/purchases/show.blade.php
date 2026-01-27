@@ -35,6 +35,9 @@
         <div class="row mt-2">
             <div class="col-6 text-start">
                <span class="fw-bold">Ref No: {{ $purchase->invoice_number ?? $purchase->id }}</span> <br>
+               @if($purchase->grn_number)
+               <span class="fw-bold small">GRN: {{ $purchase->grn_number }}</span><br>
+               @endif
                <span class="fw-bold text-uppercase badge border border-dark text-dark rounded-0">{{ $purchase->purchase_type ?? 'LOCAL' }}</span>
             </div>
             <div class="col-6 text-end">
@@ -74,7 +77,12 @@
                 <tr>
                     <td class="text-center">{{ $item->product->code }}</td>
                     <td class="text-center">{{ $item->quantity }}</td>
-                    <td>{{ $item->product->name }}</td>
+                    <td>
+                        {{ $item->product->name }}
+                         @if($item->description)
+                        <br><small class="text-muted fst-italic">({{ $item->description }})</small>
+                        @endif
+                    </td>
                     <td class="text-end">{{ number_format($item->cost_price, 2) }}</td>
                     <td class="text-end fw-bold">{{ number_format($item->total_price, 2) }}</td>
                 </tr>
@@ -90,18 +98,47 @@
                 @endfor
             </tbody>
             <tfoot>
+                <tr>
+                    <td colspan="3" rowspan="{{ 5 + ($purchase->investors->count() > 0 ? $purchase->investors->count() + 2 : 0) }}" class="align-top p-2 border-end border-dark">
+                         <!-- Investors Section if exists -->
+                         @if($purchase->investors->count() > 0)
+                            <h6 class="fw-bold small text-decoration-underline mb-2">Investors</h6>
+                            <table class="table table-sm table-borderless mb-0">
+                                @foreach($purchase->investors as $inv)
+                                <tr>
+                                    <td class="p-0 small">{{ $inv->investor_name }}:</td>
+                                    <td class="p-0 small fw-bold text-end">{{ number_format($inv->amount, 2) }}</td>
+                                </tr>
+                                @endforeach
+                            </table>
+                         @endif
+                    </td>
+                    <td class="text-end text-muted small p-1">Sub Total Item</td>
+                    <td class="text-end fw-bold p-1">{{ number_format($purchase->items->sum('total_price'), 2) }}</td>
+                </tr>
+                 <tr>
+                    <td class="text-end text-muted small p-1">Transport</td>
+                    <td class="text-end p-1">{{ number_format($purchase->transport_cost, 2) }}</td>
+                </tr>
+                 <tr>
+                    <td class="text-end text-muted small p-1">Broker</td>
+                    <td class="text-end p-1">{{ number_format($purchase->broker_cost, 2) }}</td>
+                </tr>
+                 <tr>
+                    <td class="text-end text-muted small p-1">Duty + Kuli</td>
+                    <td class="text-end p-1">{{ number_format($purchase->duty_cost + $purchase->kuli_cost, 2) }}</td>
+                </tr>
                 <tr style="background: #eee;">
-                     <td colspan="3" class="border-0 bg-transparent"></td>
-                    <td class="text-end fw-bold p-1 h6 mb-0">Total</td>
+                    <td class="text-end fw-bold p-1 h6 mb-0">Grand Total</td>
                     <td class="text-end fw-bold p-1 h6 mb-0">{{ number_format($purchase->total_amount, 2) }}</td>
                 </tr>
                 <tr>
-                     <td colspan="3" class="border-0"></td>
+
                     <td class="text-end fw-bold p-1">Paid</td>
                     <td class="text-end fw-bold p-1">{{ number_format($purchase->paid_amount, 2) }}</td>
                 </tr>
                 <tr>
-                     <td colspan="3" class="border-0"></td>
+
                     <td class="text-end fw-bold p-1 h5 mb-0">Balance</td>
                     <td class="text-end fw-bold p-1 h5 mb-0">{{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}</td>
                 </tr>

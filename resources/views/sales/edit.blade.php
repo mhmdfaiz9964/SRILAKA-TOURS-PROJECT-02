@@ -26,6 +26,15 @@
                                 <label class="form-label fw-bold small">Date</label>
                                 <input type="date" class="form-control" name="sale_date" value="{{ $sale->sale_date }}" required>
                             </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">Salesman</label>
+                                <select class="form-select select2" name="salesman_id">
+                                    <option value="">Select Salesman</option>
+                                    @foreach($salesmen as $man)
+                                        <option value="{{ $man->id }}" {{ $sale->salesman_id == $man->id ? 'selected' : '' }}>{{ $man->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                         
                         <div class="alert alert-warning small">
@@ -47,7 +56,12 @@
                                 <tbody>
                                     @foreach($sale->items as $item)
                                     <tr>
-                                        <td>{{ $item->product->name }}</td>
+                                        <td>
+                                            {{ $item->product->name }}
+                                            @if($item->description)
+                                                <br><small class="text-muted fst-italic">({{ $item->description }})</small>
+                                            @endif
+                                        </td>
                                         <td class="text-center">{{ $item->quantity }}</td>
                                         <td class="text-end">{{ number_format($item->unit_price, 2) }}</td>
                                         <td class="text-end">{{ number_format($item->total_price, 2) }}</td>

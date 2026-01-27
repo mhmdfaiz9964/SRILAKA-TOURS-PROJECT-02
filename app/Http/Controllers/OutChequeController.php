@@ -77,19 +77,7 @@ class OutChequeController extends Controller
 
         $cheque = OutCheque::create($data);
 
-        // If bounced, create a record in Cheque Management (RTN Cheque)
-        if ($cheque->status == 'bounced') {
-            \App\Models\Cheque::create([
-                'cheque_number' => $cheque->cheque_number,
-                'cheque_date' => $cheque->cheque_date,
-                'bank_id' => $cheque->bank_id,
-                'amount' => $cheque->amount,
-                'payer_name' => $cheque->payee_name, // The payee who bounced it
-                'payment_status' => 'pending',
-                'return_reason' => 'Bounced Out Cheque',
-                'notes' => $cheque->notes
-            ]);
-        }
+
 
         return redirect()->route('out-cheques.index')->with('success', 'Out Cheque added successfully');
     }
@@ -115,19 +103,7 @@ class OutChequeController extends Controller
         $oldStatus = $outCheque->status;
         $outCheque->update($data);
 
-        // If status changed to bounced, create a record in Cheque Management (RTN Cheque)
-        if ($outCheque->status == 'bounced' && $oldStatus != 'bounced') {
-            \App\Models\Cheque::create([
-                'cheque_number' => $outCheque->cheque_number,
-                'cheque_date' => $outCheque->cheque_date,
-                'bank_id' => $outCheque->bank_id,
-                'amount' => $outCheque->amount,
-                'payer_name' => $outCheque->payee_name, // The payee who bounced it
-                'payment_status' => 'pending',
-                'return_reason' => 'Bounced Out Cheque',
-                'notes' => $outCheque->notes
-            ]);
-        }
+
 
         return redirect()->route('out-cheques.index')->with('success', 'Out Cheque updated successfully');
     }

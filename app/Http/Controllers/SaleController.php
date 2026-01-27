@@ -9,9 +9,15 @@ class SaleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $sales = \App\Models\Sale::with('customer')->orderByDesc('created_at')->get();
+        $query = \App\Models\Sale::with('customer')->orderByDesc('created_at');
+        
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $sales = $query->get();
         return view('sales.index', compact('sales'));
     }
 
@@ -43,6 +49,7 @@ class SaleController extends Controller
             'sale_date' => 'required|date',
             'items' => 'required|array',
             'items.*.product_id' => 'required',
+            'items.*.description' => 'nullable|string',
             'items.*.quantity' => 'required|numeric|min:1',
             'paid_amount' => 'nullable|numeric',
             'transport_cost' => 'nullable|numeric',
@@ -79,6 +86,7 @@ class SaleController extends Controller
                 \App\Models\SaleItem::create([
                     'sale_id' => $sale->id,
                     'product_id' => $item['product_id'],
+                    'description' => $item['description'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'discount_percentage' => $item['discount_percentage'] ?? 0,
@@ -142,7 +150,8 @@ class SaleController extends Controller
         $customers = \App\Models\Customer::where('status', true)->get();
         $products = \App\Models\Product::all();
         $banks = \App\Models\Bank::all();
-        return view('sales.edit', compact('sale', 'customers', 'products', 'banks'));
+        $salesmen = \App\Models\User::all();
+        return view('sales.edit', compact('sale', 'customers', 'products', 'banks', 'salesmen'));
     }
 
     public function update(Request $request, $id)
@@ -163,6 +172,7 @@ class SaleController extends Controller
         $sale->update([
             'customer_id' => $request->customer_id,
             'sale_date' => $request->sale_date,
+            'salesman_id' => $request->salesman_id,
             'notes' => $request->notes,
         ]);
         

@@ -14,7 +14,11 @@ class Purchase extends Model
         'total_amount',
         'paid_amount',
         'status',
-        'notes',
+        'grn_number',
+        'broker_cost',
+        'transport_cost',
+        'duty_cost',
+        'kuli_cost',
     ];
 
     public function supplier()
@@ -25,5 +29,10 @@ class Purchase extends Model
     public function items()
     {
         return $this->hasMany(PurchaseItem::class);
+    }
+
+    public function investors()
+    {
+        return $this->hasMany(PurchaseInvestor::class);
     }
 }

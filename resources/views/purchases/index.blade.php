@@ -37,7 +37,7 @@
                     <thead style="background: #fdfdfd; border-bottom: 1px solid #f3f4f6;">
                         <tr>
                             <th class="ps-4 py-3 text-muted fw-semibold small text-uppercase">Date</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Invoice #</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Inv / GRN</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Supplier</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Total Amount</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Paid / Due</th>
@@ -49,7 +49,12 @@
                         @forelse($purchases as $purchase)
                         <tr class="cursor-pointer" onclick="window.location='{{ route('purchases.show', $purchase->id) }}'">
                             <td class="ps-4 text-muted small">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M, Y') }}</td>
-                            <td class="fw-bold text-dark small">{{ $purchase->invoice_number ?? '-' }}</td>
+                            <td class="fw-bold text-dark small">
+                                {{ $purchase->invoice_number ?? '-' }}
+                                @if($purchase->grn_number)
+                                    <div class="text-muted" style="font-size: 0.7rem;">GRN: {{ $purchase->grn_number }}</div>
+                                @endif
+                            </td>
                             <td class="small fw-semibold">{{ $purchase->supplier->full_name }}</td>
                             <td class="small fw-bold">{{ number_format($purchase->total_amount, 2) }}</td>
                             <td class="small">

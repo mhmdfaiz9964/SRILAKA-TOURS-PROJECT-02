@@ -73,13 +73,23 @@
                                             <option value="received" {{ old('status') == 'received' ? 'selected' : '' }}>Received (In Hand)</option>
                                             <option value="deposited" {{ old('status') == 'deposited' ? 'selected' : '' }}>Deposited</option>
                                             <option value="transferred_to_third_party" {{ old('status') == 'transferred_to_third_party' ? 'selected' : '' }}>Transferred to 3rd Party</option>
-                                            <option value="realized" {{ old('status') == 'realized' ? 'selected' : '' }}>Realized</option>
+                                            <option value="realized" {{ old('status') == 'realized' ? 'selected' : '' }}>Received</option>
                                             <option value="returned" {{ old('status') == 'returned' ? 'selected' : '' }}>Returned</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6" id="thirdPartyField" style="display: none;">
                                         <label class="form-label small fw-bold text-muted text-uppercase">3rd Party Name</label>
-                                        <input type="text" name="third_party_name" class="form-control border-light bg-light rounded-3 shadow-none" value="{{ old('third_party_name') }}" placeholder="Who was this given to?">
+                                        <div class="input-group">
+                                            <select name="third_party_name" class="form-select border-light bg-light rounded-3 shadow-none" id="thirdPartySelect">
+                                                <option value="">Select 3rd Party</option>
+                                                @foreach($thirdParties as $tp)
+                                                    <option value="{{ $tp->name }}" {{ old('third_party_name') == $tp->name ? 'selected' : '' }}>{{ $tp->name }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#createThirdPartyModal">
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -102,6 +112,31 @@
     </div>
 </div>
 
+
+<div class="modal fade" id="createThirdPartyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content rounded-4 border-0">
+            <div class="modal-header border-bottom-0">
+                <h6 class="modal-title fw-bold">New Third Party</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0">
+                <form id="createThirdPartyForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Name</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Contact (Optional)</label>
+                        <input type="text" class="form-control" name="contact_number">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill btn-sm">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleThirdPartyFields() {
     var status = document.getElementById('statusSelect').value;
@@ -114,5 +149,31 @@ function toggleThirdPartyFields() {
 }
 // Init on load
 document.addEventListener('DOMContentLoaded', toggleThirdPartyFields);
+
+document.getElementById('createThirdPartyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    formData.append('_token', '{{ csrf_token() }}');
+
+    fetch('{{ route("third-parties.store") }}', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success) {
+            const select = document.getElementById('thirdPartySelect');
+            const option = new Option(data.third_party.name, data.third_party.name);
+            select.add(option, undefined);
+            select.value = data.third_party.name;
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createThirdPartyModal'));
+            modal.hide();
+            this.reset();
+            // Optional: Show success message/toast
+        }
+    });
+});
 </script>
 @endsection

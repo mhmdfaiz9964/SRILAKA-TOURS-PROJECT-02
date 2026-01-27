@@ -49,7 +49,47 @@ class CustomerController extends Controller
      */
     public function show(\App\Models\Customer $customer)
     {
-        return view('customers.show', compact('customer'));
+        // Load relationships
+        $customer->load('sales', 'payments');
+
+        // Build Ledger
+        $ledger = collect();
+
+        // Add Sales (Debits)
+        foreach ($customer->sales as $sale) {
+            $ledger->push([
+                'date' => $sale->sale_date,
+                'updated_at' => $sale->created_at, // For secondary sort
+                'type' => 'invoice',
+                'description' => 'Invoice #' . $sale->invoice_number,
+                'debit' => $sale->total_amount,
+                'credit' => 0,
+                'url' => route('sales.show', $sale->id)
+            ]);
+        }
+
+        // Add Payments (Credits)
+        foreach ($customer->payments as $payment) {
+            $ledger->push([
+                'date' => \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d'),
+                'updated_at' => $payment->created_at,
+                'type' => 'payment',
+                'description' => 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                'debit' => 0,
+                'credit' => $payment->amount,
+                'url' => '#' // Payment view if exists
+            ]);
+        }
+
+        // Sort by Date, then Created At
+        $ledger = $ledger->sort(function ($a, $b) {
+            if ($a['date'] === $b['date']) {
+                return $a['updated_at'] <=> $b['updated_at'];
+            }
+            return $a['date'] <=> $b['date'];
+        });
+
+        return view('customers.show', compact('customer', 'ledger'));
     }
 
     /**

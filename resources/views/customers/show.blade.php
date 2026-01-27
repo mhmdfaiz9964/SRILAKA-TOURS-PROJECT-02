@@ -76,9 +76,41 @@
                     <div class="tab-content">
                         <!-- Ledger Tab -->
                         <div class="tab-pane fade show active" id="ledger">
-                            <div class="alert alert-light border border-dashed text-center">
-                                <p class="mb-0 text-muted small">Ledger calculation logic would go here showing Debit/Credit history.</p>
-                                <!-- Placeholder for Ledger Table -->
+                             <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3 small fw-bold">Date</th>
+                                            <th class="small fw-bold">Description</th>
+                                            <th class="text-end small fw-bold">Debit</th>
+                                            <th class="text-end small fw-bold">Credit</th>
+                                            <th class="text-end pe-3 small fw-bold">Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @php $balance = 0; @endphp
+                                        @forelse($ledger as $entry)
+                                            @php 
+                                                $balance += $entry['debit'] - $entry['credit'];
+                                            @endphp
+                                            <tr>
+                                                <td class="ps-3 small">{{ \Carbon\Carbon::parse($entry['date'])->format('d M, Y') }}</td>
+                                                <td class="small">
+                                                    @if($entry['url'] != '#')
+                                                        <a href="{{ $entry['url'] }}" class="text-decoration-none fw-bold">{{ $entry['description'] }}</a>
+                                                    @else
+                                                        {{ $entry['description'] }}
+                                                    @endif
+                                                </td>
+                                                <td class="text-end small text-danger">{{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}</td>
+                                                <td class="text-end small text-success">{{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}</td>
+                                                <td class="text-end pe-3 fw-bold small">{{ number_format($balance, 2) }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr><td colspan="5" class="text-center text-muted small py-3">No transactions found</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
 

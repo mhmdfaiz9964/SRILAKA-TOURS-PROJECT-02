@@ -200,15 +200,10 @@
                                 </span>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #8b5cf6; width: 30px; height: 30px; font-size: 0.75rem;">
-                                        {{ substr($cheque->cheque->payer_name ?? 'C', 0, 1) }}
-                                    </div>
                                     <div class="d-flex flex-column">
                                         <a href="{{ route('cheques.show', $cheque->cheque) }}" class="fw-bold text-dark small text-decoration-none hover-underline text-nowrap">{{ $cheque->cheque->payer_name ?? 'N/A' }}</a>
                                         <span class="text-muted text-nowrap" style="font-size: 0.65rem;">#{{ $cheque->cheque->cheque_number ?? '000000' }}</span>
                                     </div>
-                                </div>
                             </td>
                             <td class="small fw-medium">{{ $cheque->cheque->payee_name ?? '-' }}</td>
                             <td class="small fw-bold text-nowrap">LKR {{ number_format($cheque->amount, 2) }}</td>
@@ -229,15 +224,10 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-sm rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="background: #8b5cf6; width: 30px; height: 30px; font-size: 0.75rem;">
-                                        {{ substr($cheque->payer_name, 0, 1) }}
-                                    </div>
                                     <div class="d-flex flex-column">
                                         <a href="{{ route('cheques.show', $cheque) }}" class="fw-bold text-dark small text-decoration-none hover-underline text-nowrap">{{ $cheque->payer_name }}</a>
                                         <span class="text-muted text-nowrap" style="font-size: 0.65rem;">#{{ $cheque->cheque_number }}</span>
                                     </div>
-                                </div>
                             </td>
                             <td class="small">{{ $cheque->bank->name }}</td>
                             <td class="small fw-bold text-nowrap">LKR {{ number_format($cheque->amount, 2) }}</td>
