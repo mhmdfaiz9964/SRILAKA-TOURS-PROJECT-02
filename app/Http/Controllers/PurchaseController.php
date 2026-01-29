@@ -19,7 +19,7 @@ class PurchaseController extends Controller
      */
     public function index(Request $request)
     {
-        $query = \App\Models\Purchase::with('supplier')->orderByDesc('created_at');
+        $query = \App\Models\Purchase::with('supplier');
 
         if ($request->filled('start_date')) {
             $query->whereDate('purchase_date', '>=', $request->start_date);
@@ -33,6 +33,32 @@ class PurchaseController extends Controller
         if ($request->filled('type')) {
             $query->where('purchase_type', $request->type);
         }
+
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest':
+                    $query->orderByDesc('purchases.created_at');
+                    break;
+                case 'oldest':
+                    $query->orderBy('purchases.created_at');
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('purchases.total_amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('purchases.total_amount');
+                    break;
+                case 'name_az':
+                    $query->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
+                          ->orderBy('suppliers.full_name')
+                          ->select('purchases.*');
+                    break;
+                default:
+                    $query->orderByDesc('purchases.created_at');
+            }
+        } else {
+             $query->orderByDesc('purchases.created_at');
+        } 
 
         $purchases = $query->get();
         $suppliers = \App\Models\Supplier::select('id', 'full_name')->orderBy('full_name')->get();

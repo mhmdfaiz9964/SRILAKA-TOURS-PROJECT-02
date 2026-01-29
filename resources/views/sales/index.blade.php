@@ -58,6 +58,16 @@
                     </div>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted text-uppercase">Sort By</label>
+                    <select name="sort" class="form-select form-select-sm border-0 bg-light">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
+                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Customer (A-Z)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small fw-bold text-muted text-uppercase">Customer</label>
                     <select name="customer_id" class="form-select form-select-sm border-0 bg-light">
                         <option value="">All Customers</option>

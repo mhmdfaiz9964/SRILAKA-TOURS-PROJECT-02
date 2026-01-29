@@ -73,6 +73,30 @@ class InChequeController extends Controller
             $query->whereDate('cheque_date', '<=', $request->to_date);
         }
 
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest':
+                    $query->latest();
+                    break;
+                case 'oldest':
+                    $query->oldest();
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('amount');
+                    break;
+                case 'name_az':
+                    $query->orderBy('payer_name');
+                    break;
+                 default:
+                    $query->latest();
+            }
+        } else {
+             $query->latest();
+        }
+
         $cheques = $query->latest()->paginate(10)->withQueryString();
         $banks = Bank::all();
         $payers = InCheque::select('payer_name')->distinct()->orderBy('payer_name')->pluck('payer_name');

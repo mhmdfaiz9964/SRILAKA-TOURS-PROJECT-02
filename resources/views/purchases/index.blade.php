@@ -45,11 +45,20 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="small fw-bold text-muted">Transaction Type</label>
                                     <select class="form-select form-select-sm" name="type">
                                         <option value="">All Types</option>
                                         <option value="local" {{ request('type') == 'local' ? 'selected' : '' }}>Local</option>
                                         <option value="import" {{ request('type') == 'import' ? 'selected' : '' }}>Import</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="small fw-bold text-muted">Sort By</label>
+                                    <select class="form-select form-select-sm" name="sort">
+                                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
+                                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Supplier (A-Z)</option>
                                     </select>
                                 </div>
                                 <div class="d-grid gap-2">

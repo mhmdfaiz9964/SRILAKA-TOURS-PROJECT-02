@@ -28,7 +28,36 @@ class ProductController extends Controller
             $query->where('is_main_product', $request->is_main_product);
         }
 
-        $products = $query->get();
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest':
+                    $query->latest();
+                    break;
+                case 'oldest':
+                    $query->oldest();
+                    break;
+                case 'name_az':
+                    $query->orderBy('name');
+                    break;
+                case 'highest_price':
+                    $query->orderByDesc('sale_price');
+                    break;
+                case 'lowest_price':
+                    $query->orderBy('sale_price');
+                    break;
+                case 'highest_stock':
+                    $query->orderByDesc('stock_alert');
+                    break;
+                case 'lowest_stock':
+                    $query->orderBy('stock_alert');
+                    break;
+                default:
+                    $query->latest();
+            }
+        } else {
+             $query->latest();
+        }
+
         $products = $query->get();
         // Calculate Total Cost Value (Current Stock * Cost Price)
         // Using stock_alert as current_stock based on SaleController logic

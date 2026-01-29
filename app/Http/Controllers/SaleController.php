@@ -18,7 +18,7 @@ class SaleController extends Controller
      */
     public function index(\Illuminate\Http\Request $request)
     {
-        $query = \App\Models\Sale::with('customer')->orderByDesc('created_at');
+        $query = \App\Models\Sale::with('customer');
         
         // Status Filter
         if ($request->filled('status')) {
@@ -47,6 +47,33 @@ class SaleController extends Controller
                       $cq->where('full_name', 'LIKE', "%{$search}%");
                   });
             });
+        }
+
+        // Sorting
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest':
+                    $query->orderByDesc('sales.created_at');
+                    break;
+                case 'oldest':
+                    $query->orderBy('sales.created_at');
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('sales.total_amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('sales.total_amount');
+                    break;
+                case 'name_az':
+                    $query->join('customers', 'sales.customer_id', '=', 'customers.id')
+                          ->orderBy('customers.full_name')
+                          ->select('sales.*');
+                    break;
+                default:
+                    $query->orderByDesc('sales.created_at');
+            }
+        } else {
+             $query->orderByDesc('sales.created_at');
         }
 
         // Clone query for stats before pagination

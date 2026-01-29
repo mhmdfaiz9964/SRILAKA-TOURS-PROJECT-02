@@ -66,6 +66,16 @@
                         <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm ps-4 border-light rounded-3" placeholder="Name or #...">
                     </div>
                 </div>
+                 <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Sort By</label>
+                    <select class="form-select form-select-sm border-light rounded-3" name="sort">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
+                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Payer Name (A-Z)</option>
+                    </select>
+                </div>
                 <div class="col-md-2">
                     <label class="form-label small fw-bold text-muted mb-1">Payer Name</label>
                     <select name="payer_name" class="form-select form-select-sm border-light rounded-3">

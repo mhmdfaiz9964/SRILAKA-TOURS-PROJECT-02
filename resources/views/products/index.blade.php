@@ -44,6 +44,17 @@
                         <option value="1" {{ request('is_main_product') == '1' ? 'selected' : '' }}>Main Product</option>
                         <option value="0" {{ request('is_main_product') == '0' ? 'selected' : '' }}>Sub Product</option>
                     </select>
+                    
+                    <select class="form-select form-select-sm" style="width: 150px;" name="sort" onchange="this.form.submit()">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Name (A-Z)</option>
+                         <option value="highest_price" {{ request('sort') == 'highest_price' ? 'selected' : '' }}>Highest Price</option>
+                        <option value="lowest_price" {{ request('sort') == 'lowest_price' ? 'selected' : '' }}>Lowest Price</option>
+                         <option value="highest_stock" {{ request('sort') == 'highest_stock' ? 'selected' : '' }}>Highest Stock</option>
+                        <option value="lowest_stock" {{ request('sort') == 'lowest_stock' ? 'selected' : '' }}>Lowest Stock</option>
+                    </select>
+
                      <input type="text" name="search" class="form-control form-control-sm" style="width: 200px;" placeholder="Search products..." value="{{ request('search') }}">
                      <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i></button>
                     <a href="{{ route('products.index') }}" class="btn btn-light btn-sm"><i class="fa-solid fa-rotate"></i></a>

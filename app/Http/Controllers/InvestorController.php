@@ -30,6 +30,30 @@ class InvestorController extends Controller
             $query->whereBetween('collect_date', [$request->start_date, $request->end_date]);
         }
 
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest':
+                    $query->latest();
+                    break;
+                case 'oldest':
+                    $query->oldest();
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('invest_amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('invest_amount');
+                    break;
+                case 'name_az':
+                    $query->orderBy('name');
+                    break;
+                default:
+                    $query->latest();
+            }
+        } else {
+            $query->latest();
+        }
+
         $investors = $query->latest()->paginate(10)->withQueryString();
         $total_invested = Investor::sum('invest_amount');
         $active_investment = Investor::where('status', 'active')->sum('invest_amount');

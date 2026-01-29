@@ -48,13 +48,23 @@
             </div>
         </div>
         
-        <div class="d-flex align-items-center gap-3">
-            <form action="{{ route('investors.index') }}" method="GET" class="search-box position-relative">
+    <div class="d-flex align-items-center gap-3">
+        <form action="{{ route('investors.index') }}" method="GET" class="search-box position-relative d-flex gap-2">
+            <div class="position-relative">
                 <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
                 <input type="text" name="search" value="{{ request('search') }}" class="form-control ps-5 border-0 shadow-sm rounded-pill" style="width: 350px; background: #fff;" placeholder="Search by investor name...">
-            </form>
-        </div>
+            </div>
+            
+            <select class="form-select border-0 shadow-sm rounded-pill" style="width: 180px;" name="sort" onchange="this.form.submit()">
+                <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
+                <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Name (A-Z)</option>
+             </select>
+        </form>
     </div>
+</div>
 
     <!-- Toolbar Section -->
     <div class="toolbar d-flex align-items-center justify-content-between mb-3 bg-white p-2 rounded-4 shadow-sm border border-light">

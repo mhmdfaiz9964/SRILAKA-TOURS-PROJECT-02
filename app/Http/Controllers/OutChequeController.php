@@ -58,6 +58,30 @@ class OutChequeController extends Controller
             $query->whereDate('cheque_date', '<=', $request->to_date);
         }
 
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest':
+                    $query->latest();
+                    break;
+                case 'oldest':
+                    $query->oldest();
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('amount');
+                    break;
+                case 'name_az':
+                    $query->orderBy('payee_name');
+                    break;
+                default:
+                    $query->latest();
+            }
+        } else {
+             $query->latest();
+        }
+
         $cheques = $query->latest()->paginate(10)->withQueryString();
         $banks = Bank::all();
         $payees = OutCheque::select('payee_name')->distinct()->orderBy('payee_name')->pluck('payee_name');
