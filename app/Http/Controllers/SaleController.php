@@ -96,6 +96,7 @@ class SaleController extends Controller
             'paid_amount' => 'nullable|numeric',
             'transport_cost' => 'nullable|numeric',
             'salesman_name' => 'nullable|string',
+            'cheque_number' => 'nullable|required_if:payment_method,cheque|digits:6',
         ]);
 
         \DB::transaction(function () use ($request) {
@@ -262,7 +263,7 @@ class SaleController extends Controller
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required',
             // Conditional validation for cheque
-            'cheque_number' => 'required_if:payment_method,cheque|nullable|size:6',
+            'cheque_number' => 'required_if:payment_method,cheque|nullable|digits:6',
             'cheque_date' => 'required_if:payment_method,cheque|nullable|date',
             'bank_id' => 'required_if:payment_method,cheque|nullable|exists:banks,id',
             'payer_name' => 'required_if:payment_method,cheque|nullable|string',

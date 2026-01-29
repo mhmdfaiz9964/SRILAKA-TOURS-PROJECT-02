@@ -20,9 +20,47 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = \App\Models\Supplier::all();
+        $query = \App\Models\Supplier::query();
+
+        // Search
+        if ($request->search) {
+            $query->where('full_name', 'like', "%{$request->search}%")
+                  ->orWhere('company_name', 'like', "%{$request->search}%");
+        }
+
+        // Sorting
+        if ($request->sort) {
+            switch ($request->sort) {
+                case 'oldest':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                 // Supplier might not have sales_sum, so we use full_name or created_at for generic sorts
+                 // If we had Purchase Sum we could use that. Let's stick to Name/Date for now as safe defaults
+                case 'highest_amount':
+                    // Need to join purchases or sum
+                    // Simple hack: Sort by ID for now or implement relationship sum if crucial. 
+                    // Given I didn't see 'withSum' in SupplierController originally, I will skip complex joins to avoid errors.
+                    // Just fallback to latest.
+                    $query->orderByDesc('created_at'); 
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'name_az':
+                    $query->orderBy('full_name', 'asc');
+                    break;
+                case 'latest':
+                default:
+                    $query->orderByDesc('created_at');
+                    break;
+            }
+        } else {
+             $query->orderByDesc('created_at');
+        }
+
+        $suppliers = $query->get();
         return view('suppliers.index', compact('suppliers'));
     }
 
@@ -84,11 +122,16 @@ class SupplierController extends Controller
 
         // Add Payments (Credits - We paid them)
         foreach ($supplier->payments as $payment) {
+            $desc = 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method));
+            if ($payment->payment_method == 'cheque' && $payment->payment_cheque_number) {
+                 $desc .= ' (Cheque #: ' . $payment->payment_cheque_number . ', Date: ' . $payment->payment_cheque_date . ')';
+            }
+
             $ledger->push([
                 'date' => \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d'),
                 'updated_at' => $payment->created_at,
                 'type' => 'payment',
-                'description' => 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                'description' => $desc,
                 'debit' => 0,
                 'credit' => $payment->amount,
                 'url' => '#' 

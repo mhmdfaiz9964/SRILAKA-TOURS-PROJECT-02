@@ -73,44 +73,89 @@
                     <div class="tab-content">
                         <!-- Ledger Tab -->
                         <div class="tab-pane fade" id="ledger">
-                             <div class="table-responsive">
-                                <table class="table table-bordered align-middle mb-0">
-                                    <thead class="bg-light">
-                                        <tr class="text-uppercase small fw-bold text-muted">
-                                            <th class="ps-3">Date</th>
-                                            <th>Description</th>
-                                            <th class="text-end">Debit (Purchase)</th>
-                                            <th class="text-end">Credit (Payment)</th>
-                                            <th class="text-end pe-3">Balance</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php $runningBalance = 0; @endphp
-                                        @forelse($ledger as $item)
-                                        @php 
-                                            $runningBalance += ($item['debit'] - $item['credit']);
-                                        @endphp
-                                        <tr>
-                                            <td class="ps-3 small">{{ $item['date'] }}</td>
-                                            <td class="small">
-                                                @if($item['url'] != '#')
-                                                    <a href="{{ $item['url'] }}" class="text-decoration-none fw-bold text-primary">{{ $item['description'] }}</a>
-                                                @else
-                                                    {{ $item['description'] }}
-                                                @endif
-                                            </td>
-                                            <td class="text-end small text-danger fw-bold">{{ $item['debit'] > 0 ? number_format($item['debit'], 2) : '-' }}</td>
-                                            <td class="text-end small text-success fw-bold">{{ $item['credit'] > 0 ? number_format($item['credit'], 2) : '-' }}</td>
-                                            <td class="text-end pe-3 small fw-bold {{ $runningBalance > 0 ? 'text-danger' : 'text-success' }}">
-                                                {{ number_format($runningBalance, 2) }}
-                                            </td>
-                                        </tr>
-                                        @empty
-                                        <tr><td colspan="5" class="text-center py-4">No transactions found</td></tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                             <div class="row g-0">
+                                <!-- Left Side: Purchases (Inflow of Goods / Debit to Expense) -->
+                                <div class="col-md-6 border-end">
+                                    <div class="bg-light p-2 border-bottom text-center">
+                                        <h6 class="fw-bold mb-0 text-dark small text-uppercase">Purchases</h6>
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover align-middle mb-0 border-0">
+                                            <thead class="text-muted bg-white position-sticky top-0">
+                                                <tr>
+                                                    <th class="ps-3 border-0 small">Date</th>
+                                                    <th class="border-0 small">Description</th>
+                                                    <th class="text-end pe-3 border-0 small">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php $totalDebit = 0; @endphp
+                                                @foreach($ledger->where('type', 'invoice') as $entry)
+                                                    @php $totalDebit += $entry['debit']; @endphp
+                                                    <tr>
+                                                        <td class="ps-3 small border-0 text-muted">{{ \Carbon\Carbon::parse($entry['date'])->format('d M, Y') }}</td>
+                                                        <td class="small border-0">
+                                                            <a href="{{ $entry['url'] }}" class="text-decoration-none fw-bold text-dark">{{ $entry['description'] }}</a>
+                                                        </td>
+                                                        <td class="text-end pe-3 small border-0 fw-bold">{{ number_format($entry['debit'], 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Right Side: Payments (Outflow of Cash / Credit to Cash) -->
+                                <div class="col-md-6">
+                                    <div class="bg-light p-2 border-bottom text-center">
+                                        <h6 class="fw-bold mb-0 text-dark small text-uppercase">Payments Made</h6>
+                                    </div>
+                                     <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover align-middle mb-0 border-0">
+                                            <thead class="text-muted bg-white position-sticky top-0">
+                                                <tr>
+                                                    <th class="ps-3 border-0 small">Date</th>
+                                                    <th class="border-0 small">Description</th>
+                                                    <th class="text-end pe-3 border-0 small">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php $totalCredit = 0; @endphp
+                                                @foreach($ledger->where('type', 'payment') as $entry)
+                                                    @php $totalCredit += $entry['credit']; @endphp
+                                                    <tr>
+                                                        <td class="ps-3 small border-0 text-muted">{{ \Carbon\Carbon::parse($entry['date'])->format('d M, Y') }}</td>
+                                                        <td class="small border-0">
+                                                            {!! $entry['description'] !!}
+                                                        </td>
+                                                        <td class="text-end pe-3 small border-0 fw-bold text-success">{{ number_format($entry['credit'], 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                             </div>
+
+                             <!-- Totals Footer -->
+                             <div class="bg-light p-3 border-top mt-0">
+                                <div class="row text-center">
+                                    <div class="col-md-4">
+                                        <small class="text-muted text-uppercase fw-bold d-block">Total Purchased</small>
+                                        <span class="fs-5 fw-bold">{{ number_format($totalDebit, 2) }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                         <small class="text-muted text-uppercase fw-bold d-block">Total Paid</small>
+                                        <span class="fs-5 fw-bold text-success">{{ number_format($totalCredit, 2) }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                         <small class="text-muted text-uppercase fw-bold d-block">Balance Payable</small>
+                                        <span class="fs-5 fw-bold {{ ($totalDebit - $totalCredit) > 0 ? 'text-danger' : 'text-success' }}">
+                                            {{ number_format($totalDebit - $totalCredit, 2) }}
+                                        </span>
+                                    </div>
+                                </div>
+                             </div>
                         </div>
 
                         <!-- Purchases Tab -->

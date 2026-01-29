@@ -24,6 +24,15 @@
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                 <form action="{{ route('customers.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-grow-1">
                      <input type="text" name="search" class="form-control form-control-sm" style="width: 250px;" placeholder="Search name, phone..." value="{{ request('search') }}">
+                     
+                     <select class="form-select form-select-sm" style="width: 150px;" name="sort" onchange="this.form.submit()">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
+                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Name (A-Z)</option>
+                     </select>
+
                      <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i></button>
                     <a href="{{ route('customers.index') }}" class="btn btn-light btn-sm"><i class="fa-solid fa-rotate"></i></a>
                 </form>

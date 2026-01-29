@@ -76,42 +76,89 @@
                     <div class="tab-content">
                         <!-- Ledger Tab -->
                         <div class="tab-pane fade show active" id="ledger">
-                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th class="ps-3 small fw-bold">Date</th>
-                                            <th class="small fw-bold">Description</th>
-                                            <th class="text-end small fw-bold">Debit</th>
-                                            <th class="text-end small fw-bold">Credit</th>
-                                            <th class="text-end pe-3 small fw-bold">Balance</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @php $balance = 0; @endphp
-                                        @forelse($ledger as $entry)
-                                            @php 
-                                                $balance += $entry['debit'] - $entry['credit'];
-                                            @endphp
-                                            <tr>
-                                                <td class="ps-3 small">{{ \Carbon\Carbon::parse($entry['date'])->format('d M, Y') }}</td>
-                                                <td class="small">
-                                                    @if($entry['url'] != '#')
-                                                        <a href="{{ $entry['url'] }}" class="text-decoration-none fw-bold">{{ $entry['description'] }}</a>
-                                                    @else
-                                                        {{ $entry['description'] }}
-                                                    @endif
-                                                </td>
-                                                <td class="text-end small text-danger">{{ $entry['debit'] > 0 ? number_format($entry['debit'], 2) : '-' }}</td>
-                                                <td class="text-end small text-success">{{ $entry['credit'] > 0 ? number_format($entry['credit'], 2) : '-' }}</td>
-                                                <td class="text-end pe-3 fw-bold small">{{ number_format($balance, 2) }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr><td colspan="5" class="text-center text-muted small py-3">No transactions found</td></tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                             <div class="row g-0">
+                                <!-- Left Side: Sales / Debits -->
+                                <div class="col-md-6 border-end">
+                                    <div class="bg-light p-2 border-bottom text-center">
+                                        <h6 class="fw-bold mb-0 text-dark small text-uppercase">Sales (Inflow)</h6>
+                                    </div>
+                                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover align-middle mb-0 border-0">
+                                            <thead class="text-muted bg-white position-sticky top-0">
+                                                <tr>
+                                                    <th class="ps-3 border-0 small">Date</th>
+                                                    <th class="border-0 small">Description</th>
+                                                    <th class="text-end pe-3 border-0 small">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php $totalDebit = 0; @endphp
+                                                @foreach($ledger->where('type', 'invoice') as $entry)
+                                                    @php $totalDebit += $entry['debit']; @endphp
+                                                    <tr>
+                                                        <td class="ps-3 small border-0 text-muted">{{ \Carbon\Carbon::parse($entry['date'])->format('d M, Y') }}</td>
+                                                        <td class="small border-0">
+                                                            <a href="{{ $entry['url'] }}" class="text-decoration-none fw-bold text-dark">{{ $entry['description'] }}</a>
+                                                        </td>
+                                                        <td class="text-end pe-3 small border-0 fw-bold">{{ number_format($entry['debit'], 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Right Side: Payments / Credits -->
+                                <div class="col-md-6">
+                                    <div class="bg-light p-2 border-bottom text-center">
+                                        <h6 class="fw-bold mb-0 text-dark small text-uppercase">Payments (Outflow)</h6>
+                                    </div>
+                                     <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                        <table class="table table-sm table-hover align-middle mb-0 border-0">
+                                            <thead class="text-muted bg-white position-sticky top-0">
+                                                <tr>
+                                                    <th class="ps-3 border-0 small">Date</th>
+                                                    <th class="border-0 small">Description</th>
+                                                    <th class="text-end pe-3 border-0 small">Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @php $totalCredit = 0; @endphp
+                                                @foreach($ledger->where('type', 'payment') as $entry)
+                                                    @php $totalCredit += $entry['credit']; @endphp
+                                                    <tr>
+                                                        <td class="ps-3 small border-0 text-muted">{{ \Carbon\Carbon::parse($entry['date'])->format('d M, Y') }}</td>
+                                                        <td class="small border-0">
+                                                            {!! $entry['description'] !!}
+                                                        </td>
+                                                        <td class="text-end pe-3 small border-0 fw-bold text-success">{{ number_format($entry['credit'], 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                             </div>
+
+                             <!-- Totals Footer -->
+                             <div class="bg-light p-3 border-top mt-0">
+                                <div class="row text-center">
+                                    <div class="col-md-4">
+                                        <small class="text-muted text-uppercase fw-bold d-block">Total Sales</small>
+                                        <span class="fs-5 fw-bold">{{ number_format($totalDebit, 2) }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                         <small class="text-muted text-uppercase fw-bold d-block">Total Paid</small>
+                                        <span class="fs-5 fw-bold text-success">{{ number_format($totalCredit, 2) }}</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                         <small class="text-muted text-uppercase fw-bold d-block">Balance Due</small>
+                                        <span class="fs-5 fw-bold {{ ($totalDebit - $totalCredit) > 0 ? 'text-danger' : 'text-success' }}">
+                                            {{ number_format($totalDebit - $totalCredit, 2) }}
+                                        </span>
+                                    </div>
+                                </div>
+                             </div>
                         </div>
 
                         <!-- Sales Tab -->
@@ -178,7 +225,8 @@
                                             <td class="small fw-bold text-success">{{ number_format($payment->amount, 2) }}</td>
                                             <td class="small text-muted">
                                                 @if($payment->payment_method == 'cheque')
-                                                    Cheque #: {{ $payment->payment_cheque_number }} ({{ $payment->bank->name ?? '-' }})
+                                                    Cheque #: {{ $payment->payment_cheque_number }} ({{ $payment->bank->name ?? '-' }}) <br>
+                                                    <span class="text-xs">Date: {{ $payment->payment_cheque_date }}</span>
                                                 @elseif($payment->payment_method == 'bank_transfer')
                                                     Ref: {{ $payment->reference_number }} ({{ $payment->bank->name ?? '-' }})
                                                 @else

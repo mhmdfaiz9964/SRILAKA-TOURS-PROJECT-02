@@ -20,11 +20,43 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $customers = \App\Models\Customer::withSum('sales', 'total_amount')
-            ->withSum('payments', 'amount')
-            ->get();
+        $query = \App\Models\Customer::withSum('sales', 'total_amount')
+            ->withSum('payments', 'amount');
+
+        // Search
+        if ($request->search) {
+            $query->where('full_name', 'like', "%{$request->search}%")
+                  ->orWhere('company_name', 'like', "%{$request->search}%")
+                  ->orWhere('mobile_number', 'like', "%{$request->search}%");
+        }
+
+        // Sorting
+        if ($request->sort) {
+            switch ($request->sort) {
+                case 'oldest':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('sales_sum_total_amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('sales_sum_total_amount', 'asc');
+                    break;
+                case 'name_az':
+                    $query->orderBy('full_name', 'asc');
+                    break;
+                case 'latest':
+                default:
+                    $query->orderByDesc('created_at');
+                    break;
+            }
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
+        $customers = $query->paginate(20)->withQueryString();
         return view('customers.index', compact('customers'));
     }
 
@@ -87,11 +119,16 @@ class CustomerController extends Controller
 
         // Add Payments (Credits)
         foreach ($customer->payments as $payment) {
+            $desc = 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method));
+            if ($payment->payment_method == 'cheque' && $payment->payment_cheque_number) {
+                 $desc .= ' (Cheque #: ' . $payment->payment_cheque_number . ', Date: ' . $payment->payment_cheque_date . ')';
+            }
+
             $ledger->push([
                 'date' => \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d'),
                 'updated_at' => $payment->created_at,
                 'type' => 'payment',
-                'description' => 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                'description' => $desc,
                 'debit' => 0,
                 'credit' => $payment->amount,
                 'url' => '#' // Payment view if exists

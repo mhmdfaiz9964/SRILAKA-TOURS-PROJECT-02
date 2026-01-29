@@ -67,6 +67,7 @@ class PurchaseController extends Controller
             'investors.*.name' => 'required_with:investors|string',
             'investors.*.amount' => 'required_with:investors|numeric',
             'paid_amount' => 'nullable|numeric',
+            'cheque_number' => 'nullable|required_if:payment_method,cheque|digits:6',
         ]);
 
         \DB::transaction(function () use ($request) {

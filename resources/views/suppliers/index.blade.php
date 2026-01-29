@@ -22,12 +22,20 @@
     <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
         <div class="card-header bg-white border-bottom-0 py-3 px-4">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-light btn-sm px-3 border-light">
-                        <i class="fa-solid fa-filter me-1 text-black"></i> Filter
-                    </button>
-                    <!-- Search could go here -->
-                </div>
+                <form action="{{ route('suppliers.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-grow-1">
+                     <input type="text" name="search" class="form-control form-control-sm" style="width: 250px;" placeholder="Search name, company..." value="{{ request('search') }}">
+                     
+                     <select class="form-select form-select-sm" style="width: 150px;" name="sort" onchange="this.form.submit()">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
+                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Name (A-Z)</option>
+                     </select>
+
+                     <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <a href="{{ route('suppliers.index') }}" class="btn btn-light btn-sm"><i class="fa-solid fa-rotate"></i></a>
+                </form>
                 <div class="d-flex align-items-center gap-3">
                     <span class="text-muted small">{{ count($suppliers) }} Results</span>
                 </div>

@@ -24,10 +24,20 @@
                             <div class="col-12">
                                 <h6 class="fw-bold text-primary text-uppercase small mb-3">Basic Information</h6>
                                 <div class="row g-3">
-                                    <div class="col-md-12">
+                                    <div class="col-md-8">
                                         <label class="form-label small fw-bold text-muted text-uppercase">Investor Name</label>
                                         <input type="text" name="name" class="form-control border-light bg-light rounded-3 shadow-none @error('name') is-invalid @enderror" value="{{ old('name', $investor->name) }}" placeholder="Enter full name" required>
                                         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Status</label>
+                                        <select name="status" class="form-select border-light bg-light rounded-3 shadow-none @error('status') is-invalid @enderror">
+                                            <option value="active" {{ old('status', $investor->status) == 'active' ? 'selected' : '' }}>Active</option>
+                                            <option value="paid" {{ old('status', $investor->status) == 'paid' ? 'selected' : '' }}>Paid</option>
+                                            <option value="pending" {{ old('status', $investor->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="waiting" {{ old('status', $investor->status) == 'waiting' ? 'selected' : '' }}>Waiting</option>
+                                        </select>
+                                        @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                     </div>
                                 </div>
                             </div>
