@@ -32,7 +32,7 @@ class InvestorController extends Controller
         }
 
         if ($request->start_date && $request->end_date) {
-            $query->whereBetween('collect_date', [$request->start_date, $request->end_date]);
+            $query->whereBetween('refund_date', [$request->start_date, $request->end_date]);
         }
 
         if ($request->filled('sort')) {

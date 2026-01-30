@@ -8,7 +8,7 @@
     </div>
 
     <div class="row">
-        <!-- Purchase Info Dashboard -->
+        <!-- Sidebar Info -->
         <div class="col-lg-3">
              <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body p-4">
@@ -17,17 +17,22 @@
                         <div class="avatar-circle mx-auto bg-primary-subtle text-primary d-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px; border-radius: 50%; font-size: 1.2rem;">
                             {{ substr($purchase->supplier->full_name ?? 'P', 0, 1) }}
                         </div>
-                        <h5 class="fw-bold mb-0">{{ $purchase->supplier->full_name }}</h5>
+                        <h5 class="fw-bold mb-0 text-truncate px-2">{{ $purchase->supplier->full_name }}</h5>
                         <p class="text-muted small mb-0">{{ $purchase->supplier->company_name ?? 'Supplier' }}</p>
                     </div>
 
                     <div class="mb-3">
                         <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">Reference</small>
-                        <div class="fw-bold">GRN: {{ $purchase->grn_number ?? 'N/A' }}</div>
-                        <div class="small">Inv: {{ $purchase->invoice_number ?? 'N/A' }}</div>
+                        <div class="fw-bold fs-6">GRN: {{ $purchase->grn_number ?? 'N/A' }}</div>
+                        <div class="small">Invoice: {{ $purchase->invoice_number ?? 'N/A' }}</div>
                     </div>
 
                     <div class="mb-3">
+                        <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">Date</small>
+                        <div class="fw-bold">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M, Y') }}</div>
+                    </div>
+
+                    <div class="mb-4">
                         <small class="text-muted d-block text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">Status</small>
                         @php
                             $statusClass = [
@@ -36,19 +41,19 @@
                                 'paid' => 'bg-success-subtle text-success'
                             ][$purchase->status] ?? 'bg-secondary-subtle text-secondary';
                         @endphp
-                        <span class="badge {{ $statusClass }} rounded-pill border-0">{{ ucfirst($purchase->status) }}</span>
+                        <span class="badge {{ $statusClass }} rounded-pill border-0 px-3 py-2 fw-bold text-uppercase" style="font-size: 0.65rem;">{{ $purchase->status }}</span>
                     </div>
 
-                    <div class="d-grid gap-2 mt-4">
-                        <button class="btn btn-primary rounded-pill shadow-sm" onclick="window.print()">
+                    <div class="d-grid gap-2 pt-3 border-top">
+                        <button class="btn btn-primary rounded-pill shadow-sm py-2" onclick="window.print()">
                             <i class="fa-solid fa-print me-2"></i> Print Note
                         </button>
                         @if($purchase->status !== 'paid')
-                        <button class="btn btn-success rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                        <button class="btn btn-success rounded-pill shadow-sm py-2" data-bs-toggle="modal" data-bs-target="#paymentModal">
                             <i class="fa-solid fa-plus me-2"></i> Add Payment
                         </button>
                         @endif
-                        <a href="{{ route('purchases.index') }}" class="btn btn-light rounded-pill border">
+                        <a href="{{ route('purchases.index') }}" class="btn btn-light rounded-pill border py-2">
                             <i class="fa-solid fa-arrow-left me-1"></i> Back to List
                         </a>
                     </div>
@@ -56,133 +61,174 @@
             </div>
         </div>
 
-        <!-- Items Table -->
+        <!-- Main Content Area with Tabs -->
         <div class="col-lg-9">
-            <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-bold mb-0">Itemized Details</h5>
-                        <div class="text-muted small">Date: <strong>{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M, Y') }}</strong></div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle border-bottom">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-3 py-3 text-muted small text-uppercase">Product</th>
-                                    <th class="text-center py-3 text-muted small text-uppercase">Qty</th>
-                                    <th class="text-end py-3 text-muted small text-uppercase">Unit Cost</th>
-                                    <th class="text-end pe-3 py-3 text-muted small text-uppercase">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($purchase->items as $item)
-                                <tr>
-                                    <td class="ps-3 py-3">
-                                        <div class="fw-bold text-dark">{{ $item->product->name }}</div>
-                                        <div class="text-muted small">Code: {{ $item->product->code }}</div>
-                                        @if($item->description)
-                                            <div class="text-muted small fst-italic">({{ $item->description }})</div>
-                                        @endif
-                                    </td>
-                                    <td class="text-center py-3">{{ $item->quantity }}</td>
-                                    <td class="text-end py-3">{{ number_format($item->cost_price, 2) }}</td>
-                                    <td class="text-end pe-3 py-3 fw-bold">{{ number_format($item->total_price, 2) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            @if($purchase->investors->count() > 0)
-                                <h6 class="fw-bold text-muted text-uppercase small mb-3">Investors Allocation</h6>
-                                @foreach($purchase->investors as $investor)
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="small">{{ $investor->investor_name }}</span>
-                                        <span class="small fw-bold">{{ number_format($investor->amount, 2) }}</span>
-                                    </div>
-                                @endforeach
-                            @endif
-                        </div>
-                        <div class="col-md-6 mt-3 mt-md-0">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span class="text-muted small">Sub Total Item:</span>
-                                <span class="fw-bold small">{{ number_format($purchase->items->sum('total_price'), 2) }}</span>
-                            </div>
-                            @php
-                                $costs = [
-                                    ['label' => 'Transport', 'val' => $purchase->transport_cost],
-                                    ['label' => 'Broker', 'val' => $purchase->broker_cost],
-                                    ['label' => 'Loading', 'val' => $purchase->loading_cost],
-                                    ['label' => 'Unloading', 'val' => $purchase->unloading_cost],
-                                    ['label' => 'Labour', 'val' => $purchase->labour_cost],
-                                    ['label' => 'Air Ticket', 'val' => $purchase->air_ticket_cost],
-                                    ['label' => 'Other', 'val' => $purchase->other_expenses],
-                                ];
-                            @endphp
-                            @foreach($costs as $cost)
-                                @if($cost['val'] > 0)
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span class="text-muted small">{{ $cost['label'] }}:</span>
-                                    <span class="fw-bold small">{{ number_format($cost['val'], 2) }}</span>
-                                </div>
-                                @endif
-                            @endforeach
-                            <div class="d-flex justify-content-between mt-2 pt-2 border-top">
-                                <span class="fw-bold">Grand Total:</span>
-                                <span class="fw-bold text-primary">{{ number_format($purchase->total_amount, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mt-1 pt-1 border-top">
-                                <span class="text-success small fw-bold">Total Paid:</span>
-                                <span class="text-success fw-bold">{{ number_format($purchase->paid_amount, 2) }}</span>
-                            </div>
-                            <div class="d-flex justify-content-between mt-1 pt-1 border-top">
-                                <span class="text-danger small fw-bold">Balance Due:</span>
-                                <span class="text-danger fw-bold">{{ number_format(max(0, $purchase->total_amount - $purchase->paid_amount), 2) }}</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
+                    <ul class="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-pill" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active rounded-pill fw-bold small" data-bs-toggle="tab" href="#itemsTab">
+                                <i class="fa-solid fa-box me-1"></i> Purchased Items
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#paymentsTab">
+                                <i class="fa-solid fa-money-bill-transfer me-1"></i> Payments
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#investorsTab">
+                                <i class="fa-solid fa-users-gear me-1"></i> Investors
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-            </div>
 
-            <!-- Payment History Dashboard View -->
-            <div class="card border-0 shadow-sm rounded-4">
                 <div class="card-body p-4">
-                    <h6 class="fw-bold text-uppercase text-muted small mb-3">Recent Payments</h6>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-3 py-3 text-muted small text-uppercase">Date</th>
-                                    <th class="py-3 text-muted small text-uppercase">Method</th>
-                                    <th class="text-end py-3 text-muted small text-uppercase">Amount</th>
-                                    <th class="pe-3 py-3 text-muted small text-uppercase">Ref / Notes</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($purchase->payments as $payment)
-                                <tr>
-                                    <td class="ps-3 py-3 small text-muted">{{ \Carbon\Carbon::parse($payment->payment_date)->format('d M, Y') }}</td>
-                                    <td>
-                                        <span class="small fw-bold text-uppercase">{{ str_replace('_', ' ', $payment->payment_method) }}</span>
-                                    </td>
-                                    <td class="text-end fw-bold text-danger">{{ number_format($payment->amount, 2) }}</td>
-                                    <td class="pe-3 small">
-                                        @if($payment->payment_method == 'cheque')
-                                            <span class="text-dark fw-semibold">#{{ $payment->payment_cheque_number }}</span>
-                                        @elseif($payment->payment_method == 'bank_transfer')
-                                            <span class="text-dark fw-semibold">{{ $payment->reference_number ?? 'Bank Transfer' }}</span>
-                                        @endif
-                                        <div class="text-muted text-truncate" style="max-width: 200px;">{{ $payment->notes }}</div>
-                                    </td>
-                                </tr>
-                                @empty
-                                <tr><td colspan="4" class="text-center text-muted small py-4 fst-italic">No payments recorded yet.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                    <div class="tab-content">
+                        <!-- Items Tab -->
+                        <div class="tab-pane fade show active" id="itemsTab">
+                            <h6 class="fw-bold text-uppercase text-muted small mb-3">Itemized Breakdown</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle border-bottom mb-4">
+                                    <thead class="bg-light bg-opacity-50">
+                                        <tr>
+                                            <th class="ps-3 py-3 text-muted small text-uppercase">Product</th>
+                                            <th class="text-center py-3 text-muted small text-uppercase">Qty</th>
+                                            <th class="text-end py-3 text-muted small text-uppercase">Unit Cost</th>
+                                            <th class="text-end pe-3 py-3 text-muted small text-uppercase">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($purchase->items as $item)
+                                        <tr>
+                                            <td class="ps-3 py-3">
+                                                <div class="fw-bold text-dark">{{ $item->product->name }}</div>
+                                                <div class="text-muted small">Code: {{ $item->product->code }}</div>
+                                                @if($item->description)
+                                                    <div class="text-muted small fst-italic">({{ $item->description }})</div>
+                                                @endif
+                                            </td>
+                                            <td class="text-center py-3">{{ $item->quantity }}</td>
+                                            <td class="text-end py-3">{{ number_format($item->cost_price, 2) }}</td>
+                                            <td class="text-end pe-3 py-3 fw-bold">{{ number_format($item->total_price, 2) }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="row align-items-start">
+                                <div class="col-md-7">
+                                    @if($purchase->notes)
+                                        <h6 class="fw-bold text-muted text-uppercase small mb-2">Internal Notes</h6>
+                                        <p class="small text-muted border-start border-3 ps-3 py-1">{{ $purchase->notes }}</p>
+                                    @endif
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="bg-light p-3 rounded-4 shadow-sm">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted small">Item Sub Total:</span>
+                                            <span class="fw-bold small">{{ number_format($purchase->items->sum('total_price'), 2) }}</span>
+                                        </div>
+                                        @php
+                                            $costs = [
+                                                ['label' => 'Transport', 'val' => $purchase->transport_cost],
+                                                ['label' => 'Broker', 'val' => $purchase->broker_cost],
+                                                ['label' => 'Loading', 'val' => $purchase->loading_cost],
+                                                ['label' => 'Unloading', 'val' => $purchase->unloading_cost],
+                                                ['label' => 'Labour', 'val' => $purchase->labour_cost],
+                                                ['label' => 'Air Ticket', 'val' => $purchase->air_ticket_cost],
+                                                ['label' => 'Other', 'val' => $purchase->other_expenses],
+                                            ];
+                                        @endphp
+                                        @foreach($costs as $cost)
+                                            @if($cost['val'] > 0)
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="text-muted small">{{ $cost['label'] }}:</span>
+                                                <span class="fw-bold small">{{ number_format($cost['val'], 2) }}</span>
+                                            </div>
+                                            @endif
+                                        @endforeach
+                                        <div class="d-flex justify-content-between mt-3 pt-3 border-top border-dark border-opacity-10">
+                                            <span class="fw-bold h6 mb-0">Grand Total:</span>
+                                            <span class="fw-bold h6 mb-0 text-primary">Rs. {{ number_format($purchase->total_amount, 2) }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1 text-success">
+                                            <span class="small fw-bold">Total Paid:</span>
+                                            <span class="small fw-bold">Rs. {{ number_format($purchase->paid_amount, 2) }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mt-1 text-danger">
+                                            <span class="small fw-bold">Balance:</span>
+                                            <span class="small fw-bold">Rs. {{ number_format(max(0, $purchase->total_amount - $purchase->paid_amount), 2) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payments Tab -->
+                        <div class="tab-pane fade" id="paymentsTab">
+                            <h6 class="fw-bold text-uppercase text-muted small mb-3">Settlement History</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3 py-3 text-muted small text-uppercase">Date</th>
+                                            <th class="py-3 text-muted small text-uppercase">Method</th>
+                                            <th class="text-end py-3 text-muted small text-uppercase">Amount</th>
+                                            <th class="pe-3 py-3 text-muted small text-uppercase">Ref / Notes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($purchase->payments as $payment)
+                                        <tr>
+                                            <td class="ps-3 py-3 small text-muted">{{ \Carbon\Carbon::parse($payment->payment_date)->format('d M, Y') }}</td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border rounded-pill px-3 py-1 text-uppercase" style="font-size: 0.65rem;">{{ str_replace('_', ' ', $payment->payment_method) }}</span>
+                                            </td>
+                                            <td class="text-end fw-bold text-danger">{{ number_format($payment->amount, 2) }}</td>
+                                            <td class="pe-3 small">
+                                                @if($payment->payment_method == 'cheque')
+                                                    <span class="text-dark fw-semibold">#{{ $payment->payment_cheque_number }}</span>
+                                                @elseif($payment->payment_method == 'bank_transfer')
+                                                    <span class="text-dark fw-semibold">{{ $payment->reference_number ?? 'Bank Transfer' }}</span>
+                                                @endif
+                                                <div class="text-muted text-truncate" style="max-width: 300px;">{{ $payment->notes }}</div>
+                                            </td>
+                                        </tr>
+                                        @empty
+                                        <tr><td colspan="4" class="text-center text-muted small py-5 fst-italic">No payments recorded yet.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Investors Tab -->
+                        <div class="tab-pane fade" id="investorsTab">
+                            <h6 class="fw-bold text-uppercase text-muted small mb-3">Investment Allocation</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light">
+                                        <tr>
+                                            <th class="ps-3 py-3 text-muted small text-uppercase">Investor</th>
+                                            <th class="text-end pe-3 py-3 text-muted small text-uppercase">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($purchase->investors as $investor)
+                                        <tr>
+                                            <td class="ps-3 py-3 fw-bold text-dark">{{ $investor->investor_name }}</td>
+                                            <td class="text-end pe-3 py-3 fw-bold text-primary">Rs. {{ number_format($investor->amount, 2) }}</td>
+                                        </tr>
+                                        @empty
+                                        <tr><td colspan="2" class="text-center text-muted small py-5">No investor allocation found for this purchase.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

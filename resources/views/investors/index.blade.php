@@ -74,7 +74,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted mb-1">Collect Date Range</label>
+                    <label class="form-label small fw-bold text-muted mb-1">Refound Date Range Filter</label>
                     <div class="input-group input-group-sm">
                         <input type="date" name="start_date" class="form-control border-light rounded-3" value="{{ request('start_date') }}">
                         <span class="input-group-text bg-transparent border-0 text-muted">-</span>
