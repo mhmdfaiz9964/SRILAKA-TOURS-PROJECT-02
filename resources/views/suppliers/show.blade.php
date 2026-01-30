@@ -76,6 +76,7 @@
                 <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Ledger Tab -->
+                        <div class="tab-pane fade" id="ledger">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="bg-light">
@@ -90,13 +91,9 @@
                                     <tbody>
                                         @php 
                                             $runningBalance = 0; 
-                                            // Sort ledger by date if not already sorted in controller
-                                            // We assume $ledger is sorted by date ascending.
                                         @endphp
                                         @forelse($ledger as $entry)
                                             @php 
-                                                // For Supplier: Purchase increases balance (Debit), Payments decrease balance (Credit).
-                                                // Balance = Amount we owe them.
                                                 $debit = $entry['debit'] ?? 0;
                                                 $credit = $entry['credit'] ?? 0;
                                                 $runningBalance += ($debit - $credit);
@@ -142,12 +139,14 @@
                                     </tbody>
                                     <tfoot class="bg-light border-top">
                                         @php
-                                            $finalBalance = $ledger->sum('debit') - $ledger->sum('credit');
+                                            $totalDebit = collect($ledger)->sum('debit');
+                                            $totalCredit = collect($ledger)->sum('credit');
+                                            $finalBalance = $totalDebit - $totalCredit;
                                         @endphp
                                         <tr>
                                             <td colspan="2" class="ps-4 py-3 fw-bold text-end text-uppercase">Total</td>
-                                            <td class="text-end py-3 fw-bold">{{ number_format($ledger->sum('debit'), 2) }}</td>
-                                            <td class="text-end py-3 fw-bold text-success">{{ number_format($ledger->sum('credit'), 2) }}</td>
+                                            <td class="text-end py-3 fw-bold">{{ number_format($totalDebit, 2) }}</td>
+                                            <td class="text-end py-3 fw-bold text-success">{{ number_format($totalCredit, 2) }}</td>
                                             <td class="text-end pe-4 py-3 fw-bold {{ $finalBalance > 0 ? 'text-danger' : 'text-success' }}">
                                                 {{ number_format($finalBalance, 2) }}
                                             </td>
@@ -155,6 +154,7 @@
                                     </tfoot>
                                 </table>
                             </div>
+                        </div>
 
                         <!-- Purchases Tab -->
                         <div class="tab-pane fade show active" id="purchases">

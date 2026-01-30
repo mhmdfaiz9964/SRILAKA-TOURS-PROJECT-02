@@ -174,8 +174,8 @@
                         <div id="chequeFields" class="d-none border rounded p-3 bg-light mb-3">
                             <h6 class="small fw-bold mb-2">Cheque Information</h6>
                             <div class="mb-2">
-                                <label class="small text-muted">Cheque Number</label>
-                                <input type="text" class="form-control form-control-sm" name="cheque_number">
+                                <label class="small text-muted">Cheque Number (6 Digits)</label>
+                                <input type="text" class="form-control form-control-sm" name="cheque_number" maxlength="6" minlength="6" placeholder="######">
                             </div>
                             <div class="mb-2">
                                 <label class="small text-muted">Bank</label>

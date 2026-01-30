@@ -480,12 +480,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('cheques.payment') }}" class="menu-item {{ request()->routeIs('cheques.payment') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                        <span>Payment BY Cheque</span>
-                    </div>
-                </a>
+
 
                 <a href="{{ route('cheques.paid') }}" class="menu-item {{ request()->routeIs('cheques.paid') ? 'active' : '' }}">
                     <div class="menu-item-content">

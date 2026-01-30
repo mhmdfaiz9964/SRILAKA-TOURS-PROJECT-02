@@ -28,8 +28,8 @@
                                         <input type="date" name="cheque_date" class="form-control border-light bg-light rounded-3 shadow-none" value="{{ old('cheque_date', $outCheque->cheque_date) }}" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold text-muted text-uppercase">Cheque Number</label>
-                                        <input type="text" name="cheque_number" class="form-control border-light bg-light rounded-3 shadow-none" value="{{ old('cheque_number', $outCheque->cheque_number) }}" maxlength="6" required>
+                                        <label class="form-label small fw-bold text-muted text-uppercase">Cheque Number (6 Digits)</label>
+                                        <input type="text" name="cheque_number" class="form-control border-light bg-light rounded-3 shadow-none @error('cheque_number') is-invalid @enderror" value="{{ old('cheque_number', $outCheque->cheque_number) }}" maxlength="6" minlength="6" placeholder="######" required>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold text-muted text-uppercase">Issuing Bank</label>

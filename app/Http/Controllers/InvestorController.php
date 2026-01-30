@@ -22,6 +22,11 @@ class InvestorController extends Controller
     {
         $query = Investor::query();
 
+        // Status Filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
         if ($request->search) {
             $query->where('name', 'like', "%{$request->search}%");
         }
@@ -54,12 +59,30 @@ class InvestorController extends Controller
             $query->latest();
         }
 
-        $investors = $query->latest()->paginate(10)->withQueryString();
-        $total_invested = Investor::sum('invest_amount');
-        $active_investment = Investor::where('status', 'active')->sum('invest_amount');
-        $total_paid_profit = Investor::sum('paid_profit');
+        $investors = $query->paginate(10)->withQueryString();
+
+        // Calculate Stats
+        $stats = [
+            'all' => [
+                'count' => Investor::count(),
+                'amount' => Investor::sum('invest_amount')
+            ],
+            'active' => [
+                'count' => Investor::where('status', 'active')->count(),
+                'amount' => Investor::where('status', 'active')->sum('invest_amount')
+            ],
+            'paid' => [
+                'count' => Investor::where('status', 'paid')->count(),
+                'amount' => Investor::where('status', 'paid')->sum('invest_amount')
+            ],
+            'waiting' => [
+                'count' => Investor::where('status', 'waiting')->count(),
+                'amount' => Investor::where('status', 'waiting')->sum('invest_amount')
+            ],
+            'total_paid_profit' => Investor::sum('paid_profit')
+        ];
         
-        return view('investors.index', compact('investors', 'total_invested', 'active_investment', 'total_paid_profit'));
+        return view('investors.index', compact('investors', 'stats'));
     }
 
     public function create()

@@ -16,8 +16,8 @@
                         @method('PUT')
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted text-uppercase">Cheque Number</label>
-                                <input type="text" name="cheque_number" id="cheque_number_input" class="form-control border-light shadow-none @error('cheque_number') is-invalid @enderror" value="{{ old('cheque_number', $cheque->cheque_number) }}" required maxlength="6">
+                                <label class="form-label fw-bold small text-muted text-uppercase">Cheque Number (6 Digits)</label>
+                                <input type="text" name="cheque_number" id="cheque_number_input" class="form-control border-light shadow-none @error('cheque_number') is-invalid @enderror" value="{{ old('cheque_number', $cheque->cheque_number) }}" required maxlength="6" minlength="6">
                                 <div id="cheque_validation_msg" class="small mt-1 d-none"></div>
                                 @error('cheque_number') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
