@@ -288,6 +288,7 @@
                         @endforelse
                     </tbody>
                 </table>
+            </form>
 
         <!-- Modals -->
         <!-- Create Third Party Modal -->
@@ -316,119 +317,163 @@
         </div>
 
 <script>
-    document.getElementById('selectAll').addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('.cheque-checkbox');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-        updateBulkActions();
-    });
-
-    document.querySelectorAll('.cheque-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateBulkActions);
-    });
-
-    function updateBulkActions() {
-        const checkedCount = document.querySelectorAll('.cheque-checkbox:checked').length;
-        const bulkActions = document.getElementById('bulkActions');
-        document.getElementById('selectedCount').innerText = checkedCount;
-        if(checkedCount > 0) {
-            bulkActions.style.display = 'flex';
-            bulkActions.style.setProperty('display', 'flex', 'important');
-        } else {
-            bulkActions.style.display = 'none';
-            bulkActions.style.setProperty('display', 'none', 'important');
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('selectAll');
+        if(selectAll) {
+            selectAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.cheque-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+                updateBulkActions();
+            });
         }
-    }
 
-    const typeSelect = document.getElementById('transferTypeSelect');
-    const tpContainer = document.getElementById('thirdPartyContainer');
-    const supContainer = document.getElementById('supplierContainer');
-    const tpInput = document.getElementById('bulkThirdPartyName');
-    const supInput = document.getElementById('bulkSupplierId');
-    const typeContainer = document.getElementById('transferTypeContainer');
-
-    document.getElementById('bulkStatusSelect').addEventListener('change', function() {
-        if(this.value === 'third_party') {
-            typeContainer.classList.remove('d-none');
-            typeContainer.classList.add('d-flex');
-            updateTransferVisibility();
-        } else {
-            typeContainer.classList.add('d-none');
-            typeContainer.classList.remove('d-flex');
-            tpContainer.classList.add('d-none');
-            supContainer.classList.add('d-none');
-            tpInput.required = false;
-            supInput.required = false;
-        }
-    });
-
-    typeSelect.addEventListener('change', updateTransferVisibility);
-
-    function updateTransferVisibility() {
-        const type = typeSelect.value;
-        if (type === 'supplier') {
-            supContainer.classList.remove('d-none');
-            supContainer.classList.add('d-flex');
-            tpContainer.classList.add('d-none');
-            tpContainer.classList.remove('d-flex');
-            supInput.required = true;
-            tpInput.required = false;
-            tpInput.value = '';
-        } else {
-            tpContainer.classList.remove('d-none');
-            tpContainer.classList.add('d-flex');
-            supContainer.classList.add('d-none');
-            supContainer.classList.remove('d-flex');
-            tpInput.required = true;
-            supInput.required = false;
-            supInput.value = '';
-        }
-    }
-
-    document.getElementById('bulkUpdateForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const count = document.querySelectorAll('.cheque-checkbox:checked').length;
-        Swal.fire({
-            title: 'Update ' + count + ' Cheques?',
-            text: "Are you sure you want to update the status of these records?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#6366f1',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, update them!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.submit();
-            }
+        document.querySelectorAll('.cheque-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBulkActions);
         });
-    });
 
-    document.getElementById('createThirdPartyForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        formData.append('_token', '{{ csrf_token() }}');
+        function updateBulkActions() {
+            const checkedCount = document.querySelectorAll('.cheque-checkbox:checked').length;
+            const bulkActions = document.getElementById('bulkActions');
+            if(document.getElementById('selectedCount')) {
+                document.getElementById('selectedCount').innerText = checkedCount;
+            }
+            if(bulkActions) {
+                if(checkedCount > 0) {
+                    bulkActions.style.display = 'flex';
+                    bulkActions.style.setProperty('display', 'flex', 'important');
+                } else {
+                    bulkActions.style.display = 'none';
+                    bulkActions.style.setProperty('display', 'none', 'important');
+                }
+            }
+        }
 
-        fetch('{{ route("third-parties.store") }}', {
-            method: 'POST',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                const select = document.getElementById('bulkThirdPartyName');
-                const option = new Option(data.third_party.name, data.third_party.name);
-                select.add(option, undefined);
-                select.value = data.third_party.name;
+        const typeSelect = document.getElementById('transferTypeSelect');
+        const tpContainer = document.getElementById('thirdPartyContainer');
+        const supContainer = document.getElementById('supplierContainer');
+        const tpInput = document.getElementById('bulkThirdPartyName');
+        const supInput = document.getElementById('bulkSupplierId');
+        const typeContainer = document.getElementById('transferTypeContainer');
+        const bulkStatusSelect = document.getElementById('bulkStatusSelect');
+
+        if(bulkStatusSelect) {
+            bulkStatusSelect.addEventListener('change', function() {
+                if(this.value === 'third_party') {
+                    if(typeContainer) {
+                        typeContainer.classList.remove('d-none');
+                        typeContainer.classList.add('d-flex');
+                    }
+                    updateTransferVisibility();
+                } else {
+                    if(typeContainer) {
+                        typeContainer.classList.add('d-none');
+                        typeContainer.classList.remove('d-flex');
+                    }
+                    if(tpContainer) tpContainer.classList.add('d-none');
+                    if(supContainer) supContainer.classList.add('d-none');
+                    if(tpInput) tpInput.required = false;
+                    if(supInput) supInput.required = false;
+                }
+            });
+        }
+
+        if(typeSelect) {
+            typeSelect.addEventListener('change', updateTransferVisibility);
+        }
+
+        function updateTransferVisibility() {
+            if(!typeSelect) return;
+            const type = typeSelect.value;
+            if (type === 'supplier') {
+                if(supContainer) {
+                    supContainer.classList.remove('d-none');
+                    supContainer.classList.add('d-flex');
+                }
+                if(tpContainer) {
+                    tpContainer.classList.add('d-none');
+                    tpContainer.classList.remove('d-flex');
+                }
+                if(supInput) {
+                    supInput.required = true;
+                    supInput.value = '';
+                }
+                if(tpInput) {
+                    tpInput.required = false;
+                    tpInput.value = '';
+                }
+            } else {
+                if(tpContainer) {
+                    tpContainer.classList.remove('d-none');
+                    tpContainer.classList.add('d-flex');
+                }
+                if(supContainer) {
+                   supContainer.classList.add('d-none');
+                   supContainer.classList.remove('d-flex');
+                }
+                if(tpInput) tpInput.required = true;
+                if(supInput) {
+                    supInput.required = false;
+                    supInput.value = '';
+                }
+            }
+        }
+
+        const bulkForm = document.getElementById('bulkUpdateForm');
+        if(bulkForm) {
+            bulkForm.addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                const modal = bootstrap.Modal.getInstance(document.getElementById('createThirdPartyModal'));
-                modal.hide();
-                this.reset();
-                Swal.fire({ position: 'top-end', icon: 'success', title: 'Third Party Saved', showConfirmButton: false, timer: 1500 });
-            }
-        });
-    });
+                const count = document.querySelectorAll('.cheque-checkbox:checked').length;
+                Swal.fire({
+                    title: 'Update ' + count + ' Cheques?',
+                    text: "Are you sure you want to update the status of these records?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6366f1',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, update them!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        }
 
+        const createTPForm = document.getElementById('createThirdPartyForm');
+        if(createTPForm) {
+            createTPForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                fetch('{{ route("third-parties.store") }}', {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.success) {
+                        const select = document.getElementById('bulkThirdPartyName');
+                        if(select) {
+                            const option = new Option(data.third_party.name, data.third_party.name);
+                            select.add(option, undefined);
+                            select.value = data.third_party.name;
+                        }
+                        
+                        const modalEl = document.getElementById('createThirdPartyModal');
+                        if(modalEl) {
+                            const modal = bootstrap.Modal.getInstance(modalEl);
+                            if(modal) modal.hide();
+                        }
+                        this.reset();
+                        Swal.fire({ position: 'top-end', icon: 'success', title: 'Third Party Saved', showConfirmButton: false, timer: 1500 });
+                    }
+                });
+            });
+        }
+    });
 
     function confirmDeleteCheque(url) {
         if(confirm('Delete this record?')) {
