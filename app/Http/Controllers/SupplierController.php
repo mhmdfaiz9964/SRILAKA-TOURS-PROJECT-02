@@ -82,7 +82,6 @@ class SupplierController extends Controller
             'full_name' => 'required',
             'contact_number' => 'nullable',
             'company_name' => 'nullable',
-            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         $supplier = \App\Models\Supplier::create($request->all());
@@ -149,6 +148,78 @@ class SupplierController extends Controller
         return view('suppliers.show', compact('supplier', 'ledger'));
     }
 
+    public function exportLedger(Request $request, \App\Models\Supplier $supplier)
+    {
+        $type = $request->get('format', 'pdf');
+        
+        // Build Ledger (Same logic as show)
+        $supplier->load('purchases', 'payments');
+        $ledger = collect();
+
+        foreach ($supplier->purchases as $purchase) {
+            $ledger->push([
+                'date' => $purchase->purchase_date,
+                'updated_at' => $purchase->created_at,
+                'type' => 'Purchase',
+                'description' => 'Purchase #' . ($purchase->invoice_number ?? $purchase->id),
+                'debit' => $purchase->total_amount,
+                'credit' => 0,
+            ]);
+        }
+
+        foreach ($supplier->payments as $payment) {
+            $ledger->push([
+                'date' => \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d'),
+                'updated_at' => $payment->created_at,
+                'type' => 'Payment',
+                'description' => 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                'debit' => 0,
+                'credit' => $payment->amount,
+            ]);
+        }
+
+        $ledger = $ledger->sort(function ($a, $b) {
+            if ($a['date'] === $b['date']) {
+                return $a['updated_at'] <=> $b['updated_at'];
+            }
+            return $a['date'] <=> $b['date'];
+        });
+
+        if ($type === 'pdf') {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.ledger', [
+                'entity' => $supplier,
+                'type' => 'Supplier',
+                'ledger' => $ledger
+            ]);
+            return $pdf->download('supplier_ledger_' . $supplier->id . '.pdf');
+        }
+
+        // Export Excel (CSV)
+        $filename = 'supplier_ledger_' . $supplier->id . '.csv';
+        $handle = fopen('php://output', 'w');
+
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        fputcsv($handle, ['Date', 'Description', 'Type', 'Debit', 'Credit', 'Balance']);
+
+        $balance = 0;
+        foreach ($ledger as $item) {
+            $balance += ($item['debit'] - $item['credit']);
+            fputcsv($handle, [
+                $item['date'],
+                $item['description'],
+                $item['type'],
+                number_format($item['debit'], 2, '.', ''),
+                number_format($item['credit'], 2, '.', ''),
+                number_format($balance, 2, '.', '')
+            ]);
+        }
+
+        fclose($handle);
+        exit;
+    }
+
     /**
      * Show the form for editing the specified resource.
      */
@@ -166,7 +237,6 @@ class SupplierController extends Controller
             'full_name' => 'required',
             'contact_number' => 'nullable',
             'company_name' => 'nullable',
-            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         $supplier->update($request->all());

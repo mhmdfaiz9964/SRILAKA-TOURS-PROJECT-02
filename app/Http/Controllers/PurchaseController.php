@@ -223,8 +223,68 @@ class PurchaseController extends Controller
      */
     public function show($id)
     {
-         $purchase = \App\Models\Purchase::with('items.product', 'supplier')->findOrFail($id);
-         return view('purchases.show', compact('purchase'));
+         $purchase = \App\Models\Purchase::with('items.product', 'supplier', 'investors', 'payments')->findOrFail($id);
+         $banks = \App\Models\Bank::all();
+         return view('purchases.show', compact('purchase', 'banks'));
+    }
+
+    public function addPayment(Request $request, $id)
+    {
+        $purchase = \App\Models\Purchase::findOrFail($id);
+        
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'payment_method' => 'required',
+            // Conditional validation for cheque
+            'cheque_number' => 'required_if:payment_method,cheque|nullable|digits:6',
+            'cheque_date' => 'required_if:payment_method,cheque|nullable|date',
+            'bank_id' => 'required_if:payment_method,cheque|nullable|exists:banks,id',
+            'payee_name' => 'required_if:payment_method,cheque|nullable|string',
+        ]);
+
+        $amount = $request->amount;
+        
+        // Update Paid Amount
+        $purchase->paid_amount += $amount;
+        if($purchase->paid_amount >= $purchase->total_amount) {
+            $purchase->status = 'paid';
+        } else {
+            $purchase->status = 'partial';
+        }
+        $purchase->save();
+
+        // Handle Cheque Creation (Out Cheque for Purchase)
+        $chequeId = null;
+        if($request->payment_method === 'cheque') {
+            $outCheque = \App\Models\OutCheque::create([
+                'cheque_date' => $request->cheque_date,
+                'amount' => $amount,
+                'cheque_number' => $request->cheque_number,
+                'bank_id' => $request->bank_id,
+                'payee_name' => $request->payee_name,
+                'status' => 'sent',
+                'notes' => 'Payment for Purchase ' . ($purchase->invoice_number ?? $purchase->id) . '. ' . $request->notes,
+            ]);
+            // Note: Since Payment model has cheque_id, we might need a way to differentiate in/out cheques if needed.
+            // But usually we just store the ID and the context tells us.
+            $chequeId = $outCheque->id;
+        }
+
+        // Register Payment
+        \App\Models\Payment::create([
+            'transaction_id' => $purchase->id,
+            'transaction_type' => \App\Models\Purchase::class,
+            'payable_id' => $purchase->supplier_id,
+            'payable_type' => \App\Models\Supplier::class,
+            'type' => 'out', // Outgoing payment
+            'amount' => $amount,
+            'payment_date' => now(),
+            'payment_method' => $request->payment_method,
+            'cheque_id' => $chequeId,
+            'notes' => $request->notes,
+        ]);
+
+        return redirect()->back()->with('success', 'Payment added successfully');
     }
 
     public function edit($id)

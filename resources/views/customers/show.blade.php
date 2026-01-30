@@ -75,6 +75,19 @@
                 <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Ledger Tab -->
+                        <div class="tab-pane fade show active" id="ledger">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-uppercase text-muted small mb-0">Transaction History</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-download me-1"></i> Export Ledger
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end rounded-3 shadow border-0">
+                                        <li><a class="dropdown-item py-2 small" href="{{ route('customers.ledger.export', ['customer' => $customer->id, 'format' => 'pdf']) }}"><i class="fa-solid fa-file-pdf me-2 text-danger"></i> Export PDF</a></li>
+                                        <li><a class="dropdown-item py-2 small" href="{{ route('customers.ledger.export', ['customer' => $customer->id, 'format' => 'excel']) }}"><i class="fa-solid fa-file-excel me-2 text-success"></i> Export Excel (CSV)</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="bg-light">
@@ -152,8 +165,8 @@
                                             </td>
                                         </tr>
                                     </tfoot>
-                                </table>
                             </div>
+                        </div>
 
                         <!-- Sales Tab -->
                         <div class="tab-pane fade" id="sales">

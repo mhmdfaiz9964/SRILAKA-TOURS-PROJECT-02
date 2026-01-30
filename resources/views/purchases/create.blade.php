@@ -356,11 +356,8 @@
                         <input type="text" class="form-control" name="company_name">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Contact Person</label>
-                         <div class="row g-2">
-                             <div class="col-6"><input type="text" class="form-control" name="first_name" placeholder="First Name" required></div>
-                             <div class="col-6"><input type="text" class="form-control" name="last_name" placeholder="Last Name" required></div>
-                         </div>
+                        <label class="form-label small fw-bold">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="full_name" required>
                     </div>
                      <div class="mb-3">
                         <label class="form-label small fw-bold">Mobile</label>
@@ -380,9 +377,7 @@
             e.preventDefault();
             const formData = new FormData(this);
             
-            // Combine names for backend
-            const fullName = `${formData.get('first_name')} ${formData.get('last_name')}`;
-            formData.append('full_name', fullName);
+            // Simple mapping for contact number
             formData.append('contact_number', formData.get('mobile_number'));
             formData.append('_token', '{{ csrf_token() }}');
 

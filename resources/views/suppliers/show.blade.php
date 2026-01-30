@@ -33,10 +33,7 @@
                             <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">CONTACT</small>
                             <span class="small fw-semibold">{{ $supplier->contact_number }}</span>
                         </div>
-                        <div class="mb-2">
-                            <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">CREDIT LIMIT</small>
-                            <span class="small fw-semibold">{{ number_format($supplier->credit_limit, 2) }}</span>
-                        </div>
+
                         <div>
                             <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">STATUS</small>
                             @if($supplier->status)
@@ -56,13 +53,13 @@
                 <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0">
                     <ul class="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-pill" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active rounded-pill fw-bold small" data-bs-toggle="tab" href="#purchases">
-                                <i class="fa-solid fa-cart-flatbed me-1"></i> Purchase History
+                            <a class="nav-link active rounded-pill fw-bold small" data-bs-toggle="tab" href="#ledger">
+                                <i class="fa-solid fa-list-ul me-1"></i> Ledger
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#ledger">
-                                <i class="fa-solid fa-list-ul me-1"></i> Ledger
+                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#purchases">
+                                <i class="fa-solid fa-cart-flatbed me-1"></i> Purchase History
                             </a>
                         </li>
                          <li class="nav-item">
@@ -76,7 +73,19 @@
                 <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Ledger Tab -->
-                        <div class="tab-pane fade" id="ledger">
+                        <div class="tab-pane fade show active" id="ledger">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-uppercase text-muted small mb-0">Transaction History</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                                        <i class="fa-solid fa-download me-1"></i> Export Ledger
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end rounded-3 shadow border-0">
+                                        <li><a class="dropdown-item py-2 small" href="{{ route('suppliers.ledger.export', ['supplier' => $supplier->id, 'format' => 'pdf']) }}"><i class="fa-solid fa-file-pdf me-2 text-danger"></i> Export PDF</a></li>
+                                        <li><a class="dropdown-item py-2 small" href="{{ route('suppliers.ledger.export', ['supplier' => $supplier->id, 'format' => 'excel']) }}"><i class="fa-solid fa-file-excel me-2 text-success"></i> Export Excel (CSV)</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="bg-light">
@@ -157,7 +166,7 @@
                         </div>
 
                         <!-- Purchases Tab -->
-                        <div class="tab-pane fade show active" id="purchases">
+                        <div class="tab-pane fade" id="purchases">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="bg-light">

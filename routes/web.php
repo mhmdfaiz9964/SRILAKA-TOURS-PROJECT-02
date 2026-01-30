@@ -47,10 +47,13 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('categories', App\Http\Controllers\CategoryController::class);
     Route::resource('products', App\Http\Controllers\ProductController::class);
     Route::resource('customers', App\Http\Controllers\CustomerController::class);
+    Route::get('/customers/{customer}/ledger/export', [App\Http\Controllers\CustomerController::class, 'exportLedger'])->name('customers.ledger.export');
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
+    Route::get('/suppliers/{supplier}/ledger/export', [App\Http\Controllers\SupplierController::class, 'exportLedger'])->name('suppliers.ledger.export');
     Route::resource('sales', App\Http\Controllers\SaleController::class);
     Route::post('/sales/{sale}/add-payment', [App\Http\Controllers\SaleController::class, 'addPayment'])->name('sales.add-payment');
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
+    Route::post('/purchases/{purchase}/add-payment', [App\Http\Controllers\PurchaseController::class, 'addPayment'])->name('purchases.add-payment');
     
     Route::post('/cheque-reasons', [App\Http\Controllers\ChequeReasonController::class, 'store'])->name('cheque-reasons.store');
     Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
