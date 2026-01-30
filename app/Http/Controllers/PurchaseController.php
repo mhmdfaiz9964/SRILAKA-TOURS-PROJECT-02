@@ -240,6 +240,9 @@ class PurchaseController extends Controller
             'cheque_date' => 'required_if:payment_method,cheque|nullable|date',
             'bank_id' => 'required_if:payment_method,cheque|nullable|exists:banks,id',
             'payee_name' => 'required_if:payment_method,cheque|nullable|string',
+            // Conditional validation for bank transfer
+            'reference_number' => 'required_if:payment_method,bank_transfer|nullable|string',
+            'transfer_bank_id' => 'required_if:payment_method,bank_transfer|nullable|exists:banks,id',
         ]);
 
         $amount = $request->amount;
@@ -265,8 +268,6 @@ class PurchaseController extends Controller
                 'status' => 'sent',
                 'notes' => 'Payment for Purchase ' . ($purchase->invoice_number ?? $purchase->id) . '. ' . $request->notes,
             ]);
-            // Note: Since Payment model has cheque_id, we might need a way to differentiate in/out cheques if needed.
-            // But usually we just store the ID and the context tells us.
             $chequeId = $outCheque->id;
         }
 
@@ -281,6 +282,10 @@ class PurchaseController extends Controller
             'payment_date' => now(),
             'payment_method' => $request->payment_method,
             'cheque_id' => $chequeId,
+            'bank_id' => $request->payment_method == 'cheque' ? $request->bank_id : ($request->payment_method == 'bank_transfer' ? $request->transfer_bank_id : null),
+            'reference_number' => $request->reference_number,
+            'payment_cheque_number' => $request->cheque_number,
+            'payment_cheque_date' => $request->cheque_date,
             'notes' => $request->notes,
         ]);
 
