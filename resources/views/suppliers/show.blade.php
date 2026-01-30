@@ -127,6 +127,12 @@
                                                         <td class="ps-3 small border-0 text-muted">{{ \Carbon\Carbon::parse($entry['date'])->format('d M, Y') }}</td>
                                                         <td class="small border-0">
                                                             {!! $entry['description'] !!}
+                                                            @if(isset($entry['payment_method']) && $entry['payment_method'] == 'cheque')
+                                                                <div class="mt-1" style="font-size: 0.75rem;">
+                                                                    <span class="text-muted">Cheque #:</span> <span class="fw-semibold">{{ $entry['cheque_number'] ?? '-' }}</span>
+                                                                    <span class="text-muted ms-2">Date:</span> <span>{{ $entry['cheque_date'] ?? '-' }}</span>
+                                                                </div>
+                                                            @endif
                                                         </td>
                                                         <td class="text-end pe-3 small border-0 fw-bold text-success">{{ number_format($entry['credit'], 2) }}</td>
                                                     </tr>

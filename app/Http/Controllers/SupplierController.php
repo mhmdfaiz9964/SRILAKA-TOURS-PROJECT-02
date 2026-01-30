@@ -122,16 +122,14 @@ class SupplierController extends Controller
 
         // Add Payments (Credits - We paid them)
         foreach ($supplier->payments as $payment) {
-            $desc = 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method));
-            if ($payment->payment_method == 'cheque' && $payment->payment_cheque_number) {
-                 $desc .= ' (Cheque #: ' . $payment->payment_cheque_number . ', Date: ' . $payment->payment_cheque_date . ')';
-            }
-
             $ledger->push([
                 'date' => \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d'),
                 'updated_at' => $payment->created_at,
                 'type' => 'payment',
-                'description' => $desc,
+                'description' => 'Payment - ' . ucfirst(str_replace('_', ' ', $payment->payment_method)),
+                'payment_method' => $payment->payment_method,
+                'cheque_number' => $payment->payment_cheque_number,
+                'cheque_date' => $payment->payment_cheque_date,
                 'debit' => 0,
                 'credit' => $payment->amount,
                 'url' => '#' 
