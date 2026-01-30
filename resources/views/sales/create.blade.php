@@ -359,22 +359,12 @@
                             <label class="form-label small fw-bold">Full Name</label>
                             <input type="text" class="form-control form-control-sm" name="full_name" required>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Mobile</label>
-                            <input type="text" class="form-control form-control-sm" name="mobile_number">
-                        </div>
-                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Email</label>
-                            <input type="email" class="form-control form-control-sm" name="email">
-                        </div>
+                        <!-- Auto-generated email logic handled in backend if needed, or ignored since not in fillable -->
                         <div class="col-md-12">
-                            <label class="form-label small fw-bold">Company Name</label>
-                            <input type="text" class="form-control form-control-sm" name="company_name">
-                        </div>
-                         <div class="col-md-12">
                             <label class="form-label small fw-bold">Credit Limit</label>
                             <input type="number" step="0.01" class="form-control form-control-sm" name="credit_limit" value="0">
                         </div>
+
                         <div class="col-12 mt-3">
                             <button type="submit" class="btn btn-primary w-100 rounded-pill btn-sm">Save Customer</button>
                         </div>

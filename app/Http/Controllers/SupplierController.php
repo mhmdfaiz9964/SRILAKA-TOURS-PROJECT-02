@@ -22,7 +22,8 @@ class SupplierController extends Controller
      */
     public function index(Request $request)
     {
-        $query = \App\Models\Supplier::query();
+        $query = \App\Models\Supplier::withSum('purchases', 'total_amount')
+            ->withSum('payments', 'amount');
 
         // Search
         if ($request->search) {
@@ -81,6 +82,7 @@ class SupplierController extends Controller
             'full_name' => 'required',
             'contact_number' => 'nullable',
             'company_name' => 'nullable',
+            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         $supplier = \App\Models\Supplier::create($request->all());
@@ -162,8 +164,9 @@ class SupplierController extends Controller
     {
         $request->validate([
             'full_name' => 'required',
-            'contact_number' => 'required',
+            'contact_number' => 'nullable',
             'company_name' => 'nullable',
+            'credit_limit' => 'nullable|numeric|min:0',
         ]);
 
         $supplier->update($request->all());

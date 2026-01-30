@@ -33,6 +33,10 @@
                             <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">CONTACT</small>
                             <span class="small fw-semibold">{{ $supplier->contact_number }}</span>
                         </div>
+                        <div class="mb-2">
+                            <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">CREDIT LIMIT</small>
+                            <span class="small fw-semibold">{{ number_format($supplier->credit_limit, 2) }}</span>
+                        </div>
                         <div>
                             <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">STATUS</small>
                             @if($supplier->status)

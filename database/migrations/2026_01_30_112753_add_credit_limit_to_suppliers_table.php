@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('suppliers', function (Blueprint $table) {
-            $table->decimal('credit_limit', 15, 2)->default(0)->after('mobile_number');
+            $table->decimal('credit_limit', 15, 2)->default(0)->after('company_name');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('suppliers', function (Blueprint $table) {
-            $table->dropColumn('credit_limit');
+            //
         });
     }
 };

@@ -69,6 +69,8 @@
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Full Name</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Company</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Contact Number</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Credit Limit</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Outstanding</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
                         </tr>
@@ -82,6 +84,12 @@
                             </td>
                             <td class="small">{{ $supplier->company_name ?? '-' }}</td>
                             <td class="small">{{ $supplier->contact_number }}</td>
+                            <td class="small">
+                                LKR {{ number_format($supplier->credit_limit, 2) }}
+                            </td>
+                            <td class="small fw-bold {{ $supplier->outstanding >= $supplier->credit_limit ? 'text-danger' : 'text-success' }}">
+                                LKR {{ number_format($supplier->outstanding, 2) }}
+                            </td>
                             <td class="small">
                                 @if($supplier->status)
                                     <span class="badge bg-success-subtle text-success rounded-pill border border-0">Active</span>
