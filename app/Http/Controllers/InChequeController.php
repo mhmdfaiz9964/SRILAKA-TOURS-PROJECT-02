@@ -100,7 +100,8 @@ class InChequeController extends Controller
         $cheques = $query->latest()->paginate(10)->withQueryString();
         $banks = Bank::all();
         $payers = InCheque::select('payer_name')->distinct()->orderBy('payer_name')->pluck('payer_name');
-        return view('cheque_operations.in_cheques.index', compact('cheques', 'stats', 'banks', 'payers'));
+        $suppliers = \App\Models\Supplier::select('id', 'full_name')->orderBy('full_name')->get();
+        return view('cheque_operations.in_cheques.index', compact('cheques', 'stats', 'banks', 'payers', 'suppliers'));
     }
 
     public function create()

@@ -180,9 +180,18 @@
                             <option value="deposited">Mark Deposited</option>
                             <option value="realized">Mark Received</option>
                             <option value="returned">Mark Returned</option>
-                            <option value="third_party">Transfer to 3rd Party</option>
+                            <option value="third_party">Transfer...</option>
                         </select>
                         
+                        <!-- Transfer Type Selection -->
+                        <div id="transferTypeContainer" class="d-none align-items-center gap-2">
+                            <select name="transfer_type" id="transferTypeSelect" class="form-select form-select-sm" style="width: 130px;">
+                                <option value="third_party">To 3rd Party</option>
+                                <option value="supplier">To Supplier</option>
+                            </select>
+                        </div>
+
+                        <!-- 3rd Party Dropdown -->
                         <div id="thirdPartyContainer" class="d-none align-items-center gap-2">
                             <select name="third_party_name" id="bulkThirdPartyName" class="form-select form-select-sm" style="width: 200px;">
                                 <option value="">Select 3rd Party</option>
@@ -194,6 +203,16 @@
                             <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#createThirdPartyModal" title="Add New Third Party">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
+                        </div>
+
+                        <!-- Supplier Dropdown -->
+                        <div id="supplierContainer" class="d-none align-items-center gap-2">
+                            <select name="supplier_id" id="bulkSupplierId" class="form-select form-select-sm" style="width: 200px;">
+                                <option value="">Select Supplier</option>
+                                @foreach($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}">{{ $supplier->full_name }}</option>
+                                @endforeach
+                            </select>
                         </div>
 
                         <button type="submit" id="bulkUpdateBtn" class="btn btn-primary btn-sm px-3 shadow-sm" style="background: #6366f1; border: none;">
@@ -237,6 +256,7 @@
                                         'received' => ['bg' => '#fffbeb', 'text' => '#f59e0b', 'label' => 'Hand'],
                                         'deposited' => ['bg' => '#eff6ff', 'text' => '#3b82f6', 'label' => 'Deposited'],
                                         'transferred_to_third_party' => ['bg' => '#f5f3ff', 'text' => '#8b5cf6', 'label' => 'Transferred'],
+                                        'transferred_to_supplier' => ['bg' => '#f5f3ff', 'text' => '#8b5cf6', 'label' => 'To Supplier'],
                                         'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Received'],
                                         'returned' => ['bg' => '#fef2f2', 'text' => '#ef4444', 'label' => 'Returned'],
                                     ];
@@ -319,20 +339,50 @@
         }
     }
 
+    const typeSelect = document.getElementById('transferTypeSelect');
+    const tpContainer = document.getElementById('thirdPartyContainer');
+    const supContainer = document.getElementById('supplierContainer');
+    const tpInput = document.getElementById('bulkThirdPartyName');
+    const supInput = document.getElementById('bulkSupplierId');
+    const typeContainer = document.getElementById('transferTypeContainer');
+
     document.getElementById('bulkStatusSelect').addEventListener('change', function() {
-        const container = document.getElementById('thirdPartyContainer');
-        const input = document.getElementById('bulkThirdPartyName');
-        
         if(this.value === 'third_party') {
-            container.classList.remove('d-none');
-            container.classList.add('d-flex');
-            input.required = true;
+            typeContainer.classList.remove('d-none');
+            typeContainer.classList.add('d-flex');
+            updateTransferVisibility();
         } else {
-            container.classList.add('d-none');
-            container.classList.remove('d-flex');
-            input.required = false;
+            typeContainer.classList.add('d-none');
+            typeContainer.classList.remove('d-flex');
+            tpContainer.classList.add('d-none');
+            supContainer.classList.add('d-none');
+            tpInput.required = false;
+            supInput.required = false;
         }
     });
+
+    typeSelect.addEventListener('change', updateTransferVisibility);
+
+    function updateTransferVisibility() {
+        const type = typeSelect.value;
+        if (type === 'supplier') {
+            supContainer.classList.remove('d-none');
+            supContainer.classList.add('d-flex');
+            tpContainer.classList.add('d-none');
+            tpContainer.classList.remove('d-flex');
+            supInput.required = true;
+            tpInput.required = false;
+            tpInput.value = '';
+        } else {
+            tpContainer.classList.remove('d-none');
+            tpContainer.classList.add('d-flex');
+            supContainer.classList.add('d-none');
+            supContainer.classList.remove('d-flex');
+            tpInput.required = true;
+            supInput.required = false;
+            supInput.value = '';
+        }
+    }
 
     document.getElementById('bulkUpdateForm').addEventListener('submit', function(e) {
         e.preventDefault();
