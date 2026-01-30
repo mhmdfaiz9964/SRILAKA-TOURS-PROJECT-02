@@ -60,7 +60,7 @@ class PurchaseController extends Controller
              $query->orderByDesc('purchases.created_at');
         } 
 
-        $purchases = $query->get();
+        $purchases = $query->paginate(10);
         $suppliers = \App\Models\Supplier::select('id', 'full_name')->orderBy('full_name')->get();
 
         return view('purchases.index', compact('purchases', 'suppliers'));

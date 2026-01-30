@@ -60,7 +60,7 @@ class SupplierController extends Controller
              $query->orderByDesc('created_at');
         }
 
-        $suppliers = $query->get();
+        $suppliers = $query->paginate(10);
         return view('suppliers.index', compact('suppliers'));
     }
 

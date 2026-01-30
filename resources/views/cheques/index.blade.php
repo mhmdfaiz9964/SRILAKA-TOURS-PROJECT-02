@@ -157,10 +157,14 @@
                                 </span>
                             </td>
                             <td>
+                                @if($cheque->cheque)
                                     <div class="d-flex flex-column">
                                         <a href="{{ route('cheques.show', $cheque->cheque) }}" class="fw-bold text-dark small text-decoration-none hover-underline text-nowrap">{{ $cheque->cheque->payer_name ?? 'N/A' }}</a>
                                         <span class="text-muted text-nowrap" style="font-size: 0.65rem;">#{{ $cheque->cheque->cheque_number ?? '000000' }}</span>
                                     </div>
+                                @else
+                                    <span class="text-muted small">Cheque Removed</span>
+                                @endif
                             </td>
                             <td class="small fw-medium">{{ $cheque->cheque->payee_name ?? '-' }}</td>
                             <td class="small fw-bold text-nowrap">LKR {{ number_format($cheque->amount, 2) }}</td>
@@ -217,30 +221,34 @@
                                 @php 
                                     $targetCheque = ($page_title ?? '') == 'Payment Cheques' ? $cheque->cheque : $cheque;
                                 @endphp
-                                @can('cheque-operation')
-                                <button type="button" class="btn btn-sm btn-icon border-0 text-primary shadow-none btn-notification-animate" 
-                                        onclick="openReminderModal({{ $targetCheque->id }}, '{{ $targetCheque->payer_name }}')">
-                                    <i class="fa-solid fa-bell"></i>
-                                </button>
-                                @endcan
-                                <a href="{{ route('cheques.show', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
-                                @can('cheque-edit')
-                                <a href="{{ route('cheques.edit', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </a>
-                                @endcan
-                                @can('cheque-delete')
-                                <button type="button" class="btn btn-sm btn-icon border-0 text-black shadow-none" 
-                                        onclick="confirmDelete({{ $targetCheque->id }}, 'delete-cheque-{{ $targetCheque->id }}')">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                                <form id="delete-cheque-{{ $targetCheque->id }}" action="{{ route('cheques.destroy', $targetCheque) }}" method="POST" class="d-none">
-                                    @csrf
-                                    @method('DELETE')
-                                </form>
-                                @endcan
+                                @if($targetCheque)
+                                    @can('cheque-operation')
+                                    <button type="button" class="btn btn-sm btn-icon border-0 text-primary shadow-none btn-notification-animate" 
+                                            onclick="openReminderModal({{ $targetCheque->id }}, '{{ $targetCheque->payer_name }}')">
+                                        <i class="fa-solid fa-bell"></i>
+                                    </button>
+                                    @endcan
+                                    <a href="{{ route('cheques.show', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    @can('cheque-edit')
+                                    <a href="{{ route('cheques.edit', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    @endcan
+                                    @can('cheque-delete')
+                                    <button type="button" class="btn btn-sm btn-icon border-0 text-black shadow-none" 
+                                            onclick="confirmDelete({{ $targetCheque->id }}, 'delete-cheque-{{ $targetCheque->id }}')">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                    <form id="delete-cheque-{{ $targetCheque->id }}" action="{{ route('cheques.destroy', $targetCheque) }}" method="POST" class="d-none">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
+                                    @endcan
+                                @else
+                                    <span class="text-muted small">N/A</span>
+                                @endif
                             </div>
                             </div>
                         </td>
