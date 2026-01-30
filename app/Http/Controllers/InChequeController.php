@@ -23,6 +23,11 @@ class InChequeController extends Controller
     {
         $query = InCheque::with('bank');
 
+        // Exclude transferred cheques by default unless explicitly filtering for them
+        if (!$request->has('status') && !$request->has('search')) {
+             $query->where('status', '!=', 'transferred_to_third_party');
+        }
+
         // Stats for Cards with amounts
         $stats = [
             'all' => ['count' => InCheque::count(), 'amount' => InCheque::sum('amount')],

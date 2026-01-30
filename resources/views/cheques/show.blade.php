@@ -273,6 +273,14 @@
                                         <label class="form-label extra-small fw-bold">Cheque Date</label>
                                         <input type="date" name="payment_cheque_date" class="form-control bg-white border-light shadow-none">
                                     </div>
+                                    <div class="col-md-12">
+                                        <label class="form-label extra-small fw-bold">Cheque Bank</label>
+                                        <select name="payment_cheque_bank_id" class="form-select bg-white border-light shadow-none">
+                                            @foreach($banks as $bank)
+                                                <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>

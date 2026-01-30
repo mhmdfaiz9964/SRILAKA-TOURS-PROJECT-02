@@ -3,6 +3,7 @@
 @section('content')
 <div class="container-fluid py-4">
     <!-- Breadcrumb & Top Header -->
+    <!-- Breadcrumb & Top Header -->
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div class="d-flex align-items-center gap-3">
             <div class="d-flex align-items-center gap-2">
@@ -10,7 +11,7 @@
                 <span class="badge bg-light text-muted border px-2 py-1 ms-2" style="font-size: 0.65rem;">{{ $page_title ?? 'Active' }}</span>
             </div>
             
-            <!-- Summary Balance Card (Modern Design as requested) -->
+            <!-- Summary Balance Card -->
             <div class="d-flex align-items-center bg-white border border-success border-opacity-25 px-3 py-2 rounded-4 shadow-sm ms-3" style="background: #f0fdf4 !important; min-width: 250px;">
                 <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: #10b981; color: #fff;">
                     <i class="fa-solid fa-circle-check"></i>
@@ -25,104 +26,8 @@
             </div>
         </div>
         
-        <div class="d-flex align-items-center gap-3">
-            <form action="{{ url()->current() }}" method="GET" class="search-box position-relative">
-                <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
-                <input type="text" name="search" value="{{ request('search') }}" class="form-control ps-5 border-0 shadow-sm rounded-pill" style="width: 350px; background: #fff;" placeholder="Search by name or number...">
-                @foreach(request()->except('search', 'page') as $key => $value)
-                    <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-                @endforeach
-            </form>
-        </div>
-    </div>
-
-    <!-- Toolbar Section -->
-    <div class="toolbar d-flex align-items-center justify-content-between mb-3 bg-white p-2 rounded-4 shadow-sm border border-light">
         <div class="d-flex align-items-center gap-2">
-            <button onclick="window.location.reload()" class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-rotate text-black"></i> Refresh
-            </button>
-            
-            <div class="dropdown">
-                <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa-solid fa-filter text-black"></i> Filter {{ request()->hasAny(['bank_id', 'payer_name', 'third_party', 'start_date']) ? '(Active)' : '' }}
-                </button>
-                <div class="dropdown-menu p-4 shadow-lg border-0 rounded-4" style="width: 350px;">
-                    <form action="{{ url()->current() }}" method="GET">
-                        @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
-                        @if(request('sort')) <input type="hidden" name="sort" value="{{ request('sort') }}"> @endif
-                        
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Bank</label>
-                            <select name="bank_id" class="form-select form-select-sm border-light bg-light rounded-3">
-                                <option value="">All Banks</option>
-                                @foreach($banks as $bank)
-                                    <option value="{{ $bank->id }}" {{ request('bank_id') == $bank->id ? 'selected' : '' }}>{{ $bank->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">Payer</label>
-                            <select name="payer_name" class="form-select form-select-sm border-light bg-light rounded-3">
-                                <option value="">All Payers</option>
-                                @foreach($payers as $payer)
-                                    <option value="{{ $payer }}" {{ request('payer_name') == $payer ? 'selected' : '' }}>{{ $payer }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted text-uppercase">3rd Part</label>
-                            <select name="third_party" class="form-select form-select-sm border-light bg-light rounded-3">
-                                <option value="">All 3rd Parties</option>
-                                @foreach($third_parties as $tp)
-                                    <option value="{{ $tp }}" {{ request('third_party') == $tp ? 'selected' : '' }}>{{ $tp }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase text-nowrap">From Date</label>
-                                <input type="date" name="start_date" class="form-control form-control-sm border-light bg-light rounded-3" value="{{ request('start_date') }}">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label small fw-bold text-muted text-uppercase text-nowrap">To Date</label>
-                                <input type="date" name="end_date" class="form-control form-control-sm border-light bg-light rounded-3" value="{{ request('end_date') }}">
-                            </div>
-                        </div>
-                        <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1 rounded-3" style="background: #6366f1; border: none;">Apply Filters</button>
-                            <a href="{{ url()->current() }}" class="btn btn-light btn-sm border-light rounded-3">Reset</a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <div class="dropdown">
-                <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="fa-solid fa-arrow-down-short-wide text-black"></i> 
-                    @php
-                        $sorts = [
-                            'latest' => 'Latest First',
-                            'oldest' => 'Oldest First',
-                            'amount_high' => 'Highest Amount',
-                            'amount_low' => 'Lowest Amount',
-                            'name_asc' => 'Name (A-Z)'
-                        ];
-                        echo $sorts[request('sort', 'latest')] ?? 'Sort';
-                    @endphp
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm rounded-3">
-                    @foreach($sorts as $key => $label)
-                        <li><a class="dropdown-item small {{ request('sort', 'latest') == $key ? 'bg-light fw-bold' : '' }}" href="{{ request()->fullUrlWithQuery(['sort' => $key]) }}">{{ $label }}</a></li>
-                    @endforeach
-                </ul>
-            </div>
-
-            <div class="p-2 px-3 small fw-bold text-muted border-start ms-2">{{ $cheques->total() }} Results</div>
-        </div>
-
-        <div class="d-flex align-items-center gap-2">
-            @can('cheque-create')
+             @can('cheque-create')
             <a href="{{ route('cheques.create') }}" class="btn btn-primary btn-sm px-4 rounded-3 d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
                 <i class="fa-solid fa-plus"></i> Add New
             </a>
@@ -146,14 +51,64 @@
                     </a>
                 </div>
             </div>
-            <a href="{{ url()->current() }}" class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2">
-                <i class="fa-solid fa-rotate-left text-black"></i> Reset
-            </a>
         </div>
     </div>
 
-    <!-- Table Section -->
+
+
     <div class="table-container bg-white rounded-4 shadow-sm border border-light overflow-hidden">
+        <div class="p-3 border-bottom bg-light bg-opacity-10">
+            <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm ps-4 border-light rounded-3" placeholder="Name or number...">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Bank</label>
+                    <select name="bank_id" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Banks</option>
+                        @foreach($banks as $bank)
+                            <option value="{{ $bank->id }}" {{ request('bank_id') == $bank->id ? 'selected' : '' }}>{{ $bank->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Payer</label>
+                    <select name="payer_name" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Payers</option>
+                        @foreach($payers as $payer)
+                            <option value="{{ $payer }}" {{ request('payer_name') == $payer ? 'selected' : '' }}>{{ $payer }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                 <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Date Range</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" name="start_date" class="form-control border-light rounded-3 shadow-none" value="{{ request('start_date') }}">
+                        <span class="input-group-text bg-transparent border-0 text-muted">-</span>
+                        <input type="date" name="end_date" class="form-control border-light rounded-3 shadow-none" value="{{ request('end_date') }}">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-filter me-1"></i> Filter
+                        </button>
+                        <a href="{{ url()->current() }}" class="btn btn-light btn-sm px-3 rounded-3 border-light">
+                            <i class="fa-solid fa-rotate-right me-1"></i> Clear
+                        </a>
+                    </div>
+                </div>
+                <!-- Hidden Sort -->
+                <input type="hidden" name="sort" value="{{ request('sort', 'latest') }}">
+                <div class="col-12">
+                    <div class="p-2 px-3 small fw-bold text-muted border-top pt-3">{{ $cheques->total() }} Results</div>
+                </div>
+            </form>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>

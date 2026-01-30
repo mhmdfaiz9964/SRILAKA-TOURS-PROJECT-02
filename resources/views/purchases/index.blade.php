@@ -18,61 +18,54 @@
 
     <!-- Table Section -->
     <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header bg-white border-bottom-0 py-3 px-4">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm px-3 border-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-filter me-1 text-black"></i> Filter
-                        </button>
-                        <div class="dropdown-menu p-3 shadow-lg border-0 rounded-4" style="width: 320px;">
-                            <form action="{{ route('purchases.index') }}" method="GET">
-                                <div class="mb-2">
-                                    <label class="small fw-bold text-muted">Date Range</label>
-                                    <div class="input-group input-group-sm">
-                                        <input type="date" class="form-control" name="start_date" value="{{ request('start_date') }}">
-                                        <span class="input-group-text">-</span>
-                                        <input type="date" class="form-control" name="end_date" value="{{ request('end_date') }}">
-                                    </div>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="small fw-bold text-muted">Supplier</label>
-                                    <select class="form-select form-select-sm" name="supplier_id">
-                                        <option value="">All Suppliers</option>
-                                        @foreach($suppliers as $supplier)
-                                            <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->full_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <select class="form-select form-select-sm" name="type">
-                                        <option value="">All Types</option>
-                                        <option value="local" {{ request('type') == 'local' ? 'selected' : '' }}>Local</option>
-                                        <option value="import" {{ request('type') == 'import' ? 'selected' : '' }}>Import</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="small fw-bold text-muted">Sort By</label>
-                                    <select class="form-select form-select-sm" name="sort">
-                                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
-                                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
-                                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
-                                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
-                                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Supplier (A-Z)</option>
-                                    </select>
-                                </div>
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary btn-sm" style="background: #6366f1; border: none;">Apply Filters</button>
-                                    <a href="{{ route('purchases.index') }}" class="btn btn-light btn-sm">Reset</a>
-                                </div>
-                            </form>
-                        </div>
+        <div class="p-3 border-bottom bg-light bg-opacity-10">
+            <form action="{{ route('purchases.index') }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Date Range</label>
+                    <div class="input-group input-group-sm">
+                        <input type="date" name="start_date" class="form-control border-light rounded-3 shadow-none" value="{{ request('start_date') }}">
+                        <span class="input-group-text bg-transparent border-0 text-muted">-</span>
+                        <input type="date" name="end_date" class="form-control border-light rounded-3 shadow-none" value="{{ request('end_date') }}">
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted small">{{ count($purchases) }} Results</span>
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Supplier</label>
+                    <select name="supplier_id" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Suppliers</option>
+                        @foreach($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->full_name }}</option>
+                        @endforeach
+                    </select>
                 </div>
-            </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Type</label>
+                    <select name="type" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Types</option>
+                        <option value="local" {{ request('type') == 'local' ? 'selected' : '' }}>Local</option>
+                        <option value="import" {{ request('type') == 'import' ? 'selected' : '' }}>Import</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Sort By</label>
+                    <select name="sort" class="form-select form-select-sm border-light rounded-3">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
+                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
+                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Supplier (A-Z)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-filter me-1"></i> Filter
+                        </button>
+                        <a href="{{ route('purchases.index') }}" class="btn btn-light btn-sm px-3 rounded-3 border-light">
+                            <i class="fa-solid fa-rotate-right me-1"></i> Clear
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

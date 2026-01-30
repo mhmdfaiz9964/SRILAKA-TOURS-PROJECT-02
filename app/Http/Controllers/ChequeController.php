@@ -232,7 +232,40 @@ class ChequeController extends Controller
             'document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048'
         ]);
 
-        $data = $request->except('document');
+        if ($request->payment_method == 'cheque') {
+            $request->validate([
+                'payment_cheque_number' => 'required',
+                'payment_cheque_date' => 'required|date',
+                'payment_cheque_bank_id' => 'required|exists:banks,id', // Make sure this matches form field
+            ]);
+        }
+
+        $data = $request->except(['document', 'payment_cheque_bank_id']); // Exclude bank_id from Payment model if not a column? 
+        // Wait, Payment model might not have payment_cheque_bank_id column. 
+        // Usually payment stores bank_id for Transfer. 
+        // For Cheque, it stores cheque_number/date. 
+        // Does Payment model have bank_id? Yes, line 184 loads payments.bank.
+        // If method is bank_transfer, bank_id is used.
+        // If method is cheque, bank_id is used for Cheque Bank?
+        // Let's assume Payment->bank_id is polymorphic enough or we can use it.
+        // But if form sends 'bank_id' for transfer and 'payment_cheque_bank_id' for cheque...
+        // I should map payment_cheque_bank_id to bank_id if method is cheque.
+        
+        if ($request->payment_method == 'cheque') {
+            $data['bank_id'] = $request->payment_cheque_bank_id;
+            
+            // Create InCheque
+            \App\Models\InCheque::create([
+                'cheque_number' => $request->payment_cheque_number,
+                'cheque_date' => $request->payment_cheque_date,
+                'bank_id' => $request->payment_cheque_bank_id,
+                'amount' => $request->amount,
+                'payer_name' => $cheque->payer_name, // Assuming the payer is the same as the original cheque payer (since they are paying us)
+                'status' => 'received',
+                'notes' => 'Payment for Returned Cheque #' . $cheque->cheque_number
+            ]);
+        }
+
         $data['cheque_id'] = $cheque->id;
 
         if ($request->hasFile('document')) {

@@ -133,7 +133,6 @@
                                 <label class="form-label fw-bold small">Payment Method</label>
                                 <select class="form-select" name="payment_method" id="paymentMethod" onchange="toggleMethodFields()">
                                     <option value="cash">Cash</option>
-                                    <option value="cheque">Cheque</option>
                                     <option value="bank_transfer">Bank Transfer</option>
                                 </select>
                             </div>
@@ -356,13 +355,9 @@
             <div class="modal-body pt-0">
                 <form id="createCustomerForm">
                     <div class="row g-2">
-                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">First Name</label>
-                            <input type="text" class="form-control form-control-sm" name="first_name" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Last Name</label>
-                            <input type="text" class="form-control form-control-sm" name="last_name" required>
+                         <div class="col-md-12">
+                            <label class="form-label small fw-bold">Full Name</label>
+                            <input type="text" class="form-control form-control-sm" name="full_name" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Mobile</label>
@@ -396,9 +391,7 @@
             e.preventDefault();
             const formData = new FormData(this);
             
-            // Combine First and Last ID to Full Name for backend
-            const fullName = `${formData.get('first_name')} ${formData.get('last_name')}`;
-            formData.append('full_name', fullName);
+            // Combine First and Last ID to Full Name for backend - REMOVED as we capture full_name directly now
             formData.append('_token', '{{ csrf_token() }}');
 
             fetch('{{ route("customers.store") }}', {

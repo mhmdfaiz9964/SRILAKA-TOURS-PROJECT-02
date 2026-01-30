@@ -157,7 +157,6 @@
                             <label class="form-label fw-bold small">Payment Method</label>
                             <select class="form-select" name="payment_method" id="paymentMethod" onchange="togglePaymentFields()">
                                 <option value="cash">Cash</option>
-                                <option value="cheque">Cheque</option>
                                 <option value="bank_transfer">Bank Transfer</option>
                                 <option value="credit">Credit / Unpaid</option>
                             </select>

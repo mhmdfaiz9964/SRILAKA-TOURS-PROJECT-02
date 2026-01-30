@@ -72,7 +72,7 @@
                             <th class="ps-4 py-3 text-muted fw-semibold small text-uppercase" style="width: 50px;">ID</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Name</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Units</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Stock</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">CR Stock</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Sold Stock</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Cost Price</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Cost Value</th>

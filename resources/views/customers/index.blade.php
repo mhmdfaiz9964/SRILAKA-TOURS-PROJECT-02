@@ -20,26 +20,47 @@
 
     <!-- Table Section -->
     <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header bg-white border-bottom-0 py-3 px-4">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <form action="{{ route('customers.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-grow-1">
-                     <input type="text" name="search" class="form-control form-control-sm" style="width: 250px;" placeholder="Search name, phone..." value="{{ request('search') }}">
-                     
-                     <select class="form-select form-select-sm" style="width: 150px;" name="sort" onchange="this.form.submit()">
+        <div class="p-3 border-bottom bg-light bg-opacity-10">
+            <form action="{{ route('customers.index') }}" method="GET" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm ps-4 border-light rounded-3" placeholder="Name, Phone...">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Sort By</label>
+                    <select name="sort" class="form-select form-select-sm border-light rounded-3">
                         <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
                         <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
-                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
-                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
+                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Limit</option>
+                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Limit</option>
                         <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Name (A-Z)</option>
-                     </select>
-
-                     <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    <a href="{{ route('customers.index') }}" class="btn btn-light btn-sm"><i class="fa-solid fa-rotate"></i></a>
-                </form>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted small">{{ count($customers) }} Results</span>
+                    </select>
                 </div>
-            </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm border-light rounded-3">
+                        <option value="">All Status</option>
+                        <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Active</option>
+                        <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-filter me-1"></i> Filter
+                        </button>
+                        <a href="{{ route('customers.index') }}" class="btn btn-light btn-sm px-3 rounded-3 border-light">
+                            <i class="fa-solid fa-rotate-right me-1"></i> Clear
+                        </a>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="p-2 px-3 small fw-bold text-muted border-top pt-3">{{ $customers->total() }} Results</div>
+                </div>
+            </form>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

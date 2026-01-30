@@ -46,68 +46,61 @@
             </div>
         </div>
 
-    <!-- Filter Toolbar -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
-        <div class="card-body p-3">
-            <form action="{{ route('sales.index') }}" method="GET" class="row g-2 align-items-end">
+
+
+    <!-- Table Section -->
+    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+        <div class="p-3 border-bottom bg-light bg-opacity-10">
+            <form action="{{ route('sales.index') }}" method="GET" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Search</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                        <input type="text" name="search" class="form-control border-0 bg-light" placeholder="Invoice or Customer..." value="{{ request('search') }}">
+                    <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                    <div class="position-relative">
+                        <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm ps-4 border-light rounded-3" placeholder="Inv # or Customer...">
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Sort By</label>
-                    <select name="sort" class="form-select form-select-sm border-0 bg-light">
-                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest First</option>
-                        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Oldest First</option>
-                        <option value="highest_amount" {{ request('sort') == 'highest_amount' ? 'selected' : '' }}>Highest Amount</option>
-                        <option value="lowest_amount" {{ request('sort') == 'lowest_amount' ? 'selected' : '' }}>Lowest Amount</option>
-                        <option value="name_az" {{ request('sort') == 'name_az' ? 'selected' : '' }}>Customer (A-Z)</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Customer</label>
-                    <select name="customer_id" class="form-select form-select-sm border-0 bg-light">
+                    <label class="form-label small fw-bold text-muted mb-1">Customer</label>
+                    <select name="customer_id" class="form-select form-select-sm border-light rounded-3">
                         <option value="">All Customers</option>
-                        @foreach($customers as $c)
-                            <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->full_name }}</option>
+                        @foreach($customers as $customer)
+                            <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->full_name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted text-uppercase">From Date</label>
-                    <input type="date" name="start_date" class="form-control form-control-sm border-0 bg-light" value="{{ request('start_date') }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted text-uppercase">To Date</label>
-                    <input type="date" name="end_date" class="form-control form-control-sm border-0 bg-light" value="{{ request('end_date') }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted text-uppercase">Status</label>
-                    <select name="status" class="form-select form-select-sm border-0 bg-light">
+                    <label class="form-label small fw-bold text-muted mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm border-light rounded-3">
                         <option value="">All Status</option>
                         <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
                         <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>Partial</option>
                         <option value="unpaid" {{ request('status') == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
                     </select>
                 </div>
-                <div class="col-md-1">
-                    <div class="d-flex gap-1">
-                        <button type="submit" class="btn btn-primary btn-sm w-100 rounded-3" style="background: #6366f1; border: none;"><i class="fa-solid fa-filter"></i></button>
-                        <a href="{{ route('sales.index') }}" class="btn btn-light btn-sm w-100 rounded-3 border-0"><i class="fa-solid fa-rotate"></i></a>
+                <div class="col-md-3">
+                     <label class="form-label small fw-bold text-muted mb-1">Date Range</label>
+                     <div class="input-group input-group-sm">
+                        <input type="date" name="start_date" class="form-control border-light rounded-3 shadow-none" value="{{ request('start_date') }}">
+                        <span class="input-group-text bg-transparent border-0 text-muted">-</span>
+                        <input type="date" name="end_date" class="form-control border-light rounded-3 shadow-none" value="{{ request('end_date') }}">
                     </div>
                 </div>
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-filter me-1"></i> Filter
+                        </button>
+                        <a href="{{ route('sales.index') }}" class="btn btn-light btn-sm px-3 rounded-3 border-light">
+                            <i class="fa-solid fa-rotate-right me-1"></i> Clear
+                        </a>
+                    </div>
+                </div>
+                <!-- Sort Hidden -->
+                <input type="hidden" name="sort" value="{{ request('sort', 'latest') }}">
+                <div class="col-12">
+                    <div class="p-2 px-3 small fw-bold text-muted border-top pt-3">{{ $sales->total() }} Results</div>
+                </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Table Section -->
-    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header bg-white border-bottom-0 py-3 px-4 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold">Recent Invoices</h6>
-            <span class="text-muted small">{{ $sales->total() }} Results</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
