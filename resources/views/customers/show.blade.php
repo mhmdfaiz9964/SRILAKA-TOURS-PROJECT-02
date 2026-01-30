@@ -56,19 +56,19 @@
                 <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
                     <ul class="nav nav-pills gap-2 p-1 bg-light rounded-pill" role="tablist">
                         <li class="nav-item">
-                            <button class="nav-link active rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#cust-ledger" type="button">
+                            <a class="nav-link active rounded-pill fw-bold small px-4" id="cust-ledger-tab" data-bs-toggle="pill" data-bs-target="#cust-ledger" href="javascript:void(0)" role="tab" aria-controls="cust-ledger" aria-selected="true">
                                 <i class="fa-solid fa-book me-1"></i> Ledger
-                            </button>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#cust-sales" type="button">
+                            <a class="nav-link rounded-pill fw-bold small px-4" id="cust-sales-tab" data-bs-toggle="pill" data-bs-target="#cust-sales" href="javascript:void(0)" role="tab" aria-controls="cust-sales" aria-selected="false">
                                 <i class="fa-solid fa-cart-shopping me-1"></i> Sales History
-                            </button>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#cust-payments" type="button">
+                            <a class="nav-link rounded-pill fw-bold small px-4" id="cust-payments-tab" data-bs-toggle="pill" data-bs-target="#cust-payments" href="javascript:void(0)" role="tab" aria-controls="cust-payments" aria-selected="false">
                                 <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
-                            </button>
+                            </a>
                         </li>
                     </ul>
                     <div class="dropdown">
@@ -84,7 +84,7 @@
                 <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Ledger Tab -->
-                        <div class="tab-pane fade show active" id="cust-ledger" role="tabpanel">
+                        <div class="tab-pane active show" id="cust-ledger" role="tabpanel" aria-labelledby="cust-ledger-tab">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Transaction History</h6>
                             </div>
@@ -170,7 +170,7 @@
                         </div>
 
                         <!-- Sales Tab -->
-                        <div class="tab-pane fade" id="cust-sales" role="tabpanel">
+                        <div class="tab-pane" id="cust-sales" role="tabpanel" aria-labelledby="cust-sales-tab">
                              <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="bg-light">
@@ -206,7 +206,7 @@
                         </div>
 
                         <!-- Payments Tab -->
-                        <div class="tab-pane fade" id="cust-payments" role="tabpanel">
+                        <div class="tab-pane" id="cust-payments" role="tabpanel" aria-labelledby="cust-payments-tab">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Direct Payments</h6>
                                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addPaymentModal">

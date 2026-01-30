@@ -53,19 +53,19 @@
                 <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
                     <ul class="nav nav-pills gap-2 p-1 bg-light rounded-pill" role="tablist">
                         <li class="nav-item">
-                            <button class="nav-link active rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#supp-ledger" type="button">
+                            <a class="nav-link active rounded-pill fw-bold small px-4" id="supp-ledger-tab" data-bs-toggle="pill" data-bs-target="#supp-ledger" href="javascript:void(0)" role="tab" aria-controls="supp-ledger" aria-selected="true">
                                 <i class="fa-solid fa-list-ul me-1"></i> Ledger
-                            </button>
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#supp-purchases" type="button">
+                            <a class="nav-link rounded-pill fw-bold small px-4" id="supp-purchases-tab" data-bs-toggle="pill" data-bs-target="#supp-purchases" href="javascript:void(0)" role="tab" aria-controls="supp-purchases" aria-selected="false">
                                 <i class="fa-solid fa-cart-flatbed me-1"></i> Purchase History
-                            </button>
+                            </a>
                         </li>
                          <li class="nav-item">
-                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#supp-payments" type="button">
+                            <a class="nav-link rounded-pill fw-bold small px-4" id="supp-payments-tab" data-bs-toggle="pill" data-bs-target="#supp-payments" href="javascript:void(0)" role="tab" aria-controls="supp-payments" aria-selected="false">
                                 <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
-                            </button>
+                            </a>
                         </li>
                     </ul>
                     <div class="dropdown">
@@ -82,7 +82,7 @@
                 <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Ledger Tab -->
-                        <div class="tab-pane fade show active" id="supp-ledger" role="tabpanel">
+                        <div class="tab-pane active show" id="supp-ledger" role="tabpanel" aria-labelledby="supp-ledger-tab">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Transaction History</h6>
                             </div>
@@ -166,7 +166,7 @@
                         </div>
 
                         <!-- Purchases Tab -->
-                        <div class="tab-pane fade" id="supp-purchases" role="tabpanel">
+                        <div class="tab-pane" id="supp-purchases" role="tabpanel" aria-labelledby="supp-purchases-tab">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="bg-light">
@@ -202,7 +202,7 @@
                         </div>
 
                          <!-- Payments Tab -->
-                        <div class="tab-pane fade" id="supp-payments" role="tabpanel">
+                        <div class="tab-pane" id="supp-payments" role="tabpanel" aria-labelledby="supp-payments-tab">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Outgoing Payments</h6>
                                 <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addSupPaymentModal">
