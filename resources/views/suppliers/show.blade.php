@@ -78,14 +78,14 @@
                         <!-- Ledger Tab -->
                         <div class="tab-pane fade" id="ledger">
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-4 py-3 text-muted small text-uppercase">Date</th>
-                                            <th class="py-3 text-muted small text-uppercase">Description</th>
-                                            <th class="text-end py-3 text-muted small text-uppercase">Debit (Purchase)</th>
-                                            <th class="text-end py-3 text-muted small text-uppercase">Credit (Paid)</th>
-                                            <th class="text-end pe-4 py-3 text-muted small text-uppercase">Balance</th>
+                                            <th class="ps-3 py-2 text-muted small text-uppercase">Date</th>
+                                            <th class="py-2 text-muted small text-uppercase">Description</th>
+                                            <th class="text-end py-2 text-muted small text-uppercase">Debit (Purchase)</th>
+                                            <th class="text-end py-2 text-muted small text-uppercase">Credit (Paid)</th>
+                                            <th class="text-end pe-3 py-2 text-muted small text-uppercase">Balance</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -159,14 +159,14 @@
                         <!-- Purchases Tab -->
                         <div class="tab-pane fade show active" id="purchases">
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3 small fw-bold">Date</th>
-                                            <th class="small fw-bold">Invoice #</th>
-                                            <th class="small fw-bold">Total</th>
-                                            <th class="small fw-bold">Status</th>
-                                            <th class="text-end pe-3 small fw-bold">Action</th>
+                                            <th class="ps-3 py-2 small fw-bold">Date</th>
+                                            <th class="py-2 small fw-bold">Invoice #</th>
+                                            <th class="py-2 small fw-bold">Total</th>
+                                            <th class="py-2 small fw-bold">Status</th>
+                                            <th class="text-end pe-3 py-2 small fw-bold">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -202,14 +202,14 @@
                             </div>
 
                              <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="bg-light">
                                         <tr>
-                                            <th class="ps-3 small fw-bold">Date</th>
-                                            <th class="small fw-bold">Method</th>
-                                            <th class="small fw-bold">Amount</th>
-                                            <th class="small fw-bold">Details</th>
-                                            <th class="small fw-bold">Notes</th>
+                                            <th class="ps-3 py-2 small fw-bold">Date</th>
+                                            <th class="py-2 small fw-bold">Method</th>
+                                            <th class="py-2 small fw-bold">Amount</th>
+                                            <th class="py-2 small fw-bold">Details</th>
+                                            <th class="py-2 small fw-bold">Notes</th>
                                         </tr>
                                     </thead>
                                     <tbody>
