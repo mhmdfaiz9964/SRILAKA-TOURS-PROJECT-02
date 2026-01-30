@@ -53,19 +53,19 @@
                 <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
                     <ul class="nav nav-pills gap-2 p-1 bg-light rounded-pill" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active rounded-pill fw-bold small" data-bs-toggle="tab" href="#ledger">
+                            <button class="nav-link active rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#supp-ledger" type="button">
                                 <i class="fa-solid fa-list-ul me-1"></i> Ledger
-                            </a>
+                            </button>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#purchases">
+                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#supp-purchases" type="button">
                                 <i class="fa-solid fa-cart-flatbed me-1"></i> Purchase History
-                            </a>
+                            </button>
                         </li>
                          <li class="nav-item">
-                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#payments">
+                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#supp-payments" type="button">
                                 <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
-                            </a>
+                            </button>
                         </li>
                     </ul>
                     <div class="dropdown">
@@ -82,7 +82,7 @@
                 <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Ledger Tab -->
-                        <div class="tab-pane fade show active" id="ledger">
+                        <div class="tab-pane fade show active" id="supp-ledger" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Transaction History</h6>
                             </div>
@@ -166,7 +166,7 @@
                         </div>
 
                         <!-- Purchases Tab -->
-                        <div class="tab-pane fade" id="purchases">
+                        <div class="tab-pane fade" id="supp-purchases" role="tabpanel">
                             <div class="table-responsive">
                                 <table class="table table-sm table-hover align-middle mb-0">
                                     <thead class="bg-light">
@@ -202,7 +202,7 @@
                         </div>
 
                          <!-- Payments Tab -->
-                        <div class="tab-pane fade" id="payments">
+                        <div class="tab-pane fade" id="supp-payments" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Outgoing Payments</h6>
                                 <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addSupPaymentModal">

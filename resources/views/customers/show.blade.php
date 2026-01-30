@@ -56,19 +56,19 @@
                 <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
                     <ul class="nav nav-pills gap-2 p-1 bg-light rounded-pill" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active rounded-pill fw-bold small" data-bs-toggle="tab" href="#ledger">
+                            <button class="nav-link active rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#cust-ledger" type="button">
                                 <i class="fa-solid fa-book me-1"></i> Ledger
-                            </a>
+                            </button>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#sales">
+                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#cust-sales" type="button">
                                 <i class="fa-solid fa-cart-shopping me-1"></i> Sales History
-                            </a>
+                            </button>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link rounded-pill fw-bold small" data-bs-toggle="tab" href="#payments">
+                            <button class="nav-link rounded-pill fw-bold small px-4" data-bs-toggle="tab" data-bs-target="#cust-payments" type="button">
                                 <i class="fa-solid fa-money-bill-wave me-1"></i> Payments
-                            </a>
+                            </button>
                         </li>
                     </ul>
                     <div class="dropdown">
@@ -84,7 +84,7 @@
                 <div class="card-body p-4">
                     <div class="tab-content">
                         <!-- Ledger Tab -->
-                        <div class="tab-pane fade show active" id="ledger">
+                        <div class="tab-pane fade show active" id="cust-ledger" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Transaction History</h6>
                             </div>
@@ -142,7 +142,7 @@
                                                         <span class="text-muted">-</span>
                                                     @endif
                                                 </td>
-                                                <td class="text-end pe-4 small fw-bold {{ $runningBalance > 0 ? 'text-primary' : 'text-success' }}">
+                                                <td class="text-end pe-4 small fw-bold {{ $runningBalance > 0 ? 'text-danger' : 'text-success' }}">
                                                     {{ number_format($runningBalance, 2) }}
                                                 </td>
                                             </tr>
@@ -160,9 +160,9 @@
                                             <td colspan="2" class="ps-4 py-3 fw-bold text-end text-uppercase">Total</td>
                                             <td class="text-end py-3 fw-bold">{{ number_format($ledger->sum('debit'), 2) }}</td>
                                             <td class="text-end py-3 fw-bold text-success">{{ number_format($ledger->sum('credit'), 2) }}</td>
-                                            <td class="text-end pe-4 py-3 fw-bold {{ $finalBalance > 0 ? 'text-primary' : 'text-success' }}">
-                                                {{ number_format($finalBalance, 2) }}
-                                            </td>
+                                             <td class="text-end pe-4 py-3 fw-bold {{ $finalBalance > 0 ? 'text-danger' : 'text-success' }}">
+                                                 {{ number_format($finalBalance, 2) }}
+                                             </td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -170,7 +170,7 @@
                         </div>
 
                         <!-- Sales Tab -->
-                        <div class="tab-pane fade" id="sales">
+                        <div class="tab-pane fade" id="cust-sales" role="tabpanel">
                              <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="bg-light">
@@ -206,7 +206,7 @@
                         </div>
 
                         <!-- Payments Tab -->
-                        <div class="tab-pane fade" id="payments">
+                        <div class="tab-pane fade" id="cust-payments" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="fw-bold text-uppercase text-muted small mb-0">Direct Payments</h6>
                                 <button type="button" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
@@ -286,7 +286,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold small">Amount</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">Rs.</span>
                             <input type="number" step="0.01" class="form-control" name="amount" required>
                         </div>
                     </div>
