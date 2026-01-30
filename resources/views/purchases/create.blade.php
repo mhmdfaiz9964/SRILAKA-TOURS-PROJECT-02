@@ -350,21 +350,15 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body pt-0">
+            <div class="modal-body pt-3">
                 <form id="createSupplierForm">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Company Name</label>
-                        <input type="text" class="form-control" name="company_name">
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label small fw-bold">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="full_name" required>
+                        <input type="text" class="form-control" name="full_name" placeholder="Enter supplier name" required>
                     </div>
-                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Mobile</label>
-                        <input type="text" class="form-control" name="mobile_number">
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill btn-sm">Save Supplier</button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill">Save Supplier</button>
                 </form>
+            </div>
             </div>
         </div>
     </div>

@@ -3,82 +3,111 @@
 @section('content')
 <!-- Screen Layout: Visible only on screen -->
 <div class="container-fluid d-print-none">
-    <div class="mb-4 d-flex justify-content-between align-items-center">
-        <div>
-            <h4 class="fw-bold text-gray-800 mb-0">Purchase Details #{{ $purchase->invoice_number ?? $purchase->id }}</h4>
-            <p class="text-muted small mb-0">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d F Y') }}</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-primary shadow-sm" onclick="window.print()">
-                <i class="fa-solid fa-print me-1"></i> Print Note
-            </button>
-            <a href="{{ route('purchases.index') }}" class="btn btn-secondary shadow-sm">
-                <i class="fa-solid fa-arrow-left me-1"></i> Back
-            </a>
-        </div>
-    </div>
-
-    <!-- Payment Modal Trigger -->
-    <div class="mb-3 text-end">
-        @if($purchase->status !== 'paid')
-        <button type="button" class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#paymentModal">
-            <i class="fa-solid fa-money-bill me-2"></i> Add Payment
-        </button>
-        @else
-        <button class="btn btn-success fw-bold" disabled>
-            <i class="fa-solid fa-check-double me-2"></i> Fully Paid
-        </button>
-        @endif
+    <div class="content-header mb-4">
+        <h1 class="h3 fw-bold text-gray-800">Purchase Details</h1>
     </div>
 
     <div class="row">
+        <!-- Supplier/Purchase Summary Sidebar (Left side like Customer show) -->
+        <div class="col-lg-3">
+             <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <div class="avatar-circle mx-auto bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; border-radius: 50%; font-size: 1.5rem;">
+                            {{ substr($purchase->supplier->full_name ?? 'P', 0, 1) }}
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ $purchase->supplier->full_name ?? 'Walk-in' }}</h5>
+                    <p class="text-muted small mb-3">{{ $purchase->supplier->company_name ?? 'Purchase Record' }}</p>
+                    
+                    <div class="text-start border-top pt-3 mt-3">
+                        <div class="mb-2">
+                            <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">TOTAL AMOUNT</small>
+                            <span class="small fw-bold text-primary">{{ number_format($purchase->total_amount, 2) }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">PAID AMOUNT</small>
+                            <span class="small fw-bold text-success">{{ number_format($purchase->paid_amount, 2) }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted d-block uppercase fw-bold" style="font-size: 0.7rem;">STATUS</small>
+                            @php
+                                $statusClass = [
+                                    'unpaid' => 'bg-danger-subtle text-danger',
+                                    'partial' => 'bg-warning-subtle text-warning',
+                                    'paid' => 'bg-success-subtle text-success'
+                                ][$purchase->status] ?? 'bg-secondary-subtle text-secondary';
+                            @endphp
+                            <span class="badge {{ $statusClass }} rounded-pill border-0">{{ ucfirst($purchase->status) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4 d-print-none">
+                <div class="card-body p-3">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary rounded-pill shadow-sm" onclick="window.print()">
+                            <i class="fa-solid fa-print me-2"></i> Print Note
+                        </button>
+                        @if($purchase->status !== 'paid')
+                        <button class="btn btn-success rounded-pill shadow-sm" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                            <i class="fa-solid fa-plus me-2"></i> Add Payment
+                        </button>
+                        @endif
+                        <a href="{{ route('purchases.index') }}" class="btn btn-light rounded-pill">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Purchase Details (Right side like Customer show) -->
         <div class="col-lg-9">
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between mb-5">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
                         <div>
-                            <h5 class="fw-bold text-primary">{{ $globalSettings['company_name'] ?? config('app.name') }}</h5>
-                            <p class="small text-muted mb-0">{{ $globalSettings['company_address'] ?? 'Address N/A' }}</p>
-                            <p class="small text-muted">Phone: {{ $globalSettings['company_phone'] ?? 'N/A' }}</p>
+                             <h6 class="fw-bold text-uppercase text-muted small mb-1">Purchase Details</h6>
+                             <h4 class="fw-bold mb-0">GRN: {{ $purchase->grn_number ?? 'N/A' }}</h4>
                         </div>
                         <div class="text-end">
-                            <h6 class="fw-bold text-muted text-uppercase small">Supplier:</h6>
-                            <h5 class="fw-bold mb-1">{{ $purchase->supplier->full_name }}</h5>
-                            <p class="small text-muted mb-0">{{ $purchase->supplier->company_name }}</p>
-                            <p class="small text-muted">{{ $purchase->supplier->contact_number }}</p>
+                            <span class="text-muted small d-block">Purchase Date</span>
+                            <span class="fw-bold">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M, Y') }}</span>
                         </div>
                     </div>
 
-                    <div class="table-responsive mb-4">
-                        <table class="table table-bordered align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-3" style="width: 15%;">Item Code</th>
-                                    <th style="width: 40%;">Description</th>
-                                    <th class="text-center" style="width: 10%;">Qty</th>
-                                    <th class="text-end" style="width: 15%;">Cost Price</th>
-                                    <th class="text-end pe-3" style="width: 20%;">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($purchase->items as $item)
-                                <tr>
-                                    <td class="ps-3 fw-bold small text-primary">{{ $item->product->code }}</td>
-                                    <td>
-                                        <div class="fw-bold small">{{ $item->product->name }}</div>
-                                        @if($item->description)
-                                        <div class="text-muted small fst-italic" style="font-size: 0.75rem;">{{ $item->description }}</div>
-                                        @endif
-                                    </td>
-                                    <td class="text-center small">{{ $item->quantity }}</td>
-                                    <td class="text-end small">Rs. {{ number_format($item->cost_price, 2) }}</td>
-                                    <td class="text-end pe-3 fw-bold small">Rs. {{ number_format($item->total_price, 2) }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="table-responsive">
+                       <table class="table table-hover align-middle">
+                           <thead class="bg-light">
+                               <tr>
+                                   <th class="ps-3">Product</th>
+                                   <th>Cost</th>
+                                   <th class="text-center">Qty</th>
+                                   <th class="text-end pe-3">Total</th>
+                               </tr>
+                           </thead>
+                           <tbody>
+                               @foreach($purchase->items as $item)
+                               <tr>
+                                   <td class="ps-3">
+                                       <div class="fw-bold">{{ $item->product->name }}</div>
+                                       <div class="text-muted small">Code: {{ $item->product->code }}</div>
+                                   </td>
+                                   <td>{{ number_format($item->cost_price, 2) }}</td>
+                                   <td class="text-center">{{ $item->quantity }}</td>
+                                   <td class="text-end pe-3 fw-bold">{{ number_format($item->total_price, 2) }}</td>
+                               </tr>
+                               @endforeach
+                           </tbody>
+                       </table>
                     </div>
+                </div>
+            </div>
 
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
                     <div class="row">
                         <div class="col-md-6 border-end">
                              @if($purchase->investors->count() > 0)
@@ -241,9 +270,9 @@
         <table class="table table-bordered border-dark mb-0 w-100" style="font-size: 1rem; table-layout: fixed;">
             <thead>
                 <tr class="text-center">
-                    <th style="width: 110px;">Item Code</th>
+                    <th style="width: 130px;">Item Code</th>
                     <th style="width: 70px;">Qty</th>
-                    <th style="width: 320px;">Description</th>
+                    <th style="width: 300px;">Description</th>
                     <th style="width: 100px;">Cost</th>
                     <th style="width: 120px;">Amount</th>
                 </tr>
@@ -261,73 +290,62 @@
                     <td class="text-end fw-bold">{{ number_format($item->total_price, 2) }}</td>
                 </tr>
                 @endforeach
-                {{-- No more empty rows to avoid clutter --}}
+                @for($i = 0; $i < max(0, 10 - count($purchase->items)); $i++)
+                <tr style="height: 30px;">
+                    <td>&nbsp;</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                @endfor
             </tbody>
             <tfoot>
-                {{-- Financial Summary Grid --}}
+                @php
+                    $additionalCosts = [
+                        ['label' => 'Sub Total Item', 'val' => $purchase->items->sum('total_price'), 'bold' => false],
+                        ['label' => 'Transport', 'val' => $purchase->transport_cost, 'bold' => false],
+                        ['label' => 'Broker', 'val' => $purchase->broker_cost, 'bold' => false],
+                        ['label' => 'Loading', 'val' => $purchase->loading_cost, 'bold' => false],
+                        ['label' => 'Unloading', 'val' => $purchase->unloading_cost, 'bold' => false],
+                        ['label' => 'Labour Charges', 'val' => $purchase->labour_cost, 'bold' => false],
+                        ['label' => 'Air Ticket', 'val' => $purchase->air_ticket_cost, 'bold' => false],
+                        ['label' => 'Other Expenses', 'val' => $purchase->other_expenses, 'bold' => false],
+                    ];
+                    $totalRows = count($additionalCosts) + 3; // + Grand Total, Paid, Balance
+                @endphp
+
+                @foreach($additionalCosts as $index => $cost)
                 <tr>
-                    <td colspan="3" class="p-0 align-top" style="border-bottom: none;">
-                        <table class="table table-borderless table-sm mb-0">
-                            <tr>
-                                <td class="ps-2 fw-bold text-decoration-underline" style="font-size: 0.9rem;">Investors</td>
-                                <td></td>
-                            </tr>
+                    @if($index === 0)
+                    <td colspan="3" rowspan="{{ $totalRows }}" class="align-top p-2" style="border-bottom: 2px solid #000;">
+                        <h6 class="fw-bold text-decoration-underline small mb-2">Investors</h6>
+                        <table class="table table-sm table-borderless mb-0">
                             @foreach($purchase->investors as $investor)
                             <tr>
-                                <td class="ps-2 py-0" style="font-size: 0.85rem;">{{ $investor->investor_name }}:</td>
-                                <td class="text-end pe-2 py-0 fw-bold" style="font-size: 0.85rem;">{{ number_format($investor->amount, 2) }}</td>
+                                <td class="p-0 small" style="width: 60%;">{{ $investor->investor_name }}:</td>
+                                <td class="p-0 small fw-bold text-end">{{ number_format($investor->amount, 2) }}</td>
                             </tr>
                             @endforeach
                         </table>
                     </td>
-                    <td colspan="2" class="p-0">
-                        <table class="table table-bordered border-dark border-0 mb-0 w-100" style="border-top: none !important;">
-                            <tr>
-                                <td class="text-end p-1 border-top-0" style="font-size: 0.85rem; width: 100px;">Sub Total Item</td>
-                                <td class="text-end p-1 fw-bold border-top-0" style="font-size: 0.85rem; width: 121px;">{{ number_format($purchase->items->sum('total_price'), 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">Transport</td>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">{{ number_format($purchase->transport_cost, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">Broker</td>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">{{ number_format($purchase->broker_cost, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">Loading</td>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">{{ number_format($purchase->loading_cost, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">Unloading</td>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">{{ number_format($purchase->unloading_cost, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">Labour Charges</td>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">{{ number_format($purchase->labour_cost, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">Air Ticket</td>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">{{ number_format($purchase->air_ticket_cost, 2) }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">Other Expenses</td>
-                                <td class="text-end p-1" style="font-size: 0.85rem;">{{ number_format($purchase->other_expenses, 2) }}</td>
-                            </tr>
-                            <tr class="bg-light">
-                                <td class="text-end p-1 fw-bold" style="font-size: 1rem;">Grand Total</td>
-                                <td class="text-end p-1 fw-bold" style="font-size: 1rem;">{{ number_format($purchase->total_amount, 2) }}</td>
-                            </tr>
-                        </table>
-                    </td>
+                    @endif
+                    <td class="text-end p-1 border-dark border-1" style="font-size: 0.9rem;">{{ $cost['label'] }}</td>
+                    <td class="text-end p-1 border-dark border-1 {{ $cost['bold'] ? 'fw-bold' : '' }}" style="font-size: 0.9rem;">{{ number_format($cost['val'], 2) }}</td>
+                </tr>
+                @endforeach
+
+                <tr style="background: #f1f3f4 !important; -webkit-print-color-adjust: exact;">
+                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1rem;">Grand Total</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1rem;">{{ number_format($purchase->total_amount, 2) }}</td>
                 </tr>
                 <tr>
-                    <td colspan="3" class="text-end fw-bold p-1">Paid</td>
-                    <td colspan="2" class="text-end fw-bold p-1">{{ number_format($purchase->paid_amount, 2) }}</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 0.9rem;">Paid</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 0.9rem;">{{ number_format($purchase->paid_amount, 2) }}</td>
                 </tr>
                 <tr>
-                    <td colspan="3" class="text-end fw-bold p-1 h5 mb-0">Balance</td>
-                    <td colspan="2" class="text-end fw-bold p-1 h5 mb-0">{{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1.1rem; border-bottom: 2px solid #000;">Balance</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1.1rem; border-bottom: 2px solid #000;">{{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}</td>
                 </tr>
             </tfoot>
         </table>
