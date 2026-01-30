@@ -303,7 +303,7 @@
             <tfoot>
                 @php
                     $additionalCosts = [
-                        ['label' => 'Sub Total Item', 'val' => $purchase->items->sum('total_price'), 'bold' => false],
+                        ['label' => 'Sub Total Item', 'val' => $purchase->items->sum('total_price'), 'bold' => true],
                         ['label' => 'Transport', 'val' => $purchase->transport_cost, 'bold' => false],
                         ['label' => 'Broker', 'val' => $purchase->broker_cost, 'bold' => false],
                         ['label' => 'Loading', 'val' => $purchase->loading_cost, 'bold' => false],
@@ -312,53 +312,53 @@
                         ['label' => 'Air Ticket', 'val' => $purchase->air_ticket_cost, 'bold' => false],
                         ['label' => 'Other Expenses', 'val' => $purchase->other_expenses, 'bold' => false],
                     ];
-                    $totalRows = count($additionalCosts) + 3; // + Grand Total, Paid, Balance
                 @endphp
 
-                @foreach($additionalCosts as $index => $cost)
+                @foreach($additionalCosts as $cost)
                 <tr>
-                    @if($index === 0)
-                    <td colspan="3" rowspan="{{ $totalRows }}" class="align-top p-2" style="border-bottom: 2px solid #000;">
-                        <h6 class="fw-bold text-decoration-underline small mb-2">Investors</h6>
-                        <table class="table table-sm table-borderless mb-0">
-                            @foreach($purchase->investors as $investor)
-                            <tr>
-                                <td class="p-0 small" style="width: 60%;">{{ $investor->investor_name }}:</td>
-                                <td class="p-0 small fw-bold text-end">{{ number_format($investor->amount, 2) }}</td>
-                            </tr>
-                            @endforeach
-                        </table>
-                    </td>
-                    @endif
+                    <td colspan="3" class="border-0"></td>
                     <td class="text-end p-1 border-dark border-1" style="font-size: 0.9rem;">{{ $cost['label'] }}</td>
                     <td class="text-end p-1 border-dark border-1 {{ $cost['bold'] ? 'fw-bold' : '' }}" style="font-size: 0.9rem;">{{ number_format($cost['val'], 2) }}</td>
                 </tr>
                 @endforeach
 
                 <tr style="background: #f1f3f4 !important; -webkit-print-color-adjust: exact;">
-                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1rem;">Grand Total</td>
-                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1rem;">{{ number_format($purchase->total_amount, 2) }}</td>
+                    <td colspan="3" rowspan="3" class="align-top p-2 border-dark border-1">
+                        <h6 class="fw-bold text-decoration-underline small mb-1">Investors & Notes</h6>
+                        <table class="table table-sm table-borderless mb-0">
+                            @foreach($purchase->investors as $investor)
+                            <tr>
+                                <td class="p-0 small" style="font-size: 0.8rem;">{{ $investor->investor_name }}:</td>
+                                <td class="p-0 small fw-bold text-end" style="font-size: 0.8rem;">{{ number_format($investor->amount, 2) }}</td>
+                            </tr>
+                            @endforeach
+                        </table>
+                        <div class="mt-2 small text-muted">{{ $purchase->notes }}</div>
+                    </td>
+                    <td class="text-end p-1 fw-bold border-dark border-1 h5 mb-0" style="background: #eee;">Grand Total</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1 h5 mb-0" style="background: #eee;">{{ number_format($purchase->total_amount, 2) }}</td>
                 </tr>
                 <tr>
-                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 0.9rem;">Paid</td>
-                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 0.9rem;">{{ number_format($purchase->paid_amount, 2) }}</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1">Paid</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1">{{ number_format($purchase->paid_amount, 2) }}</td>
                 </tr>
                 <tr>
-                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1.1rem; border-bottom: 2px solid #000;">Balance</td>
-                    <td class="text-end p-1 fw-bold border-dark border-1" style="font-size: 1.1rem; border-bottom: 2px solid #000;">{{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1 border-bottom-2 h4 mb-0">Balance</td>
+                    <td class="text-end p-1 fw-bold border-dark border-1 border-bottom-2 h4 mb-0">{{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}</td>
                 </tr>
             </tfoot>
         </table>
 
-        <!-- Signatures -->
-        <div class="row mt-5 pt-5">
-            <div class="col-6 text-center">
-                <div style="border-top: 2px solid #000; width: 70%; margin: 0 auto;"></div>
-                <p class="fw-bold mt-1">Authorized By</p>
+        <div class="row mt-5 pt-4 text-center">
+            <div class="col-6">
+                <div class="d-inline-block border-top border-dark px-5 pt-2" style="border-top-style: dotted !important; width: 80%;">
+                    <strong class="small">Authorized By</strong>
+                </div>
             </div>
-            <div class="col-6 text-center">
-                <div style="border-top: 2px solid #000; width: 70%; margin: 0 auto;"></div>
-                <p class="fw-bold mt-1">Received By / Entered By</p>
+            <div class="col-6">
+                <div class="d-inline-block border-top border-dark px-5 pt-2" style="border-top-style: dotted !important; width: 80%;">
+                    <strong class="small">Received By / Entered By</strong>
+                </div>
             </div>
         </div>
 

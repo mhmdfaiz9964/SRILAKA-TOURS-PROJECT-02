@@ -24,7 +24,10 @@ class PaymentController extends Controller
                 'payment_date' => $request->payment_date,
                 'payment_method' => $request->payment_method,
                 'notes' => $request->notes,
-                'bank_id' => $request->bank_id,
+                'bank_id' => $request->payment_bank_id ?? $request->bank_id,
+                'payment_cheque_number' => $request->payment_cheque_number,
+                'payment_cheque_date' => $request->payment_cheque_date,
+                'reference_number' => $request->reference_number,
                 'payable_type' => $request->payable_type, // 'App\Models\Customer' etc
                 'payable_id' => $request->payable_id,
                 'type' => $request->type ?? 'in', // Default 'in'

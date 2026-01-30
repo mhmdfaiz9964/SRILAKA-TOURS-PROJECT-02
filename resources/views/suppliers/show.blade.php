@@ -203,46 +203,58 @@
 
                          <!-- Payments Tab -->
                         <div class="tab-pane fade" id="payments">
-                            <div class="d-flex justify-content-between mb-3">
-                                <h6 class="fw-bold text-gray-800">Payment History</h6>
-                                <button type="button" class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#addSupPaymentModal">
-                                    <i class="fa-solid fa-plus me-1"></i> Add Payment
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-uppercase text-muted small mb-0">Outgoing Payments</h6>
+                                <button type="button" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addSupPaymentModal">
+                                    <i class="fa-solid fa-plus me-1"></i> New Payment
                                 </button>
                             </div>
 
                              <div class="table-responsive">
-                                <table class="table table-sm table-hover align-middle mb-0">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th class="ps-3 py-2 small fw-bold">Date</th>
-                                            <th class="py-2 small fw-bold">Method</th>
-                                            <th class="py-2 small fw-bold">Amount</th>
-                                            <th class="py-2 small fw-bold">Details</th>
-                                            <th class="py-2 small fw-bold">Notes</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($supplier->payments as $payment)
-                                        <tr>
-                                            <td class="ps-3 small">{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}</td>
-                                            <td class="small text-uppercase">{{ str_replace('_', ' ', $payment->payment_method) }}</td>
-                                            <td class="small fw-bold text-danger">-{{ number_format($payment->amount, 2) }}</td>
-                                            <td class="small text-muted">
-                                                @if($payment->payment_method == 'cheque')
-                                                    Cheque #: {{ $payment->payment_cheque_number }} ({{ $payment->bank->name ?? '-' }})
-                                                @elseif($payment->payment_method == 'bank_transfer')
-                                                    Ref: {{ $payment->reference_number }} ({{ $payment->bank->name ?? '-' }})
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                            <td class="small">{{ $payment->notes ?? '-' }}</td>
-                                        </tr>
-                                        @empty
-                                        <tr><td colspan="5" class="text-center text-muted small py-3">No payments recorded</td></tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
+                                 <table class="table table-hover align-middle mb-0">
+                                     <thead class="bg-light">
+                                         <tr>
+                                             <th class="ps-4 py-3 text-muted small text-uppercase">Date</th>
+                                             <th class="py-3 text-muted small text-uppercase">Method</th>
+                                             <th class="text-end py-3 text-muted small text-uppercase">Amount</th>
+                                             <th class="py-3 text-muted small text-uppercase">Reference / Details</th>
+                                             <th class="pe-4 py-3 text-muted small text-uppercase">Notes</th>
+                                         </tr>
+                                     </thead>
+                                     <tbody>
+                                         @forelse($supplier->payments->sortByDesc('payment_date') as $payment)
+                                         <tr>
+                                             <td class="ps-4 small text-muted text-nowrap">{{ \Carbon\Carbon::parse($payment->payment_date)->format('d M, Y') }}</td>
+                                             <td>
+                                                 @php
+                                                     $icon = [
+                                                         'cash' => 'fa-money-bill-1 text-success',
+                                                         'cheque' => 'fa-money-check-dollar text-primary',
+                                                         'bank_transfer' => 'fa-building-columns text-info'
+                                                     ][$payment->payment_method] ?? 'fa-circle-dollar-to-slot';
+                                                 @endphp
+                                                 <i class="fa-solid {{ $icon }} me-1"></i>
+                                                 <span class="small fw-bold text-uppercase">{{ str_replace('_', ' ', $payment->payment_method) }}</span>
+                                             </td>
+                                             <td class="text-end fw-bold text-danger">{{ number_format($payment->amount, 2) }}</td>
+                                             <td class="small">
+                                                 @if($payment->payment_method == 'cheque')
+                                                     <span class="text-dark fw-semibold">#{{ $payment->payment_cheque_number }}</span>
+                                                     <div class="text-muted" style="font-size: 0.75rem;">{{ $payment->bank->name ?? '-' }} | {{ $payment->payment_cheque_date }}</div>
+                                                 @elseif($payment->payment_method == 'bank_transfer')
+                                                     <span class="text-dark fw-semibold">{{ $payment->reference_number ?? 'Transfer' }}</span>
+                                                     <div class="text-muted" style="font-size: 0.75rem;">{{ $payment->bank->name ?? '-' }}</div>
+                                                 @else
+                                                     <span class="text-muted">Cash Payment</span>
+                                                 @endif
+                                             </td>
+                                             <td class="pe-4 small text-muted">{{ $payment->notes ?? '-' }}</td>
+                                         </tr>
+                                         @empty
+                                         <tr><td colspan="5" class="text-center text-muted small py-5">No payments recorded</td></tr>
+                                         @endforelse
+                                     </tbody>
+                                 </table>
                             </div>
                         </div>
                     </div>

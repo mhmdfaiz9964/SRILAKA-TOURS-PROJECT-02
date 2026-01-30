@@ -194,30 +194,31 @@ class SupplierController extends Controller
             return $pdf->download('supplier_ledger_' . $supplier->id . '.pdf');
         }
 
-        // Export Excel (CSV)
+        // Export Excel (CSV) using StreamedResponse
         $filename = 'supplier_ledger_' . $supplier->id . '.csv';
-        $handle = fopen('php://output', 'w');
 
-        header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        return response()->stream(function () use ($ledger) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Date', 'Description', 'Type', 'Debit', 'Credit', 'Balance']);
 
-        fputcsv($handle, ['Date', 'Description', 'Type', 'Debit', 'Credit', 'Balance']);
-
-        $balance = 0;
-        foreach ($ledger as $item) {
-            $balance += ($item['debit'] - $item['credit']);
-            fputcsv($handle, [
-                $item['date'],
-                $item['description'],
-                $item['type'],
-                number_format($item['debit'], 2, '.', ''),
-                number_format($item['credit'], 2, '.', ''),
-                number_format($balance, 2, '.', '')
-            ]);
-        }
-
-        fclose($handle);
-        exit;
+            $balance = 0;
+            foreach ($ledger as $item) {
+                // For suppliers: Purchase is Debit (+), Payment is Credit (-)
+                $balance += ($item['debit'] - $item['credit']);
+                fputcsv($handle, [
+                    $item['date'],
+                    $item['description'],
+                    $item['type'],
+                    number_format($item['debit'], 2, '.', ''),
+                    number_format($item['credit'], 2, '.', ''),
+                    number_format($balance, 2, '.', '')
+                ]);
+            }
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     /**
