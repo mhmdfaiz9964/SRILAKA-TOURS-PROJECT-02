@@ -8,9 +8,23 @@
                 <h4 class="mb-0 fw-bold">Customers</h4>
                 <p class="text-muted small mb-0">Manage customer relationships and credit limits</p>
             </div>
+
+            <!-- Total Outstanding Badge/Button - Centered -->
+            <a href="{{ request('outstanding_only') == '1' ? route('customers.index', request()->except('outstanding_only')) : route('customers.index', array_merge(request()->query(), ['outstanding_only' => 1])) }}" 
+               class="text-decoration-none d-none d-md-block">
+                <div class="d-flex align-items-center bg-white rounded-3 shadow-sm border {{ request('outstanding_only') == '1' ? 'border-danger ring-1' : 'border-light' }} hover-shadow-md transition-all" style="overflow: hidden;">
+                    <div class="px-3 py-2 small fw-bold text-danger border-end border-light" style="background: #fff5f5; font-size: 0.7rem; letter-spacing: 0.5px;">
+                        TOTAL OUTSTANDING
+                    </div>
+                    <div class="px-3 py-1 fw-bold text-danger h5 mb-0" style="min-width: 100px; text-align: center;">
+                        {{ number_format($totalOutstanding, 2) }}
+                    </div>
+                </div>
+            </a>
+
             <div class="d-flex align-items-center gap-2">
                 @can('customer-create')
-                <a href="{{ route('customers.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none;">
+                <a href="{{ route('customers.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none; padding: 0.6rem 1rem;">
                     <i class="fa-solid fa-plus"></i> Add Customer
                 </a>
                 @endcan
@@ -22,6 +36,9 @@
     <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
         <div class="p-3 border-bottom bg-light bg-opacity-10">
             <form action="{{ route('customers.index') }}" method="GET" class="row g-3 align-items-end">
+                @if(request('outstanding_only'))
+                    <input type="hidden" name="outstanding_only" value="1">
+                @endif
                 <div class="col-md-3">
                     <label class="form-label small fw-bold text-muted mb-1">Search</label>
                     <div class="position-relative">
@@ -140,6 +157,16 @@
     .btn-icon:hover {
         background: #f3f4f6;
         color: #6366f1 !important;
+    }
+    .hover-shadow-md {
+        transition: all 0.2s ease;
+    }
+    .hover-shadow-md:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+        transform: translateY(-1px);
+    }
+    .transition-all {
+        transition: all 0.2s ease-in-out;
     }
 </style>
 @endsection

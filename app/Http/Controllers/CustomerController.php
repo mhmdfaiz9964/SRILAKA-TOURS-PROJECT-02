@@ -25,11 +25,31 @@ class CustomerController extends Controller
         $query = \App\Models\Customer::withSum('sales', 'total_amount')
             ->withSum('payments', 'amount');
 
+        // Calculate global total outstanding (only positive balances)
+        $totalOutstanding = \App\Models\Customer::withSum('sales', 'total_amount')
+            ->withSum('payments', 'amount')
+            ->get()
+            ->sum(function($c) {
+                return max(0, ($c->sales_sum_total_amount ?? 0) - ($c->payments_sum_amount ?? 0));
+            });
+
         // Search
         if ($request->search) {
-            $query->where('full_name', 'like', "%{$request->search}%")
+            $query->where(function($q) use ($request) {
+                $q->where('full_name', 'like', "%{$request->search}%")
                   ->orWhere('company_name', 'like', "%{$request->search}%")
                   ->orWhere('mobile_number', 'like', "%{$request->search}%");
+            });
+        }
+
+        // Status Filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Outstanding Filter
+        if ($request->outstanding_only == '1') {
+            $query->whereRaw('(SELECT COALESCE(SUM(total_amount), 0) FROM sales WHERE sales.customer_id = customers.id) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.payable_id = customers.id AND payments.payable_type = "App\Models\Customer")');
         }
 
         // Sorting
@@ -57,7 +77,7 @@ class CustomerController extends Controller
         }
 
         $customers = $query->paginate(20)->withQueryString();
-        return view('customers.index', compact('customers'));
+        return view('customers.index', compact('customers', 'totalOutstanding'));
     }
 
     /**
