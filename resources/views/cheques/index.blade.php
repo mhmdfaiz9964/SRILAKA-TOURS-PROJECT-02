@@ -116,7 +116,6 @@
                         <th class="ps-4 py-3" style="width: 40px;">
                             <input type="checkbox" class="form-check-input shadow-none">
                         </th>
-                        <th class="py-3" style="width: 40px;"></th>
                         @if(($page_title ?? '') == 'Payment Cheques')
                             <th class="py-3 text-muted small text-uppercase">Payment Date</th>
                             <th class="py-3 text-muted small text-uppercase">Payment Method</th>
@@ -143,9 +142,6 @@
                     <tr>
                         <td class="ps-4">
                             <input type="checkbox" class="form-check-input shadow-none">
-                        </td>
-                        <td>
-                            <i class="fa-regular fa-star text-muted cursor-pointer"></i>
                         </td>
                         @if(($page_title ?? '') == 'Payment Cheques')
                             <td class="small text-muted text-nowrap">

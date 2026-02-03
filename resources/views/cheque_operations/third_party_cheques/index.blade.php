@@ -100,6 +100,7 @@
             </form>
         </div>
 
+
         <script>
         $(function() {
             var start = moment('{{ request("from_date") }}' || null);
@@ -142,10 +143,30 @@
         </script>
 
         <div class="table-responsive">
+            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
+                @csrf
+                <input type="hidden" name="type" value="third_party_cheque">
+                <div class="p-2 border-bottom bg-light d-flex gap-2 align-items-center" id="bulkActions" style="display:none !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="status" class="form-select form-select-sm" style="width: 160px;" id="bulkStatusSelect" required>
+                            <option value="">Select Action...</option>
+                            <option value="realized">Mark Realized</option>
+                            <option value="returned">Mark Returned</option>
+                            <option value="received">Mark Sent</option>
+                        </select>
+                        
+                        <button type="submit" id="bulkUpdateBtn" class="btn btn-primary btn-sm px-3 shadow-sm" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-check me-1"></i> Update Selected
+                        </button>
+                    </div>
+                    <span class="ms-auto small text-muted fw-bold"><span id="selectedCount" class="text-primary">0</span> records selected</span>
+                </div>
+
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr class="bg-light bg-opacity-10 border-bottom">
-                        <th class="ps-4 py-3 text-muted small text-uppercase">Type</th>
+                        <th class="ps-4 py-3" style="width: 40px;"><input type="checkbox" id="selectAll"></th>
+                        <th class="py-3 text-muted small text-uppercase">Type</th>
                         <th class="py-3 text-muted small text-uppercase">Transfer Date</th>
                         <th class="py-3 text-muted small text-uppercase">Cheq #</th>
                         <th class="py-3 text-muted small text-uppercase">Client</th>
@@ -158,7 +179,8 @@
                 <tbody>
                     @forelse($cheques as $cheque)
                     <tr>
-                        <td class="ps-4">
+                         <td class="ps-4"><input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox"></td>
+                        <td>
                             <span class="badge rounded-pill px-2 py-1" style="background: #f5f3ff; color: #8b5cf6; font-size: 0.65rem;">
                                 3RD
                             </span>
@@ -225,11 +247,68 @@
                 </tbody>
             </table>
         </div>
+        </form>
         <div class="p-4 border-top">
             {{ $cheques->links() }}
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAll = document.getElementById('selectAll');
+        if(selectAll) {
+            selectAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.cheque-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+                updateBulkActions();
+            });
+        }
+
+        document.querySelectorAll('.cheque-checkbox').forEach(cb => {
+            cb.addEventListener('change', updateBulkActions);
+        });
+
+        function updateBulkActions() {
+            const checkedCount = document.querySelectorAll('.cheque-checkbox:checked').length;
+            const bulkActions = document.getElementById('bulkActions');
+            if(document.getElementById('selectedCount')) {
+                document.getElementById('selectedCount').innerText = checkedCount;
+            }
+            if(bulkActions) {
+                if(checkedCount > 0) {
+                    bulkActions.style.display = 'flex';
+                    bulkActions.style.setProperty('display', 'flex', 'important');
+                } else {
+                    bulkActions.style.display = 'none';
+                    bulkActions.style.setProperty('display', 'none', 'important');
+                }
+            }
+        }
+
+        const bulkForm = document.getElementById('bulkUpdateForm');
+        if(bulkForm) {
+            bulkForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const count = document.querySelectorAll('.cheque-checkbox:checked').length;
+                Swal.fire({
+                    title: 'Update ' + count + ' Cheques?',
+                    text: "Are you sure you want to update the status of these records?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#6366f1',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, update them!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submit();
+                    }
+                });
+            });
+        }
+    });
+</script>
 
 <style>
     .card-stat { transition: all 0.2s ease-in-out; border: 1px solid transparent !important; }
