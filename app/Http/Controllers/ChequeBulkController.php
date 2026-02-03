@@ -29,15 +29,21 @@ class ChequeBulkController extends Controller
 
             $cheques = \App\Models\InCheque::whereIn('id', $chequeIds)->get();
 
+            $count = 0;
             foreach($cheques as $cheque) {
-                $updateData = ['status' => $status];
-                
-                // Handle Transfer
+                // Determine new status
+                $newStatus = $status;
+                if ($status === 'third_party') {
+                   $newStatus = 'transferred_to_third_party';
+                }
+
+                $cheque->status = $newStatus; // Explicitly set status
+
+                // Handle Side Effects
                 if ($status === 'third_party') {
                     if ($request->transfer_type === 'supplier') {
                         $supplier = \App\Models\Supplier::find($request->supplier_id);
-                        $updateData['status'] = 'transferred_to_third_party'; 
-                        $updateData['third_party_name'] = 'Supplier: ' . $supplier->full_name;
+                        $cheque->third_party_name = 'Supplier: ' . $supplier->full_name;
                         $cheque->notes .= " | Transferred to Supplier: " . $supplier->full_name;
                         
                         // Create Payment for Supplier
@@ -54,8 +60,7 @@ class ChequeBulkController extends Controller
                         ]);
 
                     } else {
-                        $updateData['status'] = 'transferred_to_third_party';
-                        $updateData['third_party_name'] = $request->third_party_name;
+                        $cheque->third_party_name = $request->third_party_name;
                         $cheque->notes .= " | Transferred to: " . $request->third_party_name;
                         
                         // Create ThirdPartyCheque entry
@@ -67,7 +72,7 @@ class ChequeBulkController extends Controller
                         ]);
                     }
                 } elseif ($status === 'returned') {
-                     // Optionally create Returned Cheque Record like InChequeController does
+                     // Optionally create Returned Cheque Record
                      \App\Models\Cheque::create([
                         'cheque_number' => $cheque->cheque_number,
                         'cheque_date' => $cheque->cheque_date,
@@ -79,7 +84,8 @@ class ChequeBulkController extends Controller
                     ]);
                 }
                 
-                $cheque->update($updateData);
+                $cheque->save(); // Use save() directly
+                $count++;
             }
 
         } elseif ($type === 'out_cheque') {
@@ -89,9 +95,11 @@ class ChequeBulkController extends Controller
             ]);
 
             $cheques = \App\Models\OutCheque::whereIn('id', $chequeIds)->get();
+            $count = $cheques->count();
 
             foreach($cheques as $cheque) {
-                $cheque->update(['status' => $status]);
+                $cheque->status = $status;
+                $cheque->save();
             }
 
         } elseif ($type === 'third_party_cheque') {
@@ -101,12 +109,14 @@ class ChequeBulkController extends Controller
             ]);
 
             $cheques = \App\Models\ThirdPartyCheque::whereIn('id', $chequeIds)->get();
+            $count = $cheques->count();
 
             foreach($cheques as $cheque) {
-                $cheque->update(['status' => $status]);
+                $cheque->status = $status;
+                $cheque->save();
             }
         }
 
-        return back()->with('success', 'Cheques updated successfully');
+        return back()->with('success', $count . ' Cheques updated successfully');
     }
 }
