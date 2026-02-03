@@ -10,17 +10,8 @@
             </div>
 
             <!-- Total Outstanding Badge/Button - Centered -->
-            <a href="{{ request('outstanding_only') == '1' ? route('customers.index', request()->except('outstanding_only')) : route('customers.index', array_merge(request()->query(), ['outstanding_only' => 1])) }}" 
-               class="text-decoration-none d-none d-md-block">
-                <div class="d-flex align-items-center bg-white rounded-3 shadow-sm border {{ request('outstanding_only') == '1' ? 'border-danger ring-1' : 'border-light' }} hover-shadow-md transition-all" style="overflow: hidden;">
-                    <div class="px-3 py-2 small fw-bold text-danger border-end border-light" style="background: #fff5f5; font-size: 0.7rem; letter-spacing: 0.5px;">
-                        TOTAL OUTSTANDING
-                    </div>
-                    <div class="px-3 py-1 fw-bold text-danger h5 mb-0" style="min-width: 100px; text-align: center;">
-                        {{ number_format($totalOutstanding, 2) }}
-                    </div>
-                </div>
-            </a>
+            <!-- Spacer -->
+            <div></div>
 
             <div class="d-flex align-items-center gap-2">
                 @can('customer-create')
@@ -29,6 +20,32 @@
                 </a>
                 @endcan
             </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+             <a href="{{ request('outstanding_only') == '1' ? route('customers.index', request()->except('outstanding_only')) : route('customers.index', array_merge(request()->query(), ['outstanding_only' => 1])) }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-4 transition-all {{ request('outstanding_only') == '1' ? 'ring-2 ring-primary' : '' }}" style="background: #fff7ed;">
+                    <div class="card-body p-3">
+                         <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small fw-bold text-uppercase" style="color: #9a3412 !important;">Total Outstanding</span>
+                             <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; background: #fff; color: #f97316;">
+                                <i class="fa-solid fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="h4 fw-bold mb-0" style="color: #c2410c;">LKR {{ number_format($totalOutstanding, 2) }}</div>
+                        <div class="small mt-1 text-muted" style="font-size:0.75rem;">
+                            @if(request('outstanding_only'))
+                                <span class="text-danger fw-bold"><i class="fa-solid fa-filter me-1"></i> Filter Active</span>
+                            @else
+                                Click to filter outstanding customers
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 

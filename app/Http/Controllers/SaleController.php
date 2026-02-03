@@ -22,7 +22,11 @@ class SaleController extends Controller
         
         // Status Filter
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if (is_array($request->status)) {
+                $query->whereIn('status', $request->status);
+            } else {
+                $query->where('status', $request->status);
+            }
         }
 
         // Customer Filter

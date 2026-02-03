@@ -70,12 +70,25 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small fw-bold text-muted mb-1">Status</label>
-                    <select name="status" class="form-select form-select-sm border-light rounded-3">
-                        <option value="">All Status</option>
-                        <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
-                        <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>Partial</option>
-                        <option value="unpaid" {{ request('status') == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
-                    </select>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light border bg-white dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center rounded-3 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-height: 31px;">
+                            Select Status
+                        </button>
+                        <ul class="dropdown-menu p-2 w-100 border-0 shadow-lg rounded-3">
+                            <li><label class="dropdown-item d-flex align-items-center gap-2 cursor-pointer" onclick="event.stopPropagation()">
+                                <input type="checkbox" name="status[]" value="paid" class="form-check-input" {{ in_array('paid', (array)request('status')) ? 'checked' : '' }}>
+                                <span>Paid</span>
+                            </label></li>
+                            <li><label class="dropdown-item d-flex align-items-center gap-2 cursor-pointer" onclick="event.stopPropagation()">
+                                <input type="checkbox" name="status[]" value="partial" class="form-check-input" {{ in_array('partial', (array)request('status')) ? 'checked' : '' }}>
+                                <span>Partial</span>
+                            </label></li>
+                            <li><label class="dropdown-item d-flex align-items-center gap-2 cursor-pointer" onclick="event.stopPropagation()">
+                                <input type="checkbox" name="status[]" value="unpaid" class="form-check-input" {{ in_array('unpaid', (array)request('status')) ? 'checked' : '' }}>
+                                <span>Unpaid</span>
+                            </label></li>
+                        </ul>
+                    </div>
                 </div>
                 <div class="col-md-3">
                      <label class="form-label small fw-bold text-muted mb-1">Date Range</label>

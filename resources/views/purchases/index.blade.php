@@ -124,6 +124,15 @@
                                         <i class="fa-regular fa-pen-to-square"></i>
                                     </a>
                                     @endcan
+                                    @can('purchase-delete')
+                                    <button type="button" class="btn btn-sm btn-icon border-0 text-danger" onclick="confirmDelete({{ $purchase->id }}, 'delete-purchase-{{ $purchase->id }}')">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                    <form id="delete-purchase-{{ $purchase->id }}" action="{{ route('purchases.destroy', $purchase->id) }}" method="POST" class="d-none">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
@@ -148,4 +157,22 @@
         color: #6366f1 !important;
     }
 </style>
+
+<script>
+    function confirmDelete(id, formId) {
+        Swal.fire({
+            title: 'Delete Purchase?',
+            text: "Are you sure you want to delete this purchase record? This checks for related stock items too.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(formId).submit();
+            }
+        })
+    }
+</script>
 @endsection

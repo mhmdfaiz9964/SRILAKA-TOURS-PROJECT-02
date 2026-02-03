@@ -224,7 +224,7 @@
                 <td><input type="text" class="form-control form-control-sm" name="items[${rowId}][description]" placeholder="Desc..."></td>
                 <td><input type="text" class="form-control form-control-sm bg-light" id="unit_${rowId}" readonly></td>
                 <td><input type="number" step="0.01" class="form-control form-control-sm" name="items[${rowId}][unit_price]" id="price_${rowId}" oninput="calcRowTotal(${rowId})"></td>
-                <td><input type="number" step="1" class="form-control form-control-sm" name="items[${rowId}][quantity]" id="qty_${rowId}" value="1" oninput="calcRowTotal(${rowId})"></td>
+                <td><input type="number" step="0.01" class="form-control form-control-sm" name="items[${rowId}][quantity]" id="qty_${rowId}" value="1" oninput="calcRowTotal(${rowId})"></td>
                 <td class="text-end fw-bold" id="total_${rowId}">0.00</td>
                 <input type="hidden" name="items[${rowId}][total_price]" id="hiddenTotal_${rowId}">
                 <td class="text-center">
