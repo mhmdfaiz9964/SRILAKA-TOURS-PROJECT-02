@@ -74,11 +74,14 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-bold text-muted mb-1">Refund Date filter</label>
+                    <label class="form-label small fw-bold text-muted mb-1">Refund Date Range</label>
                     <div class="input-group input-group-sm">
-                        <input type="date" name="start_date" class="form-control border-light rounded-3" value="{{ request('start_date') }}">
-                        <span class="input-group-text bg-transparent border-0 text-muted">-</span>
-                        <input type="date" name="end_date" class="form-control border-light rounded-3" value="{{ request('end_date') }}">
+                        <span class="input-group-text bg-white border-end-0 border-light ps-3">
+                            <i class="fa-regular fa-calendar-days text-muted"></i>
+                        </span>
+                        <input type="text" id="date_range" class="form-control border-light border-start-0 ps-0 rounded-end-3" placeholder="Select Date Range">
+                        <input type="hidden" name="start_date" id="start_date" value="{{ request('start_date') }}">
+                        <input type="hidden" name="end_date" id="end_date" value="{{ request('end_date') }}">
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -210,6 +213,15 @@
     .card-stat { transition: all 0.2s ease-in-out; border: 1px solid transparent !important; }
     .card-stat:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
     .btn-icon:hover { background: #f1f5f9; border-radius: 8px; }
+    
+    /* Daterangepicker Customization */
+    .daterangepicker td.active, .daterangepicker td.active:hover {
+        background-color: #6366f1 !important;
+    }
+    .daterangepicker .drp-buttons .btn-primary {
+        background-color: #6366f1 !important;
+        border-color: #6366f1 !important;
+    }
 </style>
 
 <script>
@@ -228,5 +240,42 @@ function confirmDelete(id, formId) {
         }
     })
 }
+
+// Initialize Daterangepicker
+$(function() {
+    let start = "{{ request('start_date') }}";
+    let end = "{{ request('end_date') }}";
+    
+    // Set initial configuration
+    let options = {
+        autoUpdateInput: false,
+        locale: {
+            cancelLabel: 'Clear',
+            format: 'YYYY-MM-DD'
+        },
+        opens: 'left'
+    };
+
+    // If we have values, set them
+    if (start && end) {
+        options.startDate = start;
+        options.endDate = end;
+        $('#date_range').val(start + ' - ' + end);
+    }
+
+    $('#date_range').daterangepicker(options);
+
+    $('#date_range').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+        $('#start_date').val(picker.startDate.format('YYYY-MM-DD'));
+        $('#end_date').val(picker.endDate.format('YYYY-MM-DD'));
+    });
+
+    $('#date_range').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+        $('#start_date').val('');
+        $('#end_date').val('');
+    });
+});
 </script>
 @endsection
