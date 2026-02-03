@@ -738,6 +738,13 @@
                 title: "{{ session('error') }}"
             });
         @endif
+
+        @if($errors->any())
+            Toast.fire({
+                icon: 'error',
+                title: "{{ $errors->first() }}"
+            });
+        @endif
         
         // ... (rest of the script)
     </script>

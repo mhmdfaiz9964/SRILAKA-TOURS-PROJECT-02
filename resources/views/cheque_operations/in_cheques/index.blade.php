@@ -424,8 +424,16 @@
         if(bulkForm) {
             bulkForm.addEventListener('submit', function(e) {
                 e.preventDefault();
+                console.log('Bulk Update Submitting', {
+                    ids: Array.from(document.querySelectorAll('.cheque-checkbox:checked')).map(cb => cb.value),
+                    status: document.getElementById('bulkStatusSelect').value
+                });
                 
                 const count = document.querySelectorAll('.cheque-checkbox:checked').length;
+                if (count === 0) {
+                     Swal.fire('Error', 'No cheques selected', 'error');
+                     return;
+                }
                 Swal.fire({
                     title: 'Update ' + count + ' Cheques?',
                     text: "Are you sure you want to update the status of these records?",

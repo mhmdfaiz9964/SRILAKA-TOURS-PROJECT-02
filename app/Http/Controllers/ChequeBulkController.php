@@ -23,11 +23,13 @@ class ChequeBulkController extends Controller
                 'cheque_ids.*' => 'exists:in_cheques,id',
                 'status' => 'required|in:returned,third_party,deposited,realized',
                 'transfer_type' => 'nullable|in:third_party,supplier',
-                'third_party_name' => 'nullable|required_if:transfer_type,third_party|string',
+                'third_party_name' => 'nullable|string',
                 'supplier_id' => 'nullable|required_if:transfer_type,supplier|exists:suppliers,id',
             ]);
 
             $cheques = \App\Models\InCheque::whereIn('id', $chequeIds)->get();
+            \Log::info('Bulk Update InCheque: IDs received', ['ids' => $chequeIds]);
+            \Log::info('Bulk Update InCheque: Models found', ['count' => $cheques->count()]);
 
             $count = 0;
             foreach($cheques as $cheque) {

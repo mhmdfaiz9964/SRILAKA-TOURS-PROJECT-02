@@ -266,15 +266,7 @@
                         <td class="text-end fw-bold p-1">{{ number_format($item->total_price, 2) }}</td>
                     </tr>
                     @endforeach
-                    @for($i = 0; $i < max(0, 8 - count($sale->items)); $i++)
-                    <tr style="height: 25px;">
-                        <td class="p-1">&nbsp;</td>
-                        <td class="p-1"></td>
-                        <td class="p-1"></td>
-                        <td class="p-1"></td>
-                        <td class="p-1"></td>
-                    </tr>
-                    @endfor
+
                 </tbody>
                 <tfoot>
                      <tr>
