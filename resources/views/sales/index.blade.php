@@ -152,10 +152,26 @@
                                 @endif
                             </td>
                             <td class="text-end pe-4" onclick="event.stopPropagation();">
-                                <div class="d-flex justify-content-end gap-1">
-                                    <a href="{{ route('sales.show', $sale->id) }}" class="btn btn-sm btn-icon border-0 text-muted">
+                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                    @can('sale-edit')
+                                    <a href="{{ route('sales.edit', $sale->id) }}" class="btn btn-sm btn-icon border-0 text-primary" title="Edit">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    @endcan
+                                    @can('sale-delete')
+                                    <form action="{{ route('sales.destroy', $sale->id) }}" method="POST" class="d-inline delete-form m-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="button" class="btn btn-sm btn-icon border-0 text-danger delete-btn" title="Delete">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                    @endcan
+                                    <a href="{{ route('sales.show', $sale->id) }}" class="btn btn-sm btn-icon border-0 text-muted" title="View">
                                         <i class="fa-regular fa-eye"></i>
                                     </a>
+                                </div>
+                            </td>
                                 </div>
                             </td>
                         </tr>
@@ -187,3 +203,31 @@
     }
 </style>
 @endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Delete Confirmation
+        const deleteButtons = document.querySelectorAll('.delete-btn');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const form = this.closest('form');
+                
+                Swal.fire({
+                    title: 'Delete Sale?',
+                    text: "You won't be able to revert this! It will also delete related items.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#d1d5db',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>

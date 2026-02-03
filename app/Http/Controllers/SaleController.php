@@ -249,33 +249,79 @@ class SaleController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Simple update for Notes/Date/Customer roughly, but full item sync is heavy.
-        // Assuming simple metadata update for now unless user demanded full item editing.
-        // "sales purtche eidte delete also i need" -> implies full editing.
-        // For brevity in this turn, I will implement metadata update + delete.
-        // Full Item editing requires complex JS. I will try to support basic update.
-        
-        $sale = \App\Models\Sale::findOrFail($id);
-        
         $request->validate([
             'customer_id' => 'required',
             'sale_date' => 'required|date',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required',
+            'items.*.quantity' => 'required|numeric|min:0',
         ]);
 
-        $sale->update([
-            'customer_id' => $request->customer_id,
-            'sale_date' => $request->sale_date,
-            'customer_id' => $request->customer_id,
-            'sale_date' => $request->sale_date,
-            'salesman_name' => $request->salesman_name,
-            'notes' => $request->notes,
-        ]);
-        
-        // Re-calculate or update items if implemented... 
-        // Given complexity, often "delete and re-create" is used or just blocking item edits.
-        // I will return success for now.
-        
-        return redirect()->route('sales.index')->with('success', 'Sale updated successfully');
+        \DB::transaction(function () use ($request, $id) {
+            $sale = \App\Models\Sale::findOrFail($id);
+
+            // 1. Restore Stock for ALL existing items specific to this sale
+            foreach ($sale->items as $item) {
+                $product = \App\Models\Product::find($item->product_id);
+                if ($product) {
+                    $product->increment('stock_alert', $item->quantity);
+                }
+            }
+            
+            // 2. Delete existing items
+            $sale->items()->delete();
+
+            // 3. Process New Items & Deduct Stock
+            $totalAmount = 0;
+            foreach ($request->items as $itemData) {
+                $qty = $itemData['quantity'];
+                $price = $itemData['unit_price'];
+                $total = $qty * $price;
+                $totalAmount += $total;
+
+                \App\Models\SaleItem::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $itemData['product_id'],
+                    'description' => $itemData['description'] ?? null,
+                    'quantity' => $qty,
+                    'unit_price' => $price,
+                    'total_price' => $total,
+                ]);
+
+                $product = \App\Models\Product::find($itemData['product_id']);
+                if ($product) {
+                    $product->decrement('stock_alert', $qty);
+                }
+            }
+
+            // 4. Calculate Grand Total
+            $transport = $request->transport_cost ?? 0;
+            $discount = $request->discount_amount ?? 0;
+            $grandTotal = $totalAmount + $transport - $discount;
+
+            // 5. Update Sale Record
+            // Determine status based on NEW total vs EXISTING paid amount
+            // We do NOT update paid_amount here as requested by view logic (payments handled separately)
+            $status = 'unpaid';
+            if ($sale->paid_amount >= $grandTotal) {
+                $status = 'paid';
+            } elseif ($sale->paid_amount > 0) {
+                $status = 'partial';
+            }
+
+            $sale->update([
+                'customer_id' => $request->customer_id,
+                'sale_date' => $request->sale_date,
+                'salesman_name' => $request->salesman_name,
+                'notes' => $request->notes,
+                'transport_cost' => $transport,
+                'discount_amount' => $discount,
+                'total_amount' => $grandTotal,
+                'status' => $status,
+            ]);
+        });
+
+        return redirect()->route('sales.index')->with('success', 'Sale updated successfully.');
     }
 
     public function destroy($id)

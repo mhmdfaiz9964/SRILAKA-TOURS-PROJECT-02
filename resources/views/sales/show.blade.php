@@ -174,11 +174,14 @@
                     <div class="d-flex align-items-center mb-3">
                         <div class="flex-shrink-0">
                             <span class="avatar-initial rounded-circle bg-primary text-white p-2">
-                                {{ strtoupper(substr($sale->salesman->name ?? '?', 0, 1)) }}
+                                {{ strtoupper(substr($sale->salesman_name ?? '?', 0, 1)) }}
                             </span>
                         </div>
                         <div class="flex-grow-1 ms-3">
-                            <p class="mb-0 fw-bold small">{{ $sale->salesman->name ?? 'Unassigned' }}</p>
+                            <p class="mb-0 fw-bold small">{{ $sale->salesman_name }}</p>
+                            @if($sale->salesman && $sale->salesman->email)
+                                <p class="mb-0 text-muted small" style="font-size: 0.7rem;">{{ $sale->salesman->email }}</p>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -332,6 +335,9 @@
             <div class="col-4 text-center">
                 <div style="border-top: 1px dotted #000; width: 80%; margin: 0 auto;"></div>
                 <p class="small fw-bold mt-1">Salesman: {{ $sale->salesman->name ?? '' }}</p>
+                @if($sale->salesman && $sale->salesman->email)
+                    <p class="small text-muted mt-0" style="font-size: 0.7rem;">{{ $sale->salesman->email }}</p>
+                @endif
             </div>
             <div class="col-4 text-center">
                 <div style="border-top: 1px dotted #000; width: 80%; margin: 0 auto;"></div>
