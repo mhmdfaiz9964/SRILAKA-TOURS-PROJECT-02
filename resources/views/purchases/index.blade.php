@@ -73,7 +73,7 @@
                     <thead style="background: #fdfdfd; border-bottom: 1px solid #f3f4f6;">
                         <tr>
                             <th class="ps-4 py-3 text-muted fw-semibold small text-uppercase">Date</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Inv / GRN</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">GRN</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Type</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Supplier</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Total Amount</th>
@@ -87,10 +87,7 @@
                         <tr class="cursor-pointer" onclick="window.location='{{ route('purchases.show', $purchase->id) }}'">
                             <td class="ps-4 text-muted small">{{ \Carbon\Carbon::parse($purchase->purchase_date)->format('d M, Y') }}</td>
                             <td class="fw-bold text-dark small">
-                                {{ $purchase->invoice_number ?? '-' }}
-                                @if($purchase->grn_number)
-                                    <div class="text-muted" style="font-size: 0.7rem;">GRN: {{ $purchase->grn_number }}</div>
-                                @endif
+                                {{ $purchase->grn_number ?? '-' }}
                             </td>
                             <td class="small">
                                 <span class="badge bg-{{ $purchase->purchase_type == 'import' ? 'info' : 'secondary' }}-subtle text-{{ $purchase->purchase_type == 'import' ? 'info' : 'secondary' }} rounded-pill border-0 text-uppercase" style="font-size: 0.65rem;">

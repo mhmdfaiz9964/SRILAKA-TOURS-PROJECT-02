@@ -173,6 +173,7 @@
         <div class="table-responsive">
             <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
                 @csrf
+                <input type="hidden" name="type" value="in_cheque">
                 <div class="p-2 border-bottom bg-light d-flex gap-2 align-items-center" id="bulkActions" style="display:none !important;">
                     <div class="d-flex align-items-center gap-2">
                         <select name="status" class="form-select form-select-sm" style="width: 160px;" id="bulkStatusSelect" required>
