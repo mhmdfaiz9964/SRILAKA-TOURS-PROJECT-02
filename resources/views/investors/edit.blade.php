@@ -34,7 +34,7 @@
                                         <select name="status" class="form-select border-light bg-light rounded-3 shadow-none @error('status') is-invalid @enderror">
                                             <option value="active" {{ old('status', $investor->status) == 'active' ? 'selected' : '' }}>Active</option>
                                             <option value="paid" {{ old('status', $investor->status) == 'paid' ? 'selected' : '' }}>Paid</option>
-                                            <option value="pending" {{ old('status', $investor->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+
                                             <option value="waiting" {{ old('status', $investor->status) == 'waiting' ? 'selected' : '' }}>Waiting</option>
                                         </select>
                                         @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
