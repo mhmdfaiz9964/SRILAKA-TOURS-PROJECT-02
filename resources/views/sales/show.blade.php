@@ -396,7 +396,7 @@
                         </div>
                         <div class="mb-0">
                             <label class="small text-muted">Payer Name</label>
-                            <input type="text" class="form-control form-control-sm" name="payer_name">
+                            <input type="text" class="form-control form-control-sm" name="payer_name" id="modalPayerName">
                         </div>
                     </div>
 
@@ -423,6 +423,12 @@
             chequeDiv.classList.remove('d-none');
             // Add required attributes for validation
             chequeDiv.querySelectorAll('input, select').forEach(el => el.required = true);
+
+            // Auto-fill Payer Name
+            const payerInput = document.getElementById('modalPayerName');
+            if (payerInput) {
+                payerInput.value = "{{ $sale->customer->full_name }}";
+            }
         } else {
             chequeDiv.classList.add('d-none');
             // Remove required attributes

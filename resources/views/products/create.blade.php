@@ -82,7 +82,7 @@
                                 <label for="current_stock" class="form-label fw-bold small">Initial Stock</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-boxes-stacked text-muted"></i></span>
-                                    <input type="number" step="0.01" class="form-control border-start-0 @error('current_stock') is-invalid @enderror" id="current_stock" name="current_stock" value="{{ old('current_stock', 0) }}">
+                                    <input type="number" step="any" class="form-control border-start-0 @error('current_stock') is-invalid @enderror" id="current_stock" name="current_stock" value="{{ old('current_stock', 0) }}">
                                 </div>
                                 @error('current_stock') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
@@ -91,7 +91,7 @@
                                 <label for="stock_alert" class="form-label fw-bold small">Low Stock Alert</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-bell text-muted"></i></span>
-                                    <input type="number" class="form-control border-start-0 @error('stock_alert') is-invalid @enderror" id="stock_alert" name="stock_alert" value="{{ old('stock_alert', 0) }}">
+                                    <input type="number" step="any" class="form-control border-start-0 @error('stock_alert') is-invalid @enderror" id="stock_alert" name="stock_alert" value="{{ old('stock_alert', 0) }}">
                                 </div>
                                 @error('stock_alert') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
@@ -100,7 +100,7 @@
                                 <label for="cost_price" class="form-label fw-bold small">Cost Price</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">$</span>
-                                    <input type="number" step="0.01" class="form-control border-start-0 @error('cost_price') is-invalid @enderror" id="cost_price" name="cost_price" value="{{ old('cost_price', 0) }}">
+                                    <input type="number" step="any" class="form-control border-start-0 @error('cost_price') is-invalid @enderror" id="cost_price" name="cost_price" value="{{ old('cost_price', 0) }}">
                                 </div>
                                 @error('cost_price') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>
@@ -109,7 +109,7 @@
                                 <label for="sale_price" class="form-label fw-bold small">Sale Price</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">$</span>
-                                    <input type="number" step="0.01" class="form-control border-start-0 @error('sale_price') is-invalid @enderror" id="sale_price" name="sale_price" value="{{ old('sale_price', 0) }}">
+                                    <input type="number" step="any" class="form-control border-start-0 @error('sale_price') is-invalid @enderror" id="sale_price" name="sale_price" value="{{ old('sale_price', 0) }}">
                                 </div>
                                 @error('sale_price') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             </div>

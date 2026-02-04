@@ -141,8 +141,8 @@ class PurchaseController extends Controller
                             'code' => strtoupper(substr($item['product_name'], 0, 3) . rand(100, 999)), // Auto gen code
                             'cost_price' => $item['cost_price'],
                             'sale_price' => $item['cost_price'] * 1.2, // Default markup 20%
-                            'stock_alert' => 10, // Default alert
-                            'current_stock' => $item['quantity'], // Set initial stock
+                            'stock_alert' => $item['stock_alert'], // Default alert
+                            'current_stock' => $item['quantity'], // Set initial stock to 0 (incremented below)
                         ]);
                         $productId = $newProduct->id;
                     }
@@ -162,8 +162,12 @@ class PurchaseController extends Controller
                     // Update Stock & Cost
                     $product = \App\Models\Product::find($productId);
                     if ($product) {
+                        \Log::info("Purchase: Updating Stock for Product {$productId}. Old Stock: {$product->current_stock}, Appending: {$item['quantity']}");
                         $product->increment('current_stock', $item['quantity']);
                         $product->update(['cost_price' => $item['cost_price']]); // Update latest cost
+                        \Log::info("Purchase: New Stock: " . $product->fresh()->current_stock);
+                    } else {
+                        \Log::warning("Purchase: Product {$productId} not found during stock update.");
                     }
                 }
             }

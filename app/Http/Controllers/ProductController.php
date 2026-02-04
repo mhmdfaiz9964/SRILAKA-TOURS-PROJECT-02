@@ -62,7 +62,7 @@ class ProductController extends Controller
         // Calculate Total Cost Value (Current Stock * Cost Price)
         // Using stock_alert as current_stock based on SaleController logic
         $totalCostValue = $products->sum(function($product) {
-            return $product->stock_alert * $product->cost_price;
+            return $product->current_stock * $product->cost_price;
         });
         
         // Sold Stock logic will be handled in view or here. 

@@ -88,7 +88,7 @@
                             <td class="small">{{ $product->units ?? '-' }}</td>
                             <td class="small">
                                 <span class="badge {{ $product->stock_alert > 0 ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }} rounded-pill border border-0">
-                                    {{ $product->stock_alert }}
+                                    {{ $product->current_stock }}
                                 </span>
                             </td>
                             @php
@@ -96,7 +96,7 @@
                             @endphp
                             <td class="small fw-bold text-muted">{{ $sold }}</td>
                             <td class="small">{{ number_format($product->cost_price, 2) }}</td>
-                            <td class="small fw-bold text-success">{{ number_format($product->stock_alert * $product->cost_price, 2) }}</td>
+                            <td class="small fw-bold text-success">{{ number_format($product->current_stock * $product->cost_price, 2) }}</td>
                             <td class="small fw-bold text-primary">{{ number_format($product->sale_price, 2) }}</td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-1">

@@ -30,7 +30,7 @@
                                     <select class="form-select select2" name="customer_id" id="customer_id" required onchange="checkCreditLimit()">
                                         <option value="">Select Customer</option>
                                         @foreach($customers as $customer)
-                                            <option value="{{ $customer->id }}" data-credit="{{ $customer->credit_limit }}" data-due="0">{{ $customer->full_name }} ({{ $customer->mobile_number }})</option>
+                                            <option value="{{ $customer->id }}" data-credit="{{ $customer->credit_limit }}" data-due="0" data-name="{{ $customer->full_name }}">{{ $customer->full_name }} ({{ $customer->mobile_number }})</option>
                                         @endforeach
                                     </select>
                                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createCustomerModal"><i class="fa-solid fa-plus"></i></button>
@@ -337,6 +337,13 @@
              // document.getElementById('limitVal').innerText = limit;
         } else {
             alert.classList.add('d-none');
+        }
+
+        // Auto-fill Payer Name
+        const name = option.getAttribute('data-name') || '';
+        const payerInput = document.getElementsByName('payer_name')[0];
+        if(payerInput) {
+            payerInput.value = name;
         }
     }
 

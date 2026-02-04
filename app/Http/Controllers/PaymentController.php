@@ -14,7 +14,7 @@ class PaymentController extends Controller
             'payment_method' => 'required',
             'payable_type' => 'nullable|string',
             'payable_id' => 'nullable|integer',
-            'cheque_number' => 'nullable|required_if:payment_method,cheque|digits:6',
+            'payment_cheque_number' => 'nullable|required_if:payment_method,cheque|digits:6',
         ]);
 
         \DB::transaction(function () use ($request) {
