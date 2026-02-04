@@ -385,6 +385,7 @@ class SaleController extends Controller
             'payment_date' => now(),
             'payment_method' => $request->payment_method,
             'cheque_id' => $chequeId,
+            'cheque_type' => $chequeId ? \App\Models\InCheque::class : null,
             'notes' => $request->notes,
         ]);
 

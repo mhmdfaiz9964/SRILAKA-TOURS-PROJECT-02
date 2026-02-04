@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     protected $fillable = [
-        'cheque_id', 'amount', 'payment_date', 'notes', 
+        'cheque_id', 'cheque_type', 'amount', 'payment_date', 'notes', 
         'payment_method', 'bank_id', 'reference_number', 
         'payment_cheque_number', 'payment_cheque_date', 'document',
         'payable_id', 'payable_type', 'type',
@@ -21,7 +21,7 @@ class Payment extends Model
 
     public function cheque()
     {
-        return $this->belongsTo(Cheque::class);
+        return $this->morphTo();
     }
 
     public function bank()

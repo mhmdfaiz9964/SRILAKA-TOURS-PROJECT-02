@@ -31,18 +31,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cheques/export', [App\Http\Controllers\ChequeController::class, 'export'])->name('cheques.export');
     Route::post('/cheques/{cheque}/reminder', [App\Http\Controllers\ChequeController::class, 'storeReminder'])->name('cheques.reminder');
     Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ChequeController::class, 'completeReminder'])->name('reminders.complete');
-    Route::resource('cheques', App\Http\Controllers\ChequeController::class);
+    Route::post('/cheques/bulk-update', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('cheques.bulk-update');
     
     Route::get('/investors/export', [App\Http\Controllers\InvestorController::class, 'export'])->name('investors.export');
     Route::resource('investors', App\Http\Controllers\InvestorController::class);
 
     Route::resource('in-cheques', App\Http\Controllers\InChequeController::class);
     Route::post('/third-parties', [App\Http\Controllers\ThirdPartyController::class, 'store'])->name('third-parties.store');
+    Route::post('/cheque-operations/out/bulk-update', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('out-cheques.bulk-update');
     Route::resource('out-cheques', App\Http\Controllers\OutChequeController::class);
     Route::resource('third-party-cheques', App\Http\Controllers\ThirdPartyChequeController::class);
     Route::post('/cheques/{cheque}/add-payment', [App\Http\Controllers\ChequeController::class, 'addPayment'])->name('cheques.add-payment');
     Route::post('/cheques/{cheque}/update-third-party', [App\Http\Controllers\ChequeController::class, 'updateThirdPartyStatus'])->name('cheques.update-third-party');
-    Route::post('/cheques/bulk-update', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('cheques.bulk-update');
+    // Route::post('/cheques/bulk-update', ...) moved up
     
     Route::resource('categories', App\Http\Controllers\CategoryController::class);
     Route::resource('products', App\Http\Controllers\ProductController::class);
@@ -63,4 +64,6 @@ Route::middleware(['auth'])->group(function () {
     
     Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
+    
+    Route::resource('cheques', App\Http\Controllers\ChequeController::class);
 });

@@ -8,6 +8,7 @@ class ChequeBulkController extends Controller
 {
     public function updateBulkStatus(Request $request) 
     {
+        \Log::info('Entered updateBulkStatus', ['url' => $request->url(), 'method' => $request->method(), 'all' => $request->all()]);
         $request->validate([
             'cheque_ids' => 'required|array',
             'type' => 'required|in:in_cheque,out_cheque,third_party_cheque', // Added type

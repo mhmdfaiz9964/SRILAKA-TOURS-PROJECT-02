@@ -163,7 +163,7 @@
         </script>
 
         <div class="table-responsive">
-            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
+            <form id="bulkUpdateForm" action="{{ route('out-cheques.bulk-update') }}" method="POST">
                 @csrf
                 <input type="hidden" name="type" value="out_cheque">
                 <div class="p-2 border-bottom bg-light d-flex gap-2 align-items-center" id="bulkActions" style="display:none !important;">
@@ -231,13 +231,10 @@
             </a>
             @endcan
             @can('out-cheque-delete')
-            <form action="{{ route('out-cheques.destroy', $cheque) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-sm btn-icon border-0 text-danger shadow-none">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </form>
+            <button type="button" class="btn btn-sm btn-icon border-0 text-danger shadow-none" 
+                    onclick="confirmDelete('{{ route('out-cheques.destroy', $cheque) }}')">
+                <i class="fa-solid fa-trash-can"></i>
+            </button>
             @endcan
         </div>
                         </td>
@@ -319,4 +316,29 @@
     .btn-icon:hover { background: #f1f5f9; border-radius: 8px; }
     .extra-small { font-size: 0.7rem; }
 </style>
+<form id="deleteForm" action="" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
+<script>
+    function confirmDelete(url) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var form = document.getElementById('deleteForm');
+                form.action = url;
+                form.submit();
+            }
+        })
+    }
+</script>
+
 @endsection
