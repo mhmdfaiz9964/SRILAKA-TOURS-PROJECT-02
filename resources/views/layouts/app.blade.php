@@ -562,6 +562,31 @@
                 </a>
                 @endcan
 
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">Financials</span>
+                </div>
+
+                <a href="{{ route('expenses.index') }}" class="menu-item {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-receipt"></i>
+                        <span>Expenses</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('reports.daily-ledger') }}" class="menu-item {{ request()->routeIs('reports.daily-ledger') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Daily Ledger</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('reports.balance-sheet') }}" class="menu-item {{ request()->routeIs('reports.balance-sheet') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        <span>Balance Sheet</span>
+                    </div>
+                </a>
+
                 @if(auth()->user()->can('settings-manage') || auth()->user()->can('system-manage'))
                 <div class="menu-label-wrapper">
                     <span class="menu-label">System</span>

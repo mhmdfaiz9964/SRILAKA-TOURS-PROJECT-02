@@ -65,5 +65,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
     
+    Route::resource('expenses', App\Http\Controllers\ExpenseController::class);
+    Route::get('/reports/daily-ledger', [App\Http\Controllers\ReportController::class, 'dailyLedger'])->name('reports.daily-ledger');
+    Route::get('/reports/balance-sheet', [App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
     Route::resource('cheques', App\Http\Controllers\ChequeController::class);
 });

@@ -26,7 +26,7 @@ class ChequeController extends Controller
     {
         $query = Cheque::with(['bank'])->withSum('payments', 'amount')
             ->where('payment_status', '!=', 'paid')
-            ->where('status', '!=', 'transferred_to_third_party');
+            ->where('type', '!=', 'transferred_to_third_party');
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
 
