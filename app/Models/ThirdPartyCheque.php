@@ -14,6 +14,10 @@ class ThirdPartyCheque extends Model
         'notes'
     ];
 
+    protected $casts = [
+        'transfer_date' => 'date',
+    ];
+
     public function inCheque()
     {
         return $this->belongsTo(InCheque::class, 'in_cheque_id');

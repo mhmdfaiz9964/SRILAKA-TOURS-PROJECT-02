@@ -51,7 +51,7 @@ class ReportController extends Controller
         // Define Default Heads
         $defaultHeads = [
             'income' => ['A/c Sales', 'Cash Sales', 'Old payment'],
-            'expense' => ['Salary', 'Transport', 'Food', 'Bank Deposit', 'Other']
+            'expense' => ['Transport', 'Food', 'Bank Deposit', 'Other']
         ];
 
         // Cleanup Obsolete Heads (if amount is 0) to ensure view matches new layout
@@ -83,56 +83,71 @@ class ReportController extends Controller
         $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
 
         $incomeEntries = $entries->where('type', 'income');
-        $expenseEntries = $entries->where('type', 'expense');
+        $expenseEntries = $entries->where('type', 'expense')->where('description', '!=', 'Salary');
 
-        $totalIncome = $incomeEntries->sum('amount');
+        // Calculate totals EXCLUDING A/C Sales from income
+        $totalIncome = $incomeEntries->where('description', '!=', 'A/c Sales')->sum('amount');
         $totalExpenses = $expenseEntries->sum('amount');
 
-        // Opening/Closing Balance Calculations
+        // Fetch salary entries
+        $salaryEntries = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->get();
+        $totalSalary = $salaryEntries->sum('amount');
+
+        // Opening/Closing Balance Calculations (EXCLUDING A/C Sales)
         $pastEntries = \App\Models\DailyLedgerEntry::whereDate('date', '<', $dateStr)->get();
-        $pastIncome = $pastEntries->where('type', 'income')->sum('amount');
-        $pastExpenses = $pastEntries->where('type', 'expense')->sum('amount');
+        $pastIncome = $pastEntries->where('type', 'income')->where('description', '!=', 'A/c Sales')->sum('amount');
+        $pastExpenses = $pastEntries->where('type', 'expense')->where('description', '!=', 'Salary')->sum('amount');
+        $pastSalaries = \App\Models\DailySalaryEntry::whereDate('date', '<', $dateStr)->sum('amount');
         
-        $openingBalance = $pastIncome - $pastExpenses;
-        $closingBalance = $openingBalance + $totalIncome - $totalExpenses;
+        $openingBalance = $pastIncome - $pastExpenses - $pastSalaries;
+        $closingBalance = $openingBalance + $totalIncome - $totalExpenses - $totalSalary;
 
         $acSales = $entries->where('description', 'A/c Sales')->sum('amount');
         $bankDeposit = $entries->where('description', 'Bank Deposit')->sum('amount');
 
         // --- FETCH HISTORY (Ledger Summaries) ---
         $ledgerEntries = \App\Models\DailyLedgerEntry::select('date')
-            ->selectRaw('SUM(CASE WHEN type="income" THEN amount ELSE 0 END) as total_income')
-            ->selectRaw('SUM(CASE WHEN type="expense" THEN amount ELSE 0 END) as total_expense')
+            ->selectRaw('SUM(CASE WHEN type="income" AND description!="A/c Sales" THEN amount ELSE 0 END) as total_income')
+            ->selectRaw('SUM(CASE WHEN type="expense" AND description!="Salary" THEN amount ELSE 0 END) as total_expense')
             ->selectRaw('SUM(CASE WHEN description="Bank Deposit" THEN amount ELSE 0 END) as bank_deposit')
             ->selectRaw('SUM(CASE WHEN description="A/c Sales" THEN amount ELSE 0 END) as ac_sales')
             ->groupBy('date')
             ->orderBy('date', 'desc')
             ->get()
             ->map(function($item) {
-                // Calculate total turnover or balance if needed, or just formatted date
-                $item->total = $item->total_income - $item->total_expense; 
-                // We need a unique ID for the actions. Since we group by date, we can't really use a single row ID.
-                // However, the user view uses `entry->id` in the loop. 
-                // We will assign a representative ID (e.g., the first entry ID for that date) or just use the date string as ID in frontend logic.
-                // To keep it simple for the user's generic "editEntry(id)" JS, we might need to change JS to use Date.
-                // BUT, if the user insists on existing code, I'll pass a dummy ID or the ID of the first entry.
-                // Let's grab one ID.
+                // Add salary total for this date
+                $item->total_salary = \App\Models\DailySalaryEntry::whereDate('date', $item->date)->sum('amount');
+                
+                // Calculate balance (excluding A/C sales, including salary)
+                $item->total = $item->total_income - $item->total_expense - $item->total_salary; 
+                
                 $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $item->date)->first();
-                $item->id = $firstEntry ? $firstEntry->id : 0; // Use an actual ID for deletion/edit reference if controller logic adapts
+                $item->id = $firstEntry ? $firstEntry->id : 0;
                 return $item;
             });
+
+        // 4 Summary Totals for History Table
+        $historySummary = [
+            'total_income' => $ledgerEntries->sum('total_income'),
+            'total_expense' => $ledgerEntries->sum('total_expense'),
+            'total_salary' => $ledgerEntries->sum('total_salary'),
+            'total_ac_balance' => $ledgerEntries->sum('ac_sales'),
+        ];
 
         return view('reports.daily_ledger', compact(
             'date',
             'incomeEntries',
             'expenseEntries',
+            'salaryEntries',
             'totalIncome',
             'totalExpenses',
+            'totalSalary',
             'openingBalance',
             'closingBalance',
             'acSales',
             'bankDeposit',
-            'ledgerEntries'
+            'ledgerEntries',
+            'historySummary'
         ));
     }
 
@@ -141,13 +156,49 @@ class ReportController extends Controller
         $request->validate([
             'date' => 'required|date',
             'entries' => 'nullable|array',
-            'entries.*.id' => 'required|exists:daily_ledger_entries,id',
+            'entries.*.id' => 'nullable', // Can be null for new entries
+            'entries.*.description' => 'required_without:entries.*.id|string',
             'entries.*.amount' => 'required|numeric',
+            'entries.*.type' => 'required_without:entries.*.id|in:income,expense',
+            'salaries' => 'nullable|array',
+            'salaries.*.id' => 'nullable|exists:daily_salary_entries,id',
+            'salaries.*.employee_name' => 'required|string',
+            'salaries.*.amount' => 'required|numeric',
         ]);
 
         if ($request->has('entries')) {
             foreach ($request->entries as $entryData) {
-                \App\Models\DailyLedgerEntry::where('id', $entryData['id'])->update(['amount' => $entryData['amount']]);
+                if (isset($entryData['id']) && !str_starts_with($entryData['id'], 'new_')) {
+                    \App\Models\DailyLedgerEntry::where('id', $entryData['id'])->update(['amount' => $entryData['amount']]);
+                } else {
+                    // Create new entry
+                    \App\Models\DailyLedgerEntry::create([
+                        'date' => $request->date,
+                        'description' => $entryData['description'],
+                        'amount' => $entryData['amount'],
+                        'type' => $entryData['type']
+                    ]);
+                }
+            }
+        }
+
+        // Handle salary entries
+        if ($request->has('salaries')) {
+            foreach ($request->salaries as $salaryData) {
+                if (isset($salaryData['id']) && $salaryData['id']) {
+                    // Update existing salary entry
+                    \App\Models\DailySalaryEntry::where('id', $salaryData['id'])->update([
+                        'employee_name' => $salaryData['employee_name'],
+                        'amount' => $salaryData['amount']
+                    ]);
+                } else {
+                    // Create new salary entry
+                    \App\Models\DailySalaryEntry::create([
+                        'date' => $request->date,
+                        'employee_name' => $salaryData['employee_name'],
+                        'amount' => $salaryData['amount']
+                    ]);
+                }
             }
         }
 
@@ -327,13 +378,16 @@ class ReportController extends Controller
         
         $income = $entries->where('type', 'income')->values();
         $expense = $entries->where('type', 'expense')->values();
+        $salaries = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->get();
 
         return response()->json([
             'date' => $dateStr,
             'income' => $income,
             'expense' => $expense,
+            'salaries' => $salaries,
             'total_income' => $income->sum('amount'),
-            'total_expense' => $expense->sum('amount')
+            'total_expense' => $expense->sum('amount'),
+            'total_salary' => $salaries->sum('amount')
         ]);
     }
 }

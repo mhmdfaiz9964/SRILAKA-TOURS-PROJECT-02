@@ -17,6 +17,10 @@ class InCheque extends Model
         'third_party_name'
     ];
 
+    protected $casts = [
+        'cheque_date' => 'date',
+    ];
+
     public function bank()
     {
         return $this->belongsTo(Bank::class);

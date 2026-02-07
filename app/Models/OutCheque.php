@@ -16,6 +16,10 @@ class OutCheque extends Model
         'status'
     ];
 
+    protected $casts = [
+        'cheque_date' => 'date',
+    ];
+
     public function bank()
     {
         return $this->belongsTo(Bank::class);

@@ -49,7 +49,7 @@ class CustomerController extends Controller
 
         // Outstanding Filter
         if ($request->outstanding_only == '1') {
-            $query->whereRaw('(SELECT COALESCE(SUM(total_amount), 0) FROM sales WHERE sales.customer_id = customers.id) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.payable_id = customers.id AND payments.payable_type = "App\Models\Customer")');
+            $query->whereRaw('(SELECT COALESCE(SUM(total_amount), 0) FROM sales WHERE sales.customer_id = customers.id) > (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE payments.payable_id = customers.id AND payments.payable_type = "App\\Models\\Customer")');
         }
 
         // Sorting
@@ -76,8 +76,56 @@ class CustomerController extends Controller
             $query->orderByDesc('created_at');
         }
 
+        // Handle Export
+        if ($request->has('export')) {
+            $customers = $query->get()->map(function($customer) {
+                $customer->outstanding = max(0, ($customer->sales_sum_total_amount ?? 0) - ($customer->payments_sum_amount ?? 0));
+                return $customer;
+            });
+
+            if ($request->export == 'excel') {
+                return $this->exportExcel($customers);
+            } elseif ($request->export == 'pdf') {
+                return $this->exportPdf($customers);
+            }
+        }
+
         $customers = $query->paginate(20)->withQueryString();
         return view('customers.index', compact('customers', 'totalOutstanding'));
+    }
+
+    private function exportExcel($customers)
+    {
+        $filename = 'customers_' . date('Y-m-d_His') . '.csv';
+
+        return response()->stream(function () use ($customers) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['ID', 'Full Name', 'Company', 'Mobile', 'Email', 'Address', 'Credit Limit', 'Outstanding', 'Status']);
+
+            foreach ($customers as $customer) {
+                fputcsv($handle, [
+                    $customer->id,
+                    $customer->full_name,
+                    $customer->company_name ?? '-',
+                    $customer->mobile_number,
+                    $customer->email ?? '-',
+                    $customer->address ?? '-',
+                    number_format($customer->credit_limit, 2, '.', ''),
+                    number_format($customer->outstanding, 2, '.', ''),
+                    $customer->status ? 'Active' : 'Inactive'
+                ]);
+            }
+            fclose($handle);
+        }, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    private function exportPdf($customers)
+    {
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('customers.export_pdf', compact('customers'));
+        return $pdf->download('customers_' . date('Y-m-d_His') . '.pdf');
     }
 
     /**

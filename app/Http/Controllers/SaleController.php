@@ -242,6 +242,19 @@ class SaleController extends Controller
         return view('sales.show', compact('sale', 'banks'));
     }
 
+    public function generatePdf($id)
+    {
+        $sale = \App\Models\Sale::with('items.product', 'customer', 'salesman')->findOrFail($id);
+        $globalSettings = [
+            'company_name' => config('app.name'),
+            'company_address' => '',
+            'company_phone' => '',
+        ];
+        
+        $pdf = \PDF::loadView('sales.invoice_pdf', compact('sale', 'globalSettings'));
+        return $pdf->download('invoice-' . $sale->invoice_number . '.pdf');
+    }
+
     public function edit($id)
     {
         $sale = \App\Models\Sale::with('items')->findOrFail($id);

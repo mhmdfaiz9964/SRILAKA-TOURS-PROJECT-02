@@ -14,6 +14,25 @@
             <div></div>
 
             <div class="d-flex align-items-center gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-white btn-sm px-3 border-light rounded-3 d-flex align-items-center gap-2 dropdown-toggle shadow-sm" data-bs-toggle="dropdown" type="button">
+                        <i class="fa-solid fa-file-export text-black"></i> Export
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2" style="min-width: 180px;">
+                        <a class="dropdown-item d-flex align-items-center gap-3 p-2 rounded-3" href="{{ route('customers.index', array_merge(request()->query(), ['export' => 'excel'])) }}">
+                            <div class="bg-success bg-opacity-10 p-2 rounded-circle">
+                                <i class="fa-solid fa-file-excel text-success"></i>
+                            </div>
+                            <span class="small fw-bold">Excel Format</span>
+                        </a>
+                        <a class="dropdown-item d-flex align-items-center gap-3 p-2 rounded-3 mt-1" href="{{ route('customers.index', array_merge(request()->query(), ['export' => 'pdf'])) }}">
+                            <div class="bg-danger bg-opacity-10 p-2 rounded-circle">
+                                <i class="fa-solid fa-file-pdf text-danger"></i>
+                            </div>
+                            <span class="small fw-bold">PDF Format</span>
+                        </a>
+                    </div>
+                </div>
                 @can('customer-create')
                 <a href="{{ route('customers.create') }}" class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2" style="background: #6366f1; border: none; padding: 0.6rem 1rem;">
                     <i class="fa-solid fa-plus"></i> Add Customer

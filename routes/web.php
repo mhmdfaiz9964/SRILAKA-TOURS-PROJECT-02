@@ -31,7 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cheques/export', [App\Http\Controllers\ChequeController::class, 'export'])->name('cheques.export');
     Route::post('/cheques/{cheque}/reminder', [App\Http\Controllers\ChequeController::class, 'storeReminder'])->name('cheques.reminder');
     Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ChequeController::class, 'completeReminder'])->name('reminders.complete');
-    Route::post('/cheques/bulk-update', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('cheques.bulk-update');
+    Route::match(['get', 'post'], '/cheque-bulk-action', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('cheques.bulk-update-combined');
     
     Route::get('/investors/export', [App\Http\Controllers\InvestorController::class, 'export'])->name('investors.export');
     Route::resource('investors', App\Http\Controllers\InvestorController::class);
@@ -40,7 +40,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('in-cheques', App\Http\Controllers\InChequeController::class);
     
     Route::post('/third-parties', [App\Http\Controllers\ThirdPartyController::class, 'store'])->name('third-parties.store');
-    Route::post('/cheque-operations/out/bulk-update', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('out-cheques.bulk-update');
+    // Removed out-cheques.bulk-update as it's consolidated above
+    
     
     Route::get('out-cheques/export', [App\Http\Controllers\OutChequeController::class, 'export'])->name('out-cheques.export');
     Route::resource('out-cheques', App\Http\Controllers\OutChequeController::class);
@@ -58,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::get('/suppliers/{supplier}/ledger/export', [App\Http\Controllers\SupplierController::class, 'exportLedger'])->name('suppliers.ledger.export');
     Route::resource('sales', App\Http\Controllers\SaleController::class);
+    Route::get('/sales/{sale}/pdf', [App\Http\Controllers\SaleController::class, 'generatePdf'])->name('sales.pdf');
     Route::post('/sales/{sale}/add-payment', [App\Http\Controllers\SaleController::class, 'addPayment'])->name('sales.add-payment');
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
     Route::post('/purchases/{purchase}/add-payment', [App\Http\Controllers\PurchaseController::class, 'addPayment'])->name('purchases.add-payment');

@@ -229,14 +229,14 @@ class InChequeController extends Controller
         return redirect()->route('in-cheques.index')->with('success', 'In Cheque added successfully');
     }
 
-    public function edit(InCheque $inCheque)
+    public function edit(InCheque $in_cheque)
     {
         $banks = Bank::all();
         $thirdParties = ThirdParty::all();
-        return view('cheque_operations.in_cheques.edit', compact('inCheque', 'banks', 'thirdParties'));
+        return view('cheque_operations.in_cheques.edit', compact('in_cheque', 'banks', 'thirdParties'));
     }
 
-    public function update(Request $request, InCheque $inCheque)
+    public function update(Request $request, InCheque $in_cheque)
     {
         $data = $request->validate([
             'cheque_date' => 'required|date',
@@ -249,27 +249,27 @@ class InChequeController extends Controller
             'third_party_name' => 'required_if:status,transferred_to_third_party'
         ]);
 
-        $oldStatus = $inCheque->status;
-        $inCheque->update($data);
+        $oldStatus = $in_cheque->status;
+        $in_cheque->update($data);
 
-        if ($inCheque->status == 'transferred_to_third_party' && $oldStatus != 'transferred_to_third_party') {
+        if ($in_cheque->status == 'transferred_to_third_party' && $oldStatus != 'transferred_to_third_party') {
             ThirdPartyCheque::updateOrCreate(
-                ['in_cheque_id' => $inCheque->id],
+                ['in_cheque_id' => $in_cheque->id],
                 [
-                    'third_party_name' => $inCheque->third_party_name,
+                    'third_party_name' => $in_cheque->third_party_name,
                     'transfer_date' => now(),
                     'status' => 'received'
                 ]
             );
         }
 
-        if ($inCheque->status == 'returned' && $oldStatus != 'returned') {
+        if ($in_cheque->status == 'returned' && $oldStatus != 'returned') {
             \App\Models\Cheque::create([
-                'cheque_number' => $inCheque->cheque_number,
-                'cheque_date' => $inCheque->cheque_date,
-                'bank_id' => $inCheque->bank_id,
-                'amount' => $inCheque->amount,
-                'payer_name' => $inCheque->payer_name,
+                'cheque_number' => $in_cheque->cheque_number,
+                'cheque_date' => $in_cheque->cheque_date,
+                'bank_id' => $in_cheque->bank_id,
+                'amount' => $in_cheque->amount,
+                'payer_name' => $in_cheque->payer_name,
                 'payment_status' => 'pending',
                 'type' => 'returned',
                 'return_reason' => 'Returned from Status Update'
@@ -279,9 +279,9 @@ class InChequeController extends Controller
         return redirect()->route('in-cheques.index')->with('success', 'In Cheque updated successfully');
     }
 
-    public function destroy(InCheque $inCheque)
+    public function destroy(InCheque $in_cheque)
     {
-        $inCheque->delete();
+        $in_cheque->delete();
         return redirect()->route('in-cheques.index')->with('success', 'In Cheque deleted successfully');
     }
 }

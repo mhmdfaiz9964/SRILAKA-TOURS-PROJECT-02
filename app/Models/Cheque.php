@@ -12,6 +12,10 @@ class Cheque extends Model
         'third_party_payment_status', 'third_party_notes', 'return_reason', 'return_notes'
     ];
 
+    protected $casts = [
+        'cheque_date' => 'date',
+    ];
+
     public function bank()
     {
         return $this->belongsTo(Bank::class);

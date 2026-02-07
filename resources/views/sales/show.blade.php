@@ -433,16 +433,17 @@
         const paidAmount = "{{ number_format($sale->paid_amount, 2) }}";
         const balance = "{{ number_format($sale->total_amount - $sale->paid_amount, 2) }}";
         const companyName = "{{ $globalSettings['company_name'] ?? config('app.name') }}";
-        const invoiceUrl = window.location.href;
+        const pdfUrl = "{{ route('sales.pdf', $sale->id) }}";
+        const fullPdfUrl = window.location.origin + pdfUrl;
         
-        // Create message
+        // Create message with PDF link
         const message = `*${companyName}*\n\n` +
                        `Invoice: *${invoiceNumber}*\n` +
                        `Customer: ${customerName}\n\n` +
                        `Total Amount: Rs. ${totalAmount}\n` +
                        `Paid: Rs. ${paidAmount}\n` +
                        `Balance: Rs. ${balance}\n\n` +
-                       `View Invoice: ${invoiceUrl}`;
+                       `Download PDF Invoice:\n${fullPdfUrl}`;
         
         // Get customer phone number (remove spaces and special characters)
         const customerPhone = "{{ $sale->customer->mobile_number }}".replace(/[^0-9]/g, '');

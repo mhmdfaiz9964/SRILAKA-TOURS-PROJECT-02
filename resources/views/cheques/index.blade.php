@@ -110,7 +110,7 @@
             </form>
         </div>
         <div class="table-responsive">
-            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
+            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update-combined') }}" method="POST">
                 @csrf
                 <input type="hidden" name="type" value="cheque">
                 

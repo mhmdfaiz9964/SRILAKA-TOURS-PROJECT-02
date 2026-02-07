@@ -160,7 +160,7 @@
         </script>
 
         <div class="table-responsive">
-            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
+            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update-combined') }}" method="POST">
                 @csrf
                 <input type="hidden" name="type" value="third_party_cheque">
                 <div class="p-2 border-bottom bg-light d-flex gap-2 align-items-center" id="bulkActions" style="display:none !important;">

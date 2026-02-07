@@ -188,7 +188,7 @@
         </script>
 
         <div class="table-responsive">
-            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
+            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update-combined') }}" method="POST">
                 @csrf
                 <input type="hidden" name="type" value="in_cheque">
                 <div class="p-2 border-bottom bg-light d-flex gap-2 align-items-center" id="bulkActions" style="display:none !important;">
@@ -257,7 +257,9 @@
                     <tbody>
                         @forelse($cheques as $cheque)
                         <tr>
-                            <td class="ps-4"><input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox"></td>
+                            <td class="ps-4">
+                                <input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox" {{ $cheque->status == 'returned' ? 'disabled title="Returned cheques cannot be updated"' : '' }}>
+                            </td>
                             <td>
                                 <span class="badge rounded-pill px-2 py-1" style="background: #eff6ff; color: #3b82f6; font-size: 0.65rem;">
                                     IN
