@@ -298,7 +298,7 @@ class PurchaseController extends Controller
 
     public function edit($id)
     {
-         $purchase = \App\Models\Purchase::with('items')->findOrFail($id);
+         $purchase = \App\Models\Purchase::with(['items', 'investors'])->findOrFail($id);
          $suppliers = \App\Models\Supplier::where('status', true)->get();
          $products = \App\Models\Product::all();
          $banks = \App\Models\Bank::all();
@@ -323,12 +323,14 @@ class PurchaseController extends Controller
                 }
             }
             
-            // 2. Clear old items
+            // 2. Clear old items and investors
             $purchase->items()->delete();
+            $purchase->investors()->delete();
 
             // 3. Update Purchase core details
             $purchase->update([
                 'supplier_id' => $request->supplier_id,
+                'purchase_type' => $request->purchase_type ?? 'local',
                 'purchase_date' => $request->purchase_date,
                 'notes' => $request->notes,
                 'invoice_number' => $request->invoice_number,
@@ -359,6 +361,19 @@ class PurchaseController extends Controller
                     if ($product) {
                         $product->increment('current_stock', $item['quantity']);
                         $product->update(['cost_price' => $item['cost_price']]);
+                    }
+                }
+            }
+            
+            // 4.5. Process Investors
+            if ($request->has('investors') && is_array($request->investors)) {
+                foreach ($request->investors as $inv) {
+                    if (!empty($inv['name']) && !empty($inv['amount'])) {
+                        \App\Models\PurchaseInvestor::create([
+                            'purchase_id' => $purchase->id,
+                            'investor_name' => $inv['name'],
+                            'amount' => $inv['amount'],
+                        ]);
                     }
                 }
             }

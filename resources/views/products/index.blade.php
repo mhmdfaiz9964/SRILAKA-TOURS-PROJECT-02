@@ -84,10 +84,40 @@
                         @forelse($products as $product)
                         <tr>
                             <td class="ps-4 text-muted small">#{{ $product->id }}</td>
-                            <td class="small fw-bold text-dark">{{ $product->name }}</td>
+                            <td class="small">
+                                @if($product->is_main_product)
+                                    {{-- Main Product: Show category and product name --}}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                            <i class="fa-solid fa-layer-group me-1"></i> MAIN
+                                        </span>
+                                        <div>
+                                            @if($product->category)
+                                                <div class="text-muted" style="font-size: 0.7rem;">{{ $product->category->name }}</div>
+                                            @endif
+                                            <div class="fw-bold text-dark">{{ $product->name }}</div>
+                                        </div>
+                                    </div>
+                                @else
+                                    {{-- Sub Product: Show parent product and sub-product name --}}
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2 py-1" style="font-size: 0.7rem;">
+                                            <i class="fa-solid fa-sitemap me-1"></i> SUB
+                                        </span>
+                                        <div>
+                                            @if($product->parentProduct)
+                                                <div class="text-muted" style="font-size: 0.7rem;">
+                                                    <i class="fa-solid fa-arrow-turn-up fa-rotate-90 me-1"></i>{{ $product->parentProduct->name }}
+                                                </div>
+                                            @endif
+                                            <div class="fw-bold text-dark">{{ $product->name }}</div>
+                                        </div>
+                                    </div>
+                                @endif
+                            </td>
                             <td class="small">{{ $product->units ?? '-' }}</td>
                             <td class="small">
-                                <span class="badge {{ $product->stock_alert > 0 ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning' }} rounded-pill border border-0">
+                                <span class="badge rounded-pill border border-0 px-3 py-1" style="background-color: #581c87; color: #fff;">
                                     {{ $product->current_stock }}
                                 </span>
                             </td>

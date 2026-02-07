@@ -3,7 +3,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="mb-4">
-        <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
                 <h4 class="mb-0 fw-bold">Suppliers</h4>
                 <p class="text-muted small mb-0">Manage your suppliers and vendors</p>
@@ -14,6 +14,28 @@
                     <i class="fa-solid fa-plus"></i> Add Supplier
                 </a>
                 @endcan
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <!-- Total Paid -->
+            <div class="col-md-6">
+                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #f0fdf4;">
+                    <div class="card-body p-3">
+                        <div class="text-success small fw-bold text-uppercase mb-1">Total Paid Amount</div>
+                        <div class="fw-bold text-success fs-4">LKR {{ number_format($totalPaid, 2) }}</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Total Outstanding -->
+            <div class="col-md-6">
+                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #fef2f2;">
+                    <div class="card-body p-3">
+                        <div class="text-danger small fw-bold text-uppercase mb-1">Total Outstanding Amount</div>
+                        <div class="fw-bold text-danger fs-4">LKR {{ number_format($totalOutstanding, 2) }}</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -69,7 +91,7 @@
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Full Name</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Company</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Contact Number</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Credit Limit</th>
+                            <!-- Credit Limit Removed -->
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Outstanding</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
@@ -84,10 +106,8 @@
                             </td>
                             <td class="small">{{ $supplier->company_name ?? '-' }}</td>
                             <td class="small">{{ $supplier->contact_number }}</td>
-                            <td class="small">
-                                LKR {{ number_format($supplier->credit_limit, 2) }}
-                            </td>
-                            <td class="small fw-bold {{ $supplier->outstanding >= $supplier->credit_limit ? 'text-danger' : 'text-success' }}">
+                            <!-- Credit Limit Cell Removed -->
+                            <td class="small fw-bold text-danger">
                                 LKR {{ number_format($supplier->outstanding, 2) }}
                             </td>
                             <td class="small">
@@ -119,7 +139,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center py-5">
+                            <td colspan="7" class="text-center py-5">
                                 <div class="text-muted">No suppliers found.</div>
                             </td>
                         </tr>

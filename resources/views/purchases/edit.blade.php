@@ -14,7 +14,14 @@
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold small">Type</label>
+                                <select class="form-select" name="purchase_type">
+                                    <option value="local" {{ ($purchase->purchase_type ?? 'local') == 'local' ? 'selected' : '' }}>Local</option>
+                                    <option value="import" {{ ($purchase->purchase_type ?? 'local') == 'import' ? 'selected' : '' }}>Import</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
                                 <label class="form-label fw-bold small">Supplier</label>
                                 <select class="form-select" name="supplier_id" required>
                                     @foreach($suppliers as $supplier)
@@ -131,6 +138,41 @@
                             </div>
                         </div>
 
+                        <!-- Investors Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold small text-uppercase text-muted mb-2">Investors</h6>
+                            <table class="table table-bordered table-sm" id="investorTable">
+                                <thead>
+                                    <tr>
+                                        <th>Investor Name</th>
+                                        <th width="30%">Amount</th>
+                                        <th width="5%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="investorRows">
+                                    @foreach($purchase->investors as $investor)
+                                    @php $invId = $investor->id; @endphp
+                                    <tr id="inv_row_{{ $invId }}">
+                                        <td><input type="text" class="form-control form-control-sm" name="investors[{{ $invId }}][name]" value="{{ $investor->investor_name }}" placeholder="Investor Name"></td>
+                                        <td><input type="number" step="0.01" class="form-control form-control-sm" name="investors[{{ $invId }}][amount]" value="{{ $investor->amount }}" placeholder="0.00"></td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-link text-danger p-0" onclick="document.getElementById('inv_row_{{ $invId }}').remove()"><i class="fa-solid fa-xmark"></i></button>
+                                        </td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3">
+                                            <button type="button" class="btn btn-light btn-sm w-100 fw-bold border-dashed text-primary" onclick="addInvestorRow()">
+                                                <i class="fa-solid fa-plus me-1"></i> Add Investor
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label fw-bold small">Notes</label>
                             <textarea class="form-control" name="notes" rows="3">{{ $purchase->notes }}</textarea>
@@ -214,6 +256,20 @@
         
         document.getElementById('totalAmountDisplay').innerText = grandTotal.toFixed(2);
         document.getElementById('hiddenTotalAmount').value = grandTotal.toFixed(2);
+    }
+
+    function addInvestorRow() {
+        const rowId = Date.now() + Math.random();
+        const html = `
+            <tr id="inv_row_${rowId}">
+                <td><input type="text" class="form-control form-control-sm" name="investors[${rowId}][name]" placeholder="Investor Name"></td>
+                <td><input type="number" step="0.01" class="form-control form-control-sm" name="investors[${rowId}][amount]" placeholder="0.00"></td>
+                <td class="text-center">
+                     <button type="button" class="btn btn-link text-danger p-0" onclick="document.getElementById('inv_row_${rowId}').remove()"><i class="fa-solid fa-xmark"></i></button>
+                </td>
+            </tr>
+        `;
+        document.getElementById('investorRows').insertAdjacentHTML('beforeend', html);
     }
 </script>
                     </div>

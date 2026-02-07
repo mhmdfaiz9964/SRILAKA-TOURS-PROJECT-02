@@ -66,7 +66,7 @@
                                             <option value="deposited" {{ (old('status', $inCheque->status) == 'deposited') ? 'selected' : '' }}>Deposited</option>
                                             <option value="transferred_to_third_party" {{ (old('status', $inCheque->status) == 'transferred_to_third_party') ? 'selected' : '' }}>Transferred to 3rd Party</option>
                                             <option value="realized" {{ (old('status', $inCheque->status) == 'realized') ? 'selected' : '' }}>Received</option>
-                                            <option value="returned" {{ (old('status', $inCheque->status) == 'returned') ? 'selected' : '' }}>Returned</option>
+                                            <option value="returned" {{ (old('status', $inCheque->status) == 'returned') ? 'selected' : '' }} {{ $inCheque->status == 'returned' ? 'disabled' : '' }}>Returned {{ $inCheque->status == 'returned' ? '(Cannot change)' : '' }}</option>
                                         </select>
                                     </div>
                                     <div class="col-md-6" id="thirdPartyField" style="{{ (old('status', $inCheque->status) == 'transferred_to_third_party') ? 'display: block;' : 'display: none;' }}">

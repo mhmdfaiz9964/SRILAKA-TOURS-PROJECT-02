@@ -12,6 +12,9 @@
             <button class="btn btn-primary shadow-sm" onclick="window.print()">
                 <i class="fa-solid fa-print me-1"></i> Print Invoice
             </button>
+            <button class="btn btn-success shadow-sm" onclick="shareViaWhatsApp()">
+                <i class="fa-brands fa-whatsapp me-1"></i> Share via WhatsApp
+            </button>
             <a href="{{ route('sales.index') }}" class="btn btn-secondary shadow-sm">
                 <i class="fa-solid fa-arrow-left me-1"></i> Back
             </a>
@@ -277,22 +280,30 @@
                             <div class="d-flex gap-3 mb-2 small fw-bold">
                                 <div class="d-flex align-items-center">
                                     <div style="width:15px; height:15px; border:1px solid #000; position: relative;" class="me-1">
-                                        @if($sale->payment_method == 'cash') <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> @endif
+                                        @if($sale->total_amount - $sale->paid_amount <= 0 && $sale->payment_method == 'cash') 
+                                            <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> 
+                                        @endif
                                     </div> Cash
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <div style="width:15px; height:15px; border:1px solid #000; position: relative;" class="me-1">
-                                        @if($sale->payment_method == 'cheque') <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> @endif
+                                        @if($sale->payment_method == 'cheque') 
+                                            <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> 
+                                        @endif
                                     </div> Cheque
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <div style="width:15px; height:15px; border:1px solid #000; position: relative;" class="me-1">
-                                        @if($sale->payment_method == 'bank_transfer') <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> @endif
+                                        @if($sale->payment_method == 'bank_transfer') 
+                                            <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> 
+                                        @endif
                                     </div> Bank
                                 </div>
                                 <div class="d-flex align-items-center">
                                     <div style="width:15px; height:15px; border:1px solid #000; position: relative;" class="me-1">
-                                        @if($sale->payment_method == 'credit' || $sale->payment_method == 'account') <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> @endif
+                                        @if($sale->total_amount - $sale->paid_amount > 0 || $sale->payment_method == 'credit' || $sale->payment_method == 'account') 
+                                            <i class="fa-solid fa-check small position-absolute top-50 start-50 translate-middle"></i> 
+                                        @endif
                                     </div> A/C
                                 </div>
                             </div>
@@ -334,7 +345,7 @@
             </div>
             <div class="col-4 text-center">
                 <div style="border-top: 1px dotted #000; width: 80%; margin: 0 auto;"></div>
-                <p class="small fw-bold mt-1">Salesman: {{ $sale->salesman->name ?? '' }}</p>
+                <p class="small fw-bold mt-1">Salesman: {{ $sale->salesman_name }}</p>
                 @if($sale->salesman && $sale->salesman->email)
                     <p class="small text-muted mt-0" style="font-size: 0.7rem;">{{ $sale->salesman->email }}</p>
                 @endif
@@ -415,6 +426,34 @@
 </div>
 
 <script>
+    function shareViaWhatsApp() {
+        const invoiceNumber = "{{ $sale->invoice_number }}";
+        const customerName = "{{ $sale->customer->full_name }}";
+        const totalAmount = "{{ number_format($sale->total_amount, 2) }}";
+        const paidAmount = "{{ number_format($sale->paid_amount, 2) }}";
+        const balance = "{{ number_format($sale->total_amount - $sale->paid_amount, 2) }}";
+        const companyName = "{{ $globalSettings['company_name'] ?? config('app.name') }}";
+        const invoiceUrl = window.location.href;
+        
+        // Create message
+        const message = `*${companyName}*\n\n` +
+                       `Invoice: *${invoiceNumber}*\n` +
+                       `Customer: ${customerName}\n\n` +
+                       `Total Amount: Rs. ${totalAmount}\n` +
+                       `Paid: Rs. ${paidAmount}\n` +
+                       `Balance: Rs. ${balance}\n\n` +
+                       `View Invoice: ${invoiceUrl}`;
+        
+        // Get customer phone number (remove spaces and special characters)
+        const customerPhone = "{{ $sale->customer->mobile_number }}".replace(/[^0-9]/g, '');
+        
+        // Create WhatsApp URL
+        let whatsappUrl = `https://wa.me/${customerPhone}?text=${encodeURIComponent(message)}`;
+        
+        // Open WhatsApp
+        window.open(whatsappUrl, '_blank');
+    }
+
     function toggleModalFields() {
         const method = document.getElementById('modalPaymentMethod').value;
         const chequeDiv = document.getElementById('modalChequeFields');

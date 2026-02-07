@@ -23,11 +23,47 @@ class ReportController extends Controller
         $date = $request->date ? Carbon::parse($request->date) : now();
         $dateStr = $date->format('Y-m-d');
 
+        // Check for Export Request (Works for both single day entry view)
+        if ($request->has('export')) {
+             $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
+             $totalIncome = $entries->where('type', 'income')->sum('amount');
+             $totalExpenses = $entries->where('type', 'expense')->sum('amount');
+             
+             // Calculate Opening/Closing for PDF only if needed
+             $pastEntries = \App\Models\DailyLedgerEntry::whereDate('date', '<', $dateStr)->get();
+             $pastIncome = $pastEntries->where('type', 'income')->sum('amount');
+             $pastExpenses = $pastEntries->where('type', 'expense')->sum('amount');
+             $openingBalance = $pastIncome - $pastExpenses;
+             $closingBalance = $openingBalance + $totalIncome - $totalExpenses;
+
+            if ($request->export == 'excel') {
+                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DailyLedgerExport($entries), 'daily_ledger_' . $dateStr . '.xlsx');
+            } elseif ($request->export == 'pdf') {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.daily_ledger_pdf', compact(
+                    'date', 'entries', 'totalIncome', 'totalExpenses', 'closingBalance'
+                ));
+                return $pdf->download('daily_ledger_' . $dateStr . '.pdf');
+            }
+        }
+
+        // --- ENTRY MODE (Always) ---
+        
         // Define Default Heads
         $defaultHeads = [
-            'income' => ['Tour Advance', 'Tour Final Payment', 'Other Income'],
-            'expense' => ['Fuel', 'Driver Bata', 'Highway Ticket', 'Parking', 'Office Expenses', 'Salaries', 'Other Expenses']
+            'income' => ['A/c Sales', 'Cash Sales', 'Old payment'],
+            'expense' => ['Salary', 'Transport', 'Food', 'Bank Deposit', 'Other']
         ];
+
+        // Cleanup Obsolete Heads (if amount is 0) to ensure view matches new layout
+        $obsoleteHeads = [
+            'Tour Advance', 'Tour Final Payment', 'Other Income', // Old Income
+            'Fuel', 'Driver Bata', 'Highway Ticket', 'Parking', 'Office Expenses', 'Salaries', 'Other Expenses' // Old Expense
+        ];
+        
+        \App\Models\DailyLedgerEntry::where('date', $dateStr)
+            ->whereIn('description', $obsoleteHeads)
+            ->where('amount', 0)
+            ->delete();
 
         // Ensure default entries exist for the date
         foreach ($defaultHeads['income'] as $desc) {
@@ -43,7 +79,7 @@ class ReportController extends Controller
             );
         }
 
-        // Fetch entries (including the newly created defaults)
+        // Fetch entries
         $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
 
         $incomeEntries = $entries->where('type', 'income');
@@ -52,7 +88,7 @@ class ReportController extends Controller
         $totalIncome = $incomeEntries->sum('amount');
         $totalExpenses = $expenseEntries->sum('amount');
 
-        // Calculate Opening Balance
+        // Opening/Closing Balance Calculations
         $pastEntries = \App\Models\DailyLedgerEntry::whereDate('date', '<', $dateStr)->get();
         $pastIncome = $pastEntries->where('type', 'income')->sum('amount');
         $pastExpenses = $pastEntries->where('type', 'expense')->sum('amount');
@@ -60,16 +96,31 @@ class ReportController extends Controller
         $openingBalance = $pastIncome - $pastExpenses;
         $closingBalance = $openingBalance + $totalIncome - $totalExpenses;
 
-        if ($request->has('export')) {
-            if ($request->export == 'excel') {
-                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DailyLedgerExport($entries), 'daily_ledger_' . $dateStr . '.xlsx');
-            } elseif ($request->export == 'pdf') {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.daily_ledger_pdf', compact(
-                    'date', 'entries', 'totalIncome', 'totalExpenses', 'closingBalance'
-                ));
-                return $pdf->download('daily_ledger_' . $dateStr . '.pdf');
-            }
-        }
+        $acSales = $entries->where('description', 'A/c Sales')->sum('amount');
+        $bankDeposit = $entries->where('description', 'Bank Deposit')->sum('amount');
+
+        // --- FETCH HISTORY (Ledger Summaries) ---
+        $ledgerEntries = \App\Models\DailyLedgerEntry::select('date')
+            ->selectRaw('SUM(CASE WHEN type="income" THEN amount ELSE 0 END) as total_income')
+            ->selectRaw('SUM(CASE WHEN type="expense" THEN amount ELSE 0 END) as total_expense')
+            ->selectRaw('SUM(CASE WHEN description="Bank Deposit" THEN amount ELSE 0 END) as bank_deposit')
+            ->selectRaw('SUM(CASE WHEN description="A/c Sales" THEN amount ELSE 0 END) as ac_sales')
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->get()
+            ->map(function($item) {
+                // Calculate total turnover or balance if needed, or just formatted date
+                $item->total = $item->total_income - $item->total_expense; 
+                // We need a unique ID for the actions. Since we group by date, we can't really use a single row ID.
+                // However, the user view uses `entry->id` in the loop. 
+                // We will assign a representative ID (e.g., the first entry ID for that date) or just use the date string as ID in frontend logic.
+                // To keep it simple for the user's generic "editEntry(id)" JS, we might need to change JS to use Date.
+                // BUT, if the user insists on existing code, I'll pass a dummy ID or the ID of the first entry.
+                // Let's grab one ID.
+                $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $item->date)->first();
+                $item->id = $firstEntry ? $firstEntry->id : 0; // Use an actual ID for deletion/edit reference if controller logic adapts
+                return $item;
+            });
 
         return view('reports.daily_ledger', compact(
             'date',
@@ -78,20 +129,20 @@ class ReportController extends Controller
             'totalIncome',
             'totalExpenses',
             'openingBalance',
-            'closingBalance'
+            'closingBalance',
+            'acSales',
+            'bankDeposit',
+            'ledgerEntries'
         ));
     }
 
     public function updateDailyLedger(Request $request)
     {
         $request->validate([
+            'date' => 'required|date',
             'entries' => 'nullable|array',
             'entries.*.id' => 'required|exists:daily_ledger_entries,id',
             'entries.*.amount' => 'required|numeric',
-            'new_entries' => 'nullable|array',
-            'new_entries.*.description' => 'required|string',
-            'new_entries.*.amount' => 'required|numeric',
-            'new_entries.*.type' => 'required|in:income,expense',
         ]);
 
         if ($request->has('entries')) {
@@ -100,20 +151,40 @@ class ReportController extends Controller
             }
         }
 
-        if ($request->has('new_entries')) {
-            foreach ($request->new_entries as $newEntry) {
-                if ($newEntry['description'] && $newEntry['amount'] !== null) {
-                    \App\Models\DailyLedgerEntry::create([
-                        'date' => $request->date,
-                        'description' => $newEntry['description'],
-                        'amount' => $newEntry['amount'],
-                        'type' => $newEntry['type'],
-                    ]);
-                }
-            }
+        return redirect()->route('reports.daily-ledger', ['date' => $request->date])->with('success', 'Daily Ledger updated successfully');
+    }
+
+    // Keeping store for backward compatibility if needed, but primary is now update
+    public function storeDailyLedgerEntry(Request $request)
+    {
+        // Re-route to update if array is present? No, this was for single entry.
+        // We can keep it or deprecate it.
+        return $this->updateDailyLedger($request); 
+    }
+
+    public function destroyDailyLedgerEntry($id)
+    {
+        // The user's view calls deleteEntry(id). 
+        // If the ID represents a single row, we delete just that?
+        // OR if the ID represents a DAY (from the history table), we should delete/reset the whole day.
+        // Given the history table context, "Delete" likely means "Clear this Day".
+        
+        $entry = \App\Models\DailyLedgerEntry::find($id);
+        if ($entry) {
+            $date = $entry->date;
+            // Delete ALL entries for this date? Or just reset amounts to 0?
+            // Usually "Delete Ledger" implies clearing the data.
+            // Let's delete all entries for that date to be safe, or just the non-default ones?
+            // Simplest: Reset amounts to 0 for default heads, delete others. 
+            // BUT, if we delete, they regenerate on next view.
+            
+            // Let's just reset amounts to 0 for this date.
+            \App\Models\DailyLedgerEntry::whereDate('date', $date)->update(['amount' => 0]);
+            
+            return redirect()->route('reports.daily-ledger')->with('success', 'Daily Ledger cleared for ' . $date);
         }
 
-        return redirect()->route('reports.daily-ledger', ['date' => $request->date])->with('success', 'Ledger updated successfully');
+        return back()->with('error', 'Entry not found');
     }
 
     public function balanceSheet(Request $request) 
@@ -216,5 +287,53 @@ class ReportController extends Controller
         }
 
         return redirect()->route('reports.balance-sheet', ['date' => $request->date])->with('success', 'Balance Sheet updated successfully');
+    }
+
+    public function dailyLedgerHistory(Request $request)
+    {
+        $query = \App\Models\DailyLedgerEntry::select('date')
+            ->selectRaw('SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) as total_income')
+            ->selectRaw('SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) as total_expense')
+            ->selectRaw('SUM(CASE WHEN description = "A/c Sales" THEN amount ELSE 0 END) as ac_sales')
+            ->selectRaw('SUM(CASE WHEN description = "Bank Deposit" THEN amount ELSE 0 END) as bank_deposit')
+            ->groupBy('date');
+
+        if ($request->from_date) {
+            $query->whereDate('date', '>=', $request->from_date);
+        }
+        if ($request->to_date) {
+            $query->whereDate('date', '<=', $request->to_date);
+        }
+
+        $records = $query->orderBy('date', 'desc')->get();
+
+        if ($request->has('export')) {
+             if ($request->export == 'excel') {
+                 // Inline Export Class for simplicity or create separate if complex
+                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DailyLedgerHistoryExport($records), 'daily_ledger_history.xlsx');
+            } elseif ($request->export == 'pdf') {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.daily_ledger_history_pdf', compact('records'));
+                return $pdf->download('daily_ledger_history.pdf');
+            }
+        }
+
+        return view('reports.daily_ledger_history', compact('records'));
+    }
+
+    public function getDailyLedgerDetails($date)
+    {
+        $dateStr = Carbon::parse($date)->format('Y-m-d');
+        $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
+        
+        $income = $entries->where('type', 'income')->values();
+        $expense = $entries->where('type', 'expense')->values();
+
+        return response()->json([
+            'date' => $dateStr,
+            'income' => $income,
+            'expense' => $expense,
+            'total_income' => $income->sum('amount'),
+            'total_expense' => $expense->sum('amount')
+        ]);
     }
 }

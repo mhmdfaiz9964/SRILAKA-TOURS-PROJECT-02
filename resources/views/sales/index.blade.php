@@ -18,7 +18,7 @@
         </div>
 
         <div class="row g-3 mb-4">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card border-0 shadow-sm rounded-4" style="background: #eff6ff;">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -31,7 +31,7 @@
                     </div>
                 </div>
             </div>
-             <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="card border-0 shadow-sm rounded-4" style="background: #fff7ed;">
                     <div class="card-body p-3">
                         <div class="d-flex align-items-center justify-content-between mb-2">
@@ -41,6 +41,19 @@
                             </div>
                         </div>
                         <div class="h4 fw-bold mb-0" style="color: #9a3412;">LKR {{ number_format($totalOutstanding, 2) }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm rounded-4" style="background: #fef2f2;">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="text-muted small fw-bold text-uppercase">Pending A/C Amount</span>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: #fff; color: #ef4444;">
+                                <i class="fa-solid fa-clock"></i>
+                            </div>
+                        </div>
+                        <div class="h4 fw-bold mb-0" style="color: #991b1b;">LKR {{ number_format($pendingAmount, 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -124,7 +137,8 @@
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Invoice #</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Customer</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Total Amount</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Paid / A/C</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Paid</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Balance</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
                         </tr>
@@ -136,11 +150,9 @@
                             <td class="fw-bold text-dark small">{{ $sale->invoice_number }}</td>
                             <td class="small fw-semibold">{{ $sale->customer->full_name }}</td>
                             <td class="small fw-bold">{{ number_format($sale->total_amount, 2) }}</td>
-                            <td class="small">
-                                <div class="text-success">{{ number_format($sale->paid_amount, 2) }}</div>
-                                @if($sale->total_amount - $sale->paid_amount > 0)
-                                    <div class="text-danger small" style="font-size: 0.75rem;">A/C: {{ number_format($sale->total_amount - $sale->paid_amount, 2) }}</div>
-                                @endif
+                            <td class="small fw-bold text-success">{{ number_format($sale->paid_amount, 2) }}</td>
+                            <td class="small fw-bold {{ ($sale->total_amount - $sale->paid_amount) > 0 ? 'text-danger' : 'text-muted' }}">
+                                {{ number_format($sale->total_amount - $sale->paid_amount, 2) }}
                             </td>
                             <td class="small">
                                 @if($sale->status == 'paid')
@@ -177,7 +189,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div class="text-muted small">No sales records found matching your criteria.</div>
                             </td>
                         </tr>

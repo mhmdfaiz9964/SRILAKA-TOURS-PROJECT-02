@@ -77,7 +77,13 @@ Route::middleware(['auth'])->group(function () {
     // Manual Reports Routes
     Route::get('/reports/daily-ledger', [App\Http\Controllers\ReportController::class, 'dailyLedger'])->name('reports.daily-ledger');
     Route::post('/reports/daily-ledger/update', [App\Http\Controllers\ReportController::class, 'updateDailyLedger'])->name('reports.daily-ledger.update');
+    Route::post('/reports/daily-ledger/store', [App\Http\Controllers\ReportController::class, 'storeDailyLedgerEntry'])->name('reports.daily-ledger.store');
+    Route::get('/reports/daily-ledger/edit/{id}', [App\Http\Controllers\ReportController::class, 'editDailyLedgerEntry'])->name('reports.daily-ledger.edit');
+    Route::delete('/reports/daily-ledger/delete/{id}', [App\Http\Controllers\ReportController::class, 'destroyDailyLedgerEntry'])->name('reports.daily-ledger.destroy');
     
+    Route::get('/reports/daily-ledger/history', [App\Http\Controllers\ReportController::class, 'dailyLedgerHistory'])->name('reports.daily-ledger.history');
+    Route::get('/reports/daily-ledger/details/{date}', [App\Http\Controllers\ReportController::class, 'getDailyLedgerDetails'])->name('reports.daily-ledger.details');
+
     Route::get('/reports/balance-sheet', [App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
     Route::post('/reports/balance-sheet/update', [App\Http\Controllers\ReportController::class, 'updateBalanceSheet'])->name('reports.balance-sheet.update');
     

@@ -58,11 +58,11 @@
                             <table class="table table-bordered align-middle" id="itemsTable">
                                 <thead class="bg-light">
                                     <tr>
-                                        <th style="width: 30%;">Product</th>
-                                        <th style="width: 20%;">Type / Description</th>
+                                        <th style="width: 25%;">Product</th>
+                                        <th style="width: 25%;">Type / Description</th>
                                         <th style="width: 10%;">Unit</th>
-                                        <th style="width: 20%;">Price</th>
-                                        <th style="width: 10%;">Qty</th>
+                                        <th style="width: 12%;">Price</th>
+                                        <th style="width: 13%;">Qty</th>
                                         <th style="width: 15%;">Total</th>
                                         <th style="width: 5%;"></th>
                                     </tr>

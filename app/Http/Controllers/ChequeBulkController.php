@@ -62,6 +62,17 @@ class ChequeBulkController extends Controller
                              'notes' => "Assigned from In Cheque #{$cheque->cheque_number}"
                         ]);
 
+                        // Determine Third Party Name for the record
+                        $tpName = 'Supplier: ' . $supplier->full_name;
+
+                        // Create ThirdPartyCheque entry for Supplier Transfer
+                        \App\Models\ThirdPartyCheque::create([
+                            'in_cheque_id' => $cheque->id,
+                            'third_party_name' => $tpName,
+                            'transfer_date' => now(), 
+                            'status' => 'received'
+                        ]);
+
                     } else {
                         $cheque->third_party_name = $request->third_party_name;
                         $cheque->notes .= " | Transferred to: " . $request->third_party_name;

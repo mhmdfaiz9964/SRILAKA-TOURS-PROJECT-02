@@ -86,10 +86,15 @@ class SaleController extends Controller
         $totalPaid = $statsQuery->sum('paid_amount');
         $totalOutstanding = $totalSales - $totalPaid;
 
+        // Calculate total pending A/C amount across ALL sales (not filtered)
+        $allSales = \App\Models\Sale::sum('total_amount');
+        $allPaid = \App\Models\Sale::sum('paid_amount');
+        $pendingAmount = $allSales - $allPaid;
+
         $sales = $query->paginate(20)->withQueryString();
         $customers = \App\Models\Customer::all();
         
-        return view('sales.index', compact('sales', 'customers', 'totalSales', 'totalOutstanding'));
+        return view('sales.index', compact('sales', 'customers', 'totalSales', 'totalOutstanding', 'pendingAmount'));
     }
 
     /**

@@ -51,8 +51,8 @@
                             <th class="ps-4 py-3 text-muted fw-semibold small text-uppercase" style="width: 50px;">
                                 <input type="checkbox" class="form-check-input">
                             </th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Bank Name</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Bank Code</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Bank Name</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
                         </tr>
                     </thead>
@@ -74,7 +74,7 @@
                                     <div class="fw-bold text-dark small" style="font-size: 0.95rem;">{{ $bank->name }}</div>
                                 </div>
                             </td>
-                            <td class="small">{{ $bank->code ?? '-' }}</td>
+                            <td class="small fw-semibold">{{ $bank->name }}</td>
                             <td class="text-end pe-4">
                                 <div class="d-flex justify-content-end gap-1">
                                     @can('bank-edit')

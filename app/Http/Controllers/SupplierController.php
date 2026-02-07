@@ -61,8 +61,13 @@ class SupplierController extends Controller
              $query->orderByDesc('created_at');
         }
 
+        // Calculate Totals
+        $totalPurchases = \App\Models\Purchase::sum('total_amount');
+        $totalPaid = \App\Models\Payment::where('payable_type', 'App\Models\Supplier')->sum('amount');
+        $totalOutstanding = $totalPurchases - $totalPaid;
+
         $suppliers = $query->paginate(10);
-        return view('suppliers.index', compact('suppliers'));
+        return view('suppliers.index', compact('suppliers', 'totalPaid', 'totalOutstanding'));
     }
 
     /**

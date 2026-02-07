@@ -48,8 +48,11 @@
                         <button class="btn btn-primary rounded-pill shadow-sm py-2" onclick="window.print()">
                             <i class="fa-solid fa-print me-2"></i> Print Note
                         </button>
+                        <button class="btn btn-success rounded-pill shadow-sm py-2" onclick="shareViaWhatsApp()">
+                            <i class="fa-brands fa-whatsapp me-2"></i> Share via WhatsApp
+                        </button>
                         @if($purchase->status !== 'paid')
-                        <button class="btn btn-success rounded-pill shadow-sm py-2" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                        <button class="btn btn-warning rounded-pill shadow-sm py-2" data-bs-toggle="modal" data-bs-target="#paymentModal">
                             <i class="fa-solid fa-plus me-2"></i> Add Payment
                         </button>
                         @endif
@@ -472,6 +475,35 @@
 </div>
 
 <script>
+    function shareViaWhatsApp() {
+        const grnNumber = "{{ $purchase->grn_number ?? 'N/A' }}";
+        const supplierName = "{{ $purchase->supplier->full_name }}";
+        const totalAmount = "{{ number_format($purchase->total_amount, 2) }}";
+        const paidAmount = "{{ number_format($purchase->paid_amount, 2) }}";
+        const balance = "{{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}";
+        const companyName = "{{ $globalSettings['company_name'] ?? config('app.name') }}";
+        const purchaseUrl = window.location.href;
+        
+        // Create message
+        const message = `*${companyName}*\n\n` +
+                       `Purchase Order\n` +
+                       `GRN: *${grnNumber}*\n` +
+                       `Supplier: ${supplierName}\n\n` +
+                       `Total Amount: Rs. ${totalAmount}\n` +
+                       `Paid: Rs. ${paidAmount}\n` +
+                       `Balance: Rs. ${balance}\n\n` +
+                       `View Details: ${purchaseUrl}`;
+        
+        // Get supplier phone number (remove spaces and special characters)
+        const supplierPhone = "{{ $purchase->supplier->contact_number }}".replace(/[^0-9]/g, '');
+        
+        // Create WhatsApp URL
+        let whatsappUrl = `https://wa.me/${supplierPhone}?text=${encodeURIComponent(message)}`;
+        
+        // Open WhatsApp
+        window.open(whatsappUrl, '_blank');
+    }
+
     function toggleModalFields() {
         const method = document.querySelector('input[name="payment_method"]:checked').value;
         const chequeDiv = document.getElementById('modalChequeFields');

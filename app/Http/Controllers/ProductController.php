@@ -18,7 +18,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = \App\Models\Product::with('category');
+        $query = \App\Models\Product::with(['category', 'parentProduct']);
         
         if ($request->has('category_id') && $request->category_id != '') {
             $query->where('category_id', $request->category_id);
@@ -26,6 +26,10 @@ class ProductController extends Controller
 
         if ($request->has('is_main_product') && $request->is_main_product != '') {
             $query->where('is_main_product', $request->is_main_product);
+        }
+
+        if ($request->filled('search')) {
+            $query->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
         if ($request->filled('sort')) {

@@ -222,6 +222,7 @@
                                     {{ $st['label'] }}
                                 </span>
                                 <ul class="dropdown-menu shadow-sm border-light">
+                                    @if($cheque->status !== 'realized')
                                     <li>
                                         <form action="{{ route('third-party-cheques.update', $cheque) }}" method="POST">
                                             @csrf @method('PUT')
@@ -229,6 +230,8 @@
                                             <button type="submit" class="dropdown-item small">Mark as Realized</button>
                                         </form>
                                     </li>
+                                    @endif
+                                    @if($cheque->status !== 'returned')
                                     <li>
                                         <form action="{{ route('third-party-cheques.update', $cheque) }}" method="POST">
                                             @csrf @method('PUT')
@@ -236,6 +239,7 @@
                                             <button type="submit" class="dropdown-item small text-danger">Mark as Returned</button>
                                         </form>
                                     </li>
+                                    @endif
                                 </ul>
                             </div>
                             @else

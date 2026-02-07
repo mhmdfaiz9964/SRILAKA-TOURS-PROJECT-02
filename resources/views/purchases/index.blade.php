@@ -77,7 +77,8 @@
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Type</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Supplier</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Total Amount</th>
-                            <th class="py-3 text-muted fw-semibold small text-uppercase">Paid / Due</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Paid</th>
+                            <th class="py-3 text-muted fw-semibold small text-uppercase">Due</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
                             <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
                         </tr>
@@ -96,11 +97,9 @@
                             </td>
                             <td class="small fw-semibold">{{ $purchase->supplier->full_name }}</td>
                             <td class="small fw-bold">{{ number_format($purchase->total_amount, 2) }}</td>
-                            <td class="small">
-                                <div class="text-success">{{ number_format($purchase->paid_amount, 2) }}</div>
-                                @if($purchase->total_amount - $purchase->paid_amount > 0)
-                                    <div class="text-danger small" style="font-size: 0.75rem;">Due: {{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}</div>
-                                @endif
+                            <td class="small fw-bold text-success">{{ number_format($purchase->paid_amount, 2) }}</td>
+                            <td class="small fw-bold {{ ($purchase->total_amount - $purchase->paid_amount) > 0 ? 'text-danger' : 'text-muted' }}">
+                                {{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}
                             </td>
                             <td class="small">
                                 @if($purchase->status == 'paid')
@@ -135,7 +134,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="9" class="text-center py-5">
                                 <div class="text-muted">No purchase records found.</div>
                             </td>
                         </tr>

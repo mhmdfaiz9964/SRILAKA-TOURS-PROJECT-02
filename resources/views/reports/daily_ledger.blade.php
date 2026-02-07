@@ -97,7 +97,7 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="income-table">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead class="bg-light bg-opacity-10">
                                     <tr>
                                         <th class="ps-4 py-2 small text-muted">Description</th>
@@ -122,11 +122,6 @@
                                     </tr>
                                 </tfoot>
                             </table>
-                            <div class="p-3 text-center border-top">
-                                <button type="button" class="btn btn-sm btn-light border-0 text-success bg-success bg-opacity-10 rounded-pill px-3" onclick="addRow('income')">
-                                    <i class="fa-solid fa-plus me-1"></i> Add Income
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -143,7 +138,7 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="expense-table">
+                            <table class="table table-hover align-middle mb-0">
                                 <thead class="bg-light bg-opacity-10">
                                     <tr>
                                         <th class="ps-4 py-2 small text-muted">Description</th>
@@ -168,11 +163,6 @@
                                     </tr>
                                 </tfoot>
                             </table>
-                            <div class="p-3 text-center border-top">
-                                <button type="button" class="btn btn-sm btn-light border-0 text-danger bg-danger bg-opacity-10 rounded-pill px-3" onclick="addRow('expense')">
-                                    <i class="fa-solid fa-plus me-1"></i> Add Expense
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -185,27 +175,184 @@
             </button>
         </div>
     </form>
+
+    <!-- Created Ledger History Table -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-bottom p-3">
+            <h6 class="fw-bold mb-0">Created Ledger History</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light bg-opacity-10">
+                        <tr>
+                            <th class="ps-4 py-3 small text-muted text-uppercase">Date</th>
+                            <th class="py-3 small text-muted text-end text-uppercase">In (Income)</th>
+                            <th class="py-3 small text-muted text-end text-uppercase">Out (Expense)</th>
+                             <th class="py-3 small text-muted text-end text-uppercase">Bank Dep.</th>
+                            <th class="py-3 small text-muted text-end text-uppercase">A/c Sales</th>
+                            <th class="py-3 small text-muted text-end text-uppercase pe-4">Balance</th>
+                            <th class="py-3 small text-muted text-end text-uppercase pe-4" style="min-width: 150px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($ledgerEntries as $entry)
+                        <tr>
+                            <td class="ps-4 fw-medium text-dark">{{ \Carbon\Carbon::parse($entry->date)->format('d M, Y') }}</td>
+                            <td class="text-end fw-bold text-success">{{ number_format($entry->total_income, 2) }}</td>
+                            <td class="text-end fw-bold text-danger">{{ number_format($entry->total_expense, 2) }}</td>
+                            <td class="text-end fw-medium text-muted">{{ number_format($entry->bank_deposit, 2) }}</td>
+                            <td class="text-end fw-medium text-muted">{{ number_format($entry->ac_sales, 2) }}</td>
+                             <td class="text-end fw-bold {{ $entry->total >= 0 ? 'text-success' : 'text-danger' }} pe-4">
+                                {{ number_format($entry->total, 2) }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <!-- Show (Redirect to view detailed list or trigger modal) -->
+                                    <button type="button" class="btn btn-sm btn-light border-0 text-primary bg-primary bg-opacity-10 rounded-pill px-3" 
+                                            onclick="showLedgerDetails('{{ $entry->date }}', '{{ $entry->id }}')">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                     <!-- Edit (Load Date into Form) -->
+                                    <button type="button" class="btn btn-sm btn-light border-0 text-success bg-success bg-opacity-10 rounded-pill px-3" 
+                                            onclick="window.location='{{ route('reports.daily-ledger', ['date' => $entry->date]) }}'">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <!-- Delete -->
+                                    <button type="button" class="btn btn-sm btn-light border-0 text-danger bg-danger bg-opacity-10 rounded-pill px-3" 
+                                            onclick="deleteEntry({{ $entry->id }}, '{{ $entry->date }}')">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Details Modal -->
+<div class="modal fade" id="ledgerDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4 border-0">
+             <div class="modal-header border-bottom-0 pb-0">
+                <div>
+                     <h5 class="modal-title fw-bold" id="modalDateTitle">Ledger Details</h5>
+                     <p class="text-muted small mb-0">Summary of income and expenses</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-success mb-3 border-bottom pb-2">Income</h6>
+                        <ul class="list-group list-group-flush" id="modalIncomeList">
+                            <!-- Items populated via JS -->
+                        </ul>
+                         <div class="d-flex justify-content-between border-top pt-2 mt-2 fw-bold">
+                            <span>Total Income</span>
+                            <span class="text-success" id="modalTotalIncome">0.00</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">Expenses</h6>
+                        <ul class="list-group list-group-flush" id="modalExpenseList">
+                            <!-- Items populated via JS -->
+                        </ul>
+                         <div class="d-flex justify-content-between border-top pt-2 mt-2 fw-bold">
+                            <span>Total Expense</span>
+                            <span class="text-danger" id="modalTotalExpense">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                 <a href="#" id="modalExportPdf" class="btn btn-sm btn-danger rounded-pill px-4">
+                    <i class="fa-solid fa-file-pdf me-2"></i> PDF
+                </a>
+                 <a href="#" id="modalExportExcel" class="btn btn-sm btn-success rounded-pill px-4">
+                    <i class="fa-solid fa-file-excel me-2"></i> Excel
+                </a>
+                <button type="button" class="btn btn-sm btn-light rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+
 <script>
-    let newEntryIndex = 0;
+    // Just direct link navigation used for 'Edit', no JS function needed other than confirm delete and show details
 
-    function addRow(type) {
-        const table = document.getElementById(type + '-table').querySelector('tbody');
-        const row = document.createElement('tr');
+    function deleteEntry(id, date) {
+        Swal.fire({
+            title: 'Delete Ledger for ' + date + '?',
+            text: "This will reset all entries for this date to 0. You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, clear it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let form = document.getElementById('deleteForm');
+                // The route handles deletion by ID (which calls destroyDailyLedgerEntry)
+                // We're passing the representative ID of the ledger entry
+                form.action = `/reports/daily-ledger/delete/${id}`;
+                form.submit();
+            }
+        })
+    }
+
+    function showLedgerDetails(date, id) {
+        // Fetch details via AJAX or simply rely on the fact that we can generate check links
+        // Ideally, we fetch the data to show in the modal.
+        // We need a route for fetching details JSON
         
-        row.innerHTML = `
-            <td class="ps-4">
-                <input type="text" name="new_entries[${newEntryIndex}][description]" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring" placeholder="Description" required>
-                <input type="hidden" name="new_entries[${newEntryIndex}][type]" value="${type}">
-            </td>
-            <td class="text-end pe-4">
-                <input type="number" step="0.01" name="new_entries[${newEntryIndex}][amount]" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring" placeholder="0.00" required>
-            </td>
-        `;
+        fetch(`/reports/daily-ledger/details/${date}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('modalDateTitle').innerText = 'Ledger Details: ' + data.date;
+                
+                // Populate Income
+                let incomeHtml = '';
+                data.income.forEach(item => {
+                    if(parseFloat(item.amount) !== 0) {
+                        incomeHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
+                            <span class="small text-muted">${item.description}</span>
+                            <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
+                        </li>`;
+                    }
+                });
+                document.getElementById('modalIncomeList').innerHTML = incomeHtml || '<li class="list-group-item text-center text-muted small border-0">No income records</li>';
+                document.getElementById('modalTotalIncome').innerText = 'LKR ' + parseFloat(data.total_income).toFixed(2);
 
-        table.appendChild(row);
-        newEntryIndex++;
+                // Populate Expense
+                let expenseHtml = '';
+                data.expense.forEach(item => {
+                     if(parseFloat(item.amount) !== 0) {
+                        expenseHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
+                            <span class="small text-muted">${item.description}</span>
+                            <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
+                        </li>`;
+                     }
+                });
+                document.getElementById('modalExpenseList').innerHTML = expenseHtml || '<li class="list-group-item text-center text-muted small border-0">No expense records</li>';
+                 document.getElementById('modalTotalExpense').innerText = 'LKR ' + parseFloat(data.total_expense).toFixed(2);
+
+                 // Update Export Links
+                 document.getElementById('modalExportPdf').href = `/reports/daily-ledger?date=${date}&export=pdf`;
+                 document.getElementById('modalExportExcel').href = `/reports/daily-ledger?date=${date}&export=excel`;
+
+                const modal = new bootstrap.Modal(document.getElementById('ledgerDetailsModal'));
+                modal.show();
+            });
     }
 </script>
 
@@ -213,6 +360,9 @@
 .focus-ring:focus {
     background-color: #fff;
     border-color: #6366f1;
+}
+.border-bottom-dashed {
+    border-bottom: 1px dashed #e5e7eb !important;
 }
 </style>
 @endsection

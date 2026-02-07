@@ -404,102 +404,6 @@
 
             <div class="sidebar-menu">
                 <div class="menu-label-wrapper">
-                    <span class="menu-label">Main</span>
-                </div>
-                
-                @can('dashboard-view')
-                <a href="{{ route('home') }}" class="menu-item {{ request()->routeIs('home') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-house"></i>
-                        <span>Dashboard</span>
-                    </div>
-                    <span class="menu-item-hint">⌘2</span>
-                </a>
-                @endcan
-
-                @can('user-list')
-                <a href="{{ route('users.index') }}" class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-user-gear"></i>
-                        <span>Users</span>
-                    </div>
-                    <span class="menu-item-hint">⌘3</span>
-                </a>
-                @endcan
-
-                @can('role-list')
-                <a href="{{ route('roles.index') }}" class="menu-item {{ request()->routeIs('roles.*') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-user-shield"></i>
-                        <span>Roles</span>
-                    </div>
-                </a>
-                @endcan
-
-                @can('cheque-list')
-                <div class="menu-label-wrapper">
-                    <span class="menu-label">Cheque Operation</span>
-                    <i class="fa-solid fa-plus menu-label-plus"></i>
-                </div>
-
-                @can('in-cheque-list')
-                <a href="{{ route('in-cheques.index') }}" class="menu-item {{ request()->routeIs('in-cheques.*') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-file-import"></i>
-                        <span>In Cheque</span>
-                    </div>
-                </a>
-                @endcan
-
-                @can('out-cheque-list')
-                <a href="{{ route('out-cheques.index') }}" class="menu-item {{ request()->routeIs('out-cheques.*') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-file-export"></i>
-                        <span>Out Cheque</span>
-                    </div>
-                </a>
-                @endcan
-
-                @can('third-party-cheque-list')
-                <a href="{{ route('third-party-cheques.index') }}" class="menu-item {{ request()->routeIs('third-party-cheques.*') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-users-viewfinder"></i>
-                        <span>3rd Party Cheque</span>
-                    </div>
-                </a>
-                @endcan
-
-                <div class="menu-label-wrapper mt-3">
-                    <span class="menu-label">Returns & Payments</span>
-                </div>
-
-                <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.index') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-money-check-dollar"></i>
-                        <span>RTN Cheque</span>
-                    </div>
-                </a>
-
-
-
-                <a href="{{ route('cheques.paid') }}" class="menu-item {{ request()->routeIs('cheques.paid') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <span>Completed Cheque</span>
-                    </div>
-                </a>
-
-                @can('bank-list')
-                <a href="{{ route('banks.index') }}" class="menu-item {{ request()->routeIs('banks.*') ? 'active' : '' }}">
-                    <div class="menu-item-content">
-                        <i class="fa-solid fa-building-columns"></i>
-                        <span>Banks</span>
-                    </div>
-                </a>
-                @endcan
-                @endcan
-
-                <div class="menu-label-wrapper">
                     <span class="menu-label">Management</span>
                     <i class="fa-solid fa-plus menu-label-plus"></i>
                 </div>
@@ -562,6 +466,67 @@
                 </a>
                 @endcan
 
+                @can('cheque-list')
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">Cheque Operation</span>
+                    <i class="fa-solid fa-plus menu-label-plus"></i>
+                </div>
+
+                @can('in-cheque-list')
+                <a href="{{ route('in-cheques.index') }}" class="menu-item {{ request()->routeIs('in-cheques.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span>In Cheque</span>
+                    </div>
+                </a>
+                @endcan
+
+                @can('out-cheque-list')
+                <a href="{{ route('out-cheques.index') }}" class="menu-item {{ request()->routeIs('out-cheques.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-file-export"></i>
+                        <span>Out Cheque</span>
+                    </div>
+                </a>
+                @endcan
+
+                @can('third-party-cheque-list')
+                <a href="{{ route('third-party-cheques.index') }}" class="menu-item {{ request()->routeIs('third-party-cheques.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-users-viewfinder"></i>
+                        <span>3rd Party Cheque</span>
+                    </div>
+                </a>
+                @endcan
+
+                <div class="menu-label-wrapper mt-3">
+                    <span class="menu-label">Returns & Payments</span>
+                </div>
+
+                <a href="{{ route('cheques.index') }}" class="menu-item {{ request()->routeIs('cheques.index') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-money-check-dollar"></i>
+                        <span>RTN Cheque</span>
+                    </div>
+                </a>
+
+                <a href="{{ route('cheques.paid') }}" class="menu-item {{ request()->routeIs('cheques.paid') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Completed Cheque</span>
+                    </div>
+                </a>
+
+                @can('bank-list')
+                <a href="{{ route('banks.index') }}" class="menu-item {{ request()->routeIs('banks.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Banks</span>
+                    </div>
+                </a>
+                @endcan
+                @endcan
+
                 <div class="menu-label-wrapper">
                     <span class="menu-label">Financials</span>
                 </div>
@@ -586,6 +551,39 @@
                         <span>Balance Sheet</span>
                     </div>
                 </a>
+
+                <div class="menu-label-wrapper">
+                    <span class="menu-label">Main</span>
+                </div>
+                
+                @can('dashboard-view')
+                <a href="{{ route('home') }}" class="menu-item {{ request()->routeIs('home') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <span class="menu-item-hint">⌘2</span>
+                </a>
+                @endcan
+
+                @can('user-list')
+                <a href="{{ route('users.index') }}" class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-user-gear"></i>
+                        <span>Users</span>
+                    </div>
+                    <span class="menu-item-hint">⌘3</span>
+                </a>
+                @endcan
+
+                @can('role-list')
+                <a href="{{ route('roles.index') }}" class="menu-item {{ request()->routeIs('roles.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span>Roles</span>
+                    </div>
+                </a>
+                @endcan
 
                 @if(auth()->user()->can('settings-manage') || auth()->user()->can('system-manage'))
                 <div class="menu-label-wrapper">
