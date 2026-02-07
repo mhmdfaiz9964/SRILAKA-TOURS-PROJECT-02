@@ -36,10 +36,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/investors/export', [App\Http\Controllers\InvestorController::class, 'export'])->name('investors.export');
     Route::resource('investors', App\Http\Controllers\InvestorController::class);
 
+    Route::get('in-cheques/export', [App\Http\Controllers\InChequeController::class, 'export'])->name('in-cheques.export');
     Route::resource('in-cheques', App\Http\Controllers\InChequeController::class);
+    
     Route::post('/third-parties', [App\Http\Controllers\ThirdPartyController::class, 'store'])->name('third-parties.store');
     Route::post('/cheque-operations/out/bulk-update', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('out-cheques.bulk-update');
+    
+    Route::get('out-cheques/export', [App\Http\Controllers\OutChequeController::class, 'export'])->name('out-cheques.export');
     Route::resource('out-cheques', App\Http\Controllers\OutChequeController::class);
+    
+    Route::get('third-party-cheques/export', [App\Http\Controllers\ThirdPartyChequeController::class, 'export'])->name('third-party-cheques.export');
     Route::resource('third-party-cheques', App\Http\Controllers\ThirdPartyChequeController::class);
     Route::post('/cheques/{cheque}/add-payment', [App\Http\Controllers\ChequeController::class, 'addPayment'])->name('cheques.add-payment');
     Route::post('/cheques/{cheque}/update-third-party', [App\Http\Controllers\ChequeController::class, 'updateThirdPartyStatus'])->name('cheques.update-third-party');
@@ -65,8 +71,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [App\Http\Controllers\SettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [App\Http\Controllers\SettingController::class, 'update'])->name('settings.update');
     
+    Route::post('expenses/categories', [App\Http\Controllers\ExpenseController::class, 'storeCategory'])->name('expenses.categories.store');
     Route::resource('expenses', App\Http\Controllers\ExpenseController::class);
+    
+    // Manual Reports Routes
     Route::get('/reports/daily-ledger', [App\Http\Controllers\ReportController::class, 'dailyLedger'])->name('reports.daily-ledger');
+    Route::post('/reports/daily-ledger/update', [App\Http\Controllers\ReportController::class, 'updateDailyLedger'])->name('reports.daily-ledger.update');
+    
     Route::get('/reports/balance-sheet', [App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+    Route::post('/reports/balance-sheet/update', [App\Http\Controllers\ReportController::class, 'updateBalanceSheet'])->name('reports.balance-sheet.update');
+    
     Route::resource('cheques', App\Http\Controllers\ChequeController::class);
 });

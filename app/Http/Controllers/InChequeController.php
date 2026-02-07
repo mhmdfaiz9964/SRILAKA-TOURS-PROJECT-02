@@ -10,8 +10,81 @@ use App\Models\ThirdPartyCheque;
 use App\Models\ThirdParty;
 use Carbon\Carbon;
 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\InChequesExport;
+
 class InChequeController extends Controller
 {
+    // ... existing constructor ...
+
+    public function export(Request $request)
+    {
+        $query = InCheque::with('bank');
+
+        // Exclude transferred cheques by default unless explicitly filtering for them
+        if (!$request->has('status') && !$request->has('search')) {
+             $query->where('status', '!=', 'transferred_to_third_party');
+        }
+
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('payer_name', 'like', "%{$request->search}%")
+                  ->orWhere('cheque_number', 'like', "%{$request->search}%");
+            });
+        }
+
+        // Payer Name filter (exact match for dropdown)
+        if ($request->payer_name) {
+            $query->where('payer_name', $request->payer_name);
+        }
+
+        // Bank filter
+        if ($request->bank_id) {
+            $query->where('bank_id', $request->bank_id);
+        }
+
+        if ($request->status) {
+            if ($request->status == 'today') {
+                $query->where('status', 'received')->whereDate('cheque_date', Carbon::today());
+            } elseif ($request->status == 'overdue') {
+                $query->whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today());
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+
+        // Date range filter
+        if ($request->from_date) {
+            $query->whereDate('cheque_date', '>=', $request->from_date);
+        }
+        if ($request->to_date) {
+            $query->whereDate('cheque_date', '<=', $request->to_date);
+        }
+
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'latest': $query->latest(); break;
+                case 'oldest': $query->oldest(); break;
+                case 'highest_amount': $query->orderByDesc('amount'); break;
+                case 'lowest_amount': $query->orderBy('amount'); break;
+                case 'name_az': $query->orderBy('payer_name'); break;
+                default: $query->latest();
+            }
+        } else {
+             $query->latest();
+        }
+
+        $cheques = $query->get();
+
+        if ($request->has('export') && $request->export == 'pdf') {
+            return \Barryvdh\DomPDF\Facade\Pdf::loadView('cheque_operations.in_cheques.pdf', compact('cheques'))
+                ->download('in_cheques_export_' . now()->format('YmdHis') . '.pdf');
+        }
+
+        return Excel::download(new InChequesExport($cheques), 'in_cheques_export_' . now()->format('YmdHis') . '.xlsx');
+    }
+    
+    // ... existing index method ...
     public function __construct()
     {
         $this->middleware('permission:in-cheque-list', ['only' => ['index', 'show']]);
@@ -148,6 +221,7 @@ class InChequeController extends Controller
                 'amount' => $cheque->amount,
                 'payer_name' => $cheque->payer_name,
                 'payment_status' => 'pending',
+                'type' => 'returned',
                 'return_reason' => 'Direct Entry / Returned'
             ]);
         }
@@ -197,6 +271,7 @@ class InChequeController extends Controller
                 'amount' => $inCheque->amount,
                 'payer_name' => $inCheque->payer_name,
                 'payment_status' => 'pending',
+                'type' => 'returned',
                 'return_reason' => 'Returned from Status Update'
             ]);
         }

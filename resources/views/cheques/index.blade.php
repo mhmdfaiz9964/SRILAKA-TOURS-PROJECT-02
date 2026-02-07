@@ -110,11 +110,29 @@
             </form>
         </div>
         <div class="table-responsive">
+            <form id="bulkUpdateForm" action="{{ route('cheques.bulk-update') }}" method="POST">
+                @csrf
+                <input type="hidden" name="type" value="cheque">
+                
+                <div class="p-2 border-bottom bg-light d-flex gap-2 align-items-center" id="bulkActions" style="display:none !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <select name="status" class="form-select form-select-sm" style="width: 160px;" id="bulkStatusSelect" required>
+                            <option value="">Select Action...</option>
+                            <option value="paid">Mark as Paid</option>
+                            <option value="pending">Mark as Pending</option>
+                            <option value="delete">Delete Selected</option>
+                        </select>
+                        <button type="submit" id="bulkUpdateBtn" class="btn btn-primary btn-sm px-3 shadow-sm" style="background: #6366f1; border: none;">
+                            <i class="fa-solid fa-check me-1"></i> Update
+                        </button>
+                    </div>
+                    <span class="ms-auto small text-muted fw-bold"><span id="selectedCount" class="text-primary">0</span> records selected</span>
+                </div>
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr class="bg-light bg-opacity-10 border-bottom">
                         <th class="ps-4 py-3" style="width: 40px;">
-                            <input type="checkbox" class="form-check-input shadow-none">
+                            <input type="checkbox" class="form-check-input shadow-none" id="selectAll">
                         </th>
                         @if(($page_title ?? '') == 'Payment Cheques')
                             <th class="py-3 text-muted small text-uppercase">Payment Date</th>
@@ -141,7 +159,7 @@
                     @forelse($cheques as $cheque)
                     <tr>
                         <td class="ps-4">
-                            <input type="checkbox" class="form-check-input shadow-none">
+                            <input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="form-check-input shadow-none cheque-checkbox">
                         </td>
                         @if(($page_title ?? '') == 'Payment Cheques')
                             <td class="small text-muted text-nowrap">
@@ -234,13 +252,9 @@
                                     @endcan
                                     @can('cheque-delete')
                                     <button type="button" class="btn btn-sm btn-icon border-0 text-black shadow-none" 
-                                            onclick="confirmDelete({{ $targetCheque->id }}, 'delete-cheque-{{ $targetCheque->id }}')">
+                                            onclick="confirmDeleteUrl('{{ route('cheques.destroy', $targetCheque) }}')">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
-                                    <form id="delete-cheque-{{ $targetCheque->id }}" action="{{ route('cheques.destroy', $targetCheque) }}" method="POST" class="d-none">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
                                     @endcan
                                 @else
                                     <span class="text-muted small">N/A</span>
@@ -256,6 +270,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </form>
         </div>
 
         <div class="d-flex align-items-center justify-content-between p-4 border-top">
@@ -362,7 +377,7 @@ function openReminderModal(id, name) {
     modal.show();
 }
 
-function confirmDelete(id, formId) {
+function confirmDeleteUrl(url) {
     Swal.fire({
         title: 'Delete Cheque?',
         text: "This action cannot be undone!",
@@ -373,9 +388,70 @@ function confirmDelete(id, formId) {
         confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
         if (result.isConfirmed) {
-            document.getElementById(formId).submit();
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            form.innerHTML = '@csrf @method("DELETE")';
+            document.body.appendChild(form);
+            form.submit();
         }
     })
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAll = document.getElementById('selectAll');
+    if(selectAll) {
+        selectAll.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.cheque-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateBulkActions();
+        });
+    }
+
+    document.querySelectorAll('.cheque-checkbox').forEach(cb => {
+        cb.addEventListener('change', updateBulkActions);
+    });
+
+    function updateBulkActions() {
+        const checkedCount = document.querySelectorAll('.cheque-checkbox:checked').length;
+        const bulkActions = document.getElementById('bulkActions');
+        if(document.getElementById('selectedCount')) {
+            document.getElementById('selectedCount').innerText = checkedCount;
+        }
+        if(bulkActions) {
+            if(checkedCount > 0) {
+                bulkActions.style.display = 'flex';
+                bulkActions.style.setProperty('display', 'flex', 'important');
+            } else {
+                bulkActions.style.display = 'none';
+                bulkActions.style.setProperty('display', 'none', 'important');
+            }
+        }
+    }
+    
+    const bulkForm = document.getElementById('bulkUpdateForm');
+    if(bulkForm) {
+        bulkForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const count = document.querySelectorAll('.cheque-checkbox:checked').length;
+            if (count === 0) {
+                 Swal.fire('Error', 'No cheques selected', 'error');
+                 return;
+            }
+            Swal.fire({
+                title: 'Update ' + count + ' Cheques?',
+                text: "Are you sure you want to proceed?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#6366f1',
+                confirmButtonText: 'Yes, update them!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    }
+});
 </script>
 @endsection

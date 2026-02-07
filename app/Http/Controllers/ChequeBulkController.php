@@ -11,7 +11,7 @@ class ChequeBulkController extends Controller
         \Log::info('Entered updateBulkStatus', ['url' => $request->url(), 'method' => $request->method(), 'all' => $request->all()]);
         $request->validate([
             'cheque_ids' => 'required|array',
-            'type' => 'required|in:in_cheque,out_cheque,third_party_cheque', // Added type
+            'type' => 'required|in:in_cheque,out_cheque,third_party_cheque,cheque', // Added type
             'status' => 'required|string', // Validation depends on type, so basic string here
         ]);
 
@@ -83,6 +83,7 @@ class ChequeBulkController extends Controller
                         'amount' => $cheque->amount,
                         'payer_name' => $cheque->payer_name,
                         'payment_status' => 'pending',
+                        'type' => 'returned',
                         'return_reason' => 'Direct Bulk Return'
                     ]);
                 }
@@ -117,6 +118,28 @@ class ChequeBulkController extends Controller
             foreach($cheques as $cheque) {
                 $cheque->status = $status;
                 $cheque->save();
+            }
+        } elseif ($type === 'cheque') {
+            $request->validate([
+                'cheque_ids.*' => 'exists:cheques,id',
+                'status' => 'required|in:paid,pending,delete', // Allowed statuses
+            ]);
+
+            $cheques = \App\Models\Cheque::whereIn('id', $chequeIds)->get();
+            $count = 0;
+
+            if ($status === 'delete') {
+                 $count = $cheques->count();
+                 foreach($cheques as $cheque) {
+                     $cheque->delete();
+                 }
+                 return back()->with('success', $count . ' Cheques deleted successfully');
+            } else {
+                foreach($cheques as $cheque) {
+                    $cheque->payment_status = $status;
+                    $cheque->save();
+                    $count++;
+                }
             }
         }
 

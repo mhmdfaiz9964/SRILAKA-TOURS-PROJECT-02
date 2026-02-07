@@ -7,8 +7,57 @@ use Illuminate\Http\Request;
 use App\Models\ThirdPartyCheque;
 use App\Models\InCheque;
 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ThirdPartyChequesExport;
+
 class ThirdPartyChequeController extends Controller
 {
+    // ... constructor ...
+
+    public function export(Request $request)
+    {
+        $query = ThirdPartyCheque::with('inCheque.bank');
+
+        if ($request->search) {
+            $query->where('third_party_name', 'like', "%{$request->search}%");
+        }
+
+        // Third Party Name filter
+        if ($request->third_party_name) {
+            $query->where('third_party_name', 'like', "%{$request->third_party_name}%");
+        }
+
+        // Bank filter (through inCheque relationship)
+        if ($request->bank_id) {
+            $query->whereHas('inCheque', function($q) use ($request) {
+                $q->where('bank_id', $request->bank_id);
+            });
+        }
+
+        // Status filter
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Date range filter (using transfer_date)
+        if ($request->from_date) {
+            $query->whereDate('transfer_date', '>=', $request->from_date);
+        }
+        if ($request->to_date) {
+            $query->whereDate('transfer_date', '<=', $request->to_date);
+        }
+
+        $cheques = $query->latest()->get();
+
+        if ($request->has('export') && $request->export == 'pdf') {
+            return \Barryvdh\DomPDF\Facade\Pdf::loadView('cheque_operations.third_party_cheques.pdf', compact('cheques'))
+                ->download('third_party_cheques_export_' . now()->format('YmdHis') . '.pdf');
+        }
+
+        return Excel::download(new ThirdPartyChequesExport($cheques), 'third_party_cheques_export_' . now()->format('YmdHis') . '.xlsx');
+    }
+    
+    // ... existing index ...
     public function __construct()
     {
         $this->middleware('permission:third-party-cheque-list', ['only' => ['index', 'show']]);

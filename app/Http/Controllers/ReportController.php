@@ -23,150 +23,198 @@ class ReportController extends Controller
         $date = $request->date ? Carbon::parse($request->date) : now();
         $dateStr = $date->format('Y-m-d');
 
-        // --- Income (Money In) ---
-        // 1. Cash Sales (Sales made today with cash payment OR Payments of type 'cash' for sales made today)
-        // Let's assume Payments table is the source of money movement.
-        // Cash Sales: Payments received today, method=cash, where the related sale was also today.
-        
-        $todaysPayments = Payment::whereDate('payment_date', $dateStr)->get();
-        
-        $cashSales = $todaysPayments->filter(function($payment) use ($dateStr) {
-             // Check if payment is for a Sale and Sale date is today and method is cash
-             // If payment->payable is Customer, assume it's for a Sale.
-             // If payment_method is cash.
-             // Ideally we check specific Sale date if possible. But payment doesn't always link to concise Sale if it's bulk.
-             // Let's simplify: Cash Sales = Payments of method 'cash' from Customers.
-             return $payment->payment_method == 'cash' && $payment->type == 'in';
-        })->sum('amount');
+        // Define Default Heads
+        $defaultHeads = [
+            'income' => ['Tour Advance', 'Tour Final Payment', 'Other Income'],
+            'expense' => ['Fuel', 'Driver Bata', 'Highway Ticket', 'Parking', 'Office Expenses', 'Salaries', 'Other Expenses']
+        ];
 
-        // A/C Sales: Payments received today via Cheque/Bank Transfer?
-        // Or does user mean "Old Payments"?
-        // User list: A/C Sales, Cash Sales, Old Payments.
-        // Interpretation:
-        // Cash Sales: Cash received.
-        // A/C Sales: Credit Sales made today (NOT Money In)? But user put it under "Income (Money In)". 
-        // This is contradictory. "Income" = Cash Flow. Credit Sale is NOT Cash Flow.
-        // Maybe "A/C Sales" means "Collections fron Account Sales"? i.e. Debtors paying.
-        // Let's define:
-        // - Cash Sales: Cash receipts.
-        // - Old Payments: Receipts for old debts?
-        // - A/C Sales: Maybe just "Sales on Account" (Credit) for info? But it says "Added to get Total Daily Income".
-        // If I add Credit Sales to Income, Total Income will be inflated vs Cash.
-        // I will assume "A/C Sales" here means "Cheque/Bank receipts" (Non-cash receipts).
-        
-        // Let's try:
-        // Cash Income = Cash Sales + Cash Collections (Old Payments).
-        // Maybe "Old Payments" = Collections from previous days' sales.
-        // "Cash Sales" = Collections from today's sales.
-        
-        $totalIncome = $todaysPayments->where('type', 'in')->sum('amount');
-        
-        // Let's just group payments by method for display if we can't perfectly separate "Old" vs "New" without Sale link.
-        // But I will try to follow the requested structure:
-        // "A/C Sales" -> I'll map this to "Bank/Cheque/Credit" type receipts?
-        // "Cash Sales" -> 'cash' receipts.
-        // "Old Payments" -> Hard to distinguish without link to Sale Date. 
-        // I will display "Total Income" as sum of all payments 'in'.
-        // And breakdown by method/type.
-        
-        // --- Expenses (Money Out) ---
-        $expenses = Expense::whereDate('expense_date', $dateStr)->get();
-        // Break down by reason aliases or exact grouping
-        $salary = $expenses->filter(fn($e) => stripos($e->reason, 'salary') !== false)->sum('amount');
-        $transport = $expenses->filter(fn($e) => stripos($e->reason, 'transport') !== false || stripos($e->reason, 'distribution') !== false)->sum('amount');
-        $food = $expenses->filter(fn($e) => stripos($e->reason, 'food') !== false || stripos($e->reason, 'welfare') !== false)->sum('amount');
-        $bankDeposit = $expenses->filter(fn($e) => stripos($e->reason, 'deposit') !== false)->sum('amount');
-        
-        $otherExpenses = $expenses->sum('amount') - ($salary + $transport + $food + $bankDeposit);
-        $totalExpenses = $expenses->sum('amount');
-        
-        // --- Daily Cash Summary ---
-        // Opening Balance: This is hard without a stored ledger. 
-        // Simple approach: Previous Day's Closing Balance.
-        // Recursive calculation is too heavy.
-        // Alternative: Sum of ALL 'in' payments < date - Sum of ALL 'expenses' < date?
-        // This is heavy but accurate if history is clean.
-        
-        $pastIncome = Payment::whereDate('payment_date', '<', $dateStr)->where('type', 'in')->sum('amount');
-        $pastExpenses = Expense::whereDate('expense_date', '<', $dateStr)->sum('amount');
-        // We also need to account for Supplier Payments (Money Out) which are in `payments` table with type='out'.
-        $pastSupplierPayments = Payment::whereDate('payment_date', '<', $dateStr)->where('type', 'out')->sum('amount');
-        
-        $pastTotalOut = $pastExpenses + $pastSupplierPayments;
-        $openingBalance = $pastIncome - $pastTotalOut;
+        // Ensure default entries exist for the date
+        foreach ($defaultHeads['income'] as $desc) {
+            \App\Models\DailyLedgerEntry::firstOrCreate(
+                ['date' => $dateStr, 'description' => $desc, 'type' => 'income'],
+                ['amount' => 0]
+            );
+        }
+        foreach ($defaultHeads['expense'] as $desc) {
+            \App\Models\DailyLedgerEntry::firstOrCreate(
+                ['date' => $dateStr, 'description' => $desc, 'type' => 'expense'],
+                ['amount' => 0]
+            );
+        }
 
-        $todaysSupplierPayments = Payment::whereDate('payment_date', $dateStr)->where('type', 'out')->sum('amount');
-        $totalDailyExpensesReal = $totalExpenses + $todaysSupplierPayments; // Expenses + Supplier Payments
+        // Fetch entries (including the newly created defaults)
+        $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
+
+        $incomeEntries = $entries->where('type', 'income');
+        $expenseEntries = $entries->where('type', 'expense');
+
+        $totalIncome = $incomeEntries->sum('amount');
+        $totalExpenses = $expenseEntries->sum('amount');
+
+        // Calculate Opening Balance
+        $pastEntries = \App\Models\DailyLedgerEntry::whereDate('date', '<', $dateStr)->get();
+        $pastIncome = $pastEntries->where('type', 'income')->sum('amount');
+        $pastExpenses = $pastEntries->where('type', 'expense')->sum('amount');
         
-        $closingBalance = $openingBalance + $totalIncome - $totalDailyExpensesReal;
+        $openingBalance = $pastIncome - $pastExpenses;
+        $closingBalance = $openingBalance + $totalIncome - $totalExpenses;
+
+        if ($request->has('export')) {
+            if ($request->export == 'excel') {
+                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DailyLedgerExport($entries), 'daily_ledger_' . $dateStr . '.xlsx');
+            } elseif ($request->export == 'pdf') {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.daily_ledger_pdf', compact(
+                    'date', 'entries', 'totalIncome', 'totalExpenses', 'closingBalance'
+                ));
+                return $pdf->download('daily_ledger_' . $dateStr . '.pdf');
+            }
+        }
 
         return view('reports.daily_ledger', compact(
             'date',
-            'cashSales', // Just total cash?
+            'incomeEntries',
+            'expenseEntries',
             'totalIncome',
-            'expenses',
-            'salary', 'transport', 'food', 'bankDeposit', 'otherExpenses', 'totalExpenses',
-            'openingBalance', 'closingBalance', 'todaysPayments', 'todaysSupplierPayments'
+            'totalExpenses',
+            'openingBalance',
+            'closingBalance'
         ));
+    }
+
+    public function updateDailyLedger(Request $request)
+    {
+        $request->validate([
+            'entries' => 'nullable|array',
+            'entries.*.id' => 'required|exists:daily_ledger_entries,id',
+            'entries.*.amount' => 'required|numeric',
+            'new_entries' => 'nullable|array',
+            'new_entries.*.description' => 'required|string',
+            'new_entries.*.amount' => 'required|numeric',
+            'new_entries.*.type' => 'required|in:income,expense',
+        ]);
+
+        if ($request->has('entries')) {
+            foreach ($request->entries as $entryData) {
+                \App\Models\DailyLedgerEntry::where('id', $entryData['id'])->update(['amount' => $entryData['amount']]);
+            }
+        }
+
+        if ($request->has('new_entries')) {
+            foreach ($request->new_entries as $newEntry) {
+                if ($newEntry['description'] && $newEntry['amount'] !== null) {
+                    \App\Models\DailyLedgerEntry::create([
+                        'date' => $request->date,
+                        'description' => $newEntry['description'],
+                        'amount' => $newEntry['amount'],
+                        'type' => $newEntry['type'],
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('reports.daily-ledger', ['date' => $request->date])->with('success', 'Ledger updated successfully');
     }
 
     public function balanceSheet(Request $request) 
     {
         $date = $request->date ? Carbon::parse($request->date) : now();
-        // Snapshots are ideally at end of day.
+        $dateStr = $date->format('Y-m-d');
         
-        // ASSETS
-        // Customer Outstanding
-        // Naive calculation: To date, Total Sales - Total Payments (In).
-        // Warning: This assumes all payments in `payments` table are for Sales.
-        $totalSales = Sale::whereDate('sale_date', '<=', $date)->sum('total_amount');
-        $totalReceived = Payment::whereDate('payment_date', '<=', $date)->where('type', 'in')->sum('amount');
-        $customerOutstanding = $totalSales - $totalReceived;
+        // Define Default Heads matches the user's image
+        $defaultHeads = [
+            'asset' => [
+                'Customer Outstanding', 
+                'Cheque in Hand', 
+                'RTN Cheque', 
+                'Stock in Cost'
+            ],
+            'liability' => [
+                'Supplier Out', 
+                'Investors'
+            ],
+            'equity' => [
+                'Profit/Lost'
+            ]
+        ];
 
-        // Cheques in Hand (Received but not deposited/realized?)
-        // Assumed InCheque status 'received' means in hand.
-        $chequesInHand = InCheque::where('status', 'received')->sum('amount'); 
+        // Ensure default entries exist
+        foreach ($defaultHeads as $type => $heads) {
+            foreach ($heads as $head) {
+                \App\Models\BalanceSheetEntry::firstOrCreate(
+                    ['date' => $dateStr, 'name' => $head, 'category' => $type],
+                    ['amount' => 0]
+                );
+            }
+        }
 
-        // Returned Cheques
-        $returnedCheques = InCheque::where('status', 'returned')->sum('amount');
+        $entries = \App\Models\BalanceSheetEntry::whereDate('date', $dateStr)->get();
 
-        // Stock at Cost
-        $stockAtCost = Product::sum(DB::raw('current_stock * cost_price'));
+        $assets = $entries->where('category', 'asset');
+        $liabilities = $entries->where('category', 'liability');
+        $equity = $entries->where('category', 'equity');
 
-        // Other Assets? (Maybe Bank Balance? But not requested explicitly)
-        $totalAssets = $customerOutstanding + $chequesInHand + $returnedCheques + $stockAtCost;
+        $totalAssets = $assets->sum('amount');
+        $totalLiabilities = $liabilities->sum('amount');
+        $totalEquity = $equity->sum('amount');
 
+        $totalLiabilitiesAndEquity = $totalLiabilities + $totalEquity;
 
-        // LIABILITIES
-        // Supplier Outstanding
-        $totalPurchases = Purchase::whereDate('purchase_date', '<=', $date)->sum('total_amount');
-        $totalPaid = Payment::whereDate('payment_date', '<=', $date)->where('type', 'out')->sum('amount');
-        $supplierOutstanding = $totalPurchases - $totalPaid;
-
-        // Investors
-        $investors = Investor::sum('invest_amount');
-
-        // Other Liabilities?
-
-        // Profit / Loss (Running Balance to make equation fit)
-        // Assets = Liabilities + Equity
-        // Equity = Investors + Retained Earnings (P&L)
-        // P&L = Assets - Liabilities - Investors
-        $profitOrLoss = $totalAssets - ($supplierOutstanding + $investors);
-
-        $totalLiabilitiesAndEquity = $supplierOutstanding + $investors + $profitOrLoss;
+        if ($request->has('export')) {
+            if ($request->export == 'excel') {
+                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\BalanceSheetExport($entries), 'balance_sheet_' . $dateStr . '.xlsx');
+            } elseif ($request->export == 'pdf') {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.balance_sheet_pdf', compact(
+                    'date', 'assets', 'liabilities', 'equity', 'totalAssets', 
+                    'totalLiabilities', 'totalEquity', 'totalLiabilitiesAndEquity'
+                ));
+                return $pdf->download('balance_sheet_' . $dateStr . '.pdf');
+            }
+        }
 
         return view('reports.balance_sheet', compact(
             'date',
-            'customerOutstanding',
-            'chequesInHand',
-            'returnedCheques',
-            'stockAtCost',
+            'assets',
+            'liabilities',
+            'equity',
             'totalAssets',
-            'supplierOutstanding',
-            'investors',
-            'profitOrLoss',
+            'totalLiabilities',
+            'totalEquity',
             'totalLiabilitiesAndEquity'
         ));
+    }
+
+    public function updateBalanceSheet(Request $request)
+    {
+        $request->validate([
+            'entries' => 'nullable|array',
+            'entries.*.id' => 'required|exists:balance_sheet_entries,id',
+            'entries.*.amount' => 'required|numeric',
+            'new_entries' => 'nullable|array',
+            'new_entries.*.name' => 'required|string',
+            'new_entries.*.amount' => 'required|numeric',
+            'new_entries.*.category' => 'required|in:asset,liability,equity',
+        ]);
+
+        if ($request->has('entries')) {
+            foreach ($request->entries as $entryData) {
+                \App\Models\BalanceSheetEntry::where('id', $entryData['id'])->update(['amount' => $entryData['amount']]);
+            }
+        }
+
+        if ($request->has('new_entries')) {
+            foreach ($request->new_entries as $newEntry) {
+                if ($newEntry['name'] && $newEntry['amount'] !== null) {
+                    \App\Models\BalanceSheetEntry::create([
+                        'date' => $request->date,
+                        'name' => $newEntry['name'],
+                        'amount' => $newEntry['amount'],
+                        'category' => $newEntry['category'],
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->route('reports.balance-sheet', ['date' => $request->date])->with('success', 'Balance Sheet updated successfully');
     }
 }

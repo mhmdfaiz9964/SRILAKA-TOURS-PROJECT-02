@@ -112,6 +112,23 @@
                         <a href="{{ route('out-cheques.index') }}" class="btn btn-light btn-sm px-3 rounded-3 border-light">
                             <i class="fa-solid fa-rotate-right me-1"></i> Clear
                         </a>
+                        <div class="dropdown d-inline-block">
+                            <button class="btn btn-success btn-sm px-3 rounded-3 text-white dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: none;">
+                                <i class="fa-solid fa-file-export me-1"></i> Export
+                            </button>
+                            <ul class="dropdown-menu shadow-lg border-0 rounded-4 p-2 mt-2">
+                                <li>
+                                    <button type="submit" formaction="{{ route('out-cheques.export') }}" name="export" value="excel" class="dropdown-item d-flex align-items-center gap-2 rounded-3 p-2">
+                                        <i class="fa-solid fa-file-excel text-success"></i> Excel Format
+                                    </button>
+                                </li>
+                                <li>
+                                    <button type="submit" formaction="{{ route('out-cheques.export') }}" name="export" value="pdf" class="dropdown-item d-flex align-items-center gap-2 rounded-3 p-2 mt-1">
+                                        <i class="fa-solid fa-file-pdf text-danger"></i> PDF Format
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 <div class="col-12">
