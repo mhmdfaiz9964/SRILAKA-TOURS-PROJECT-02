@@ -105,7 +105,7 @@ class ReportController extends Controller
         $acSales = $entries->where('description', 'A/c Sales')->sum('amount');
         $bankDeposit = $entries->where('description', 'Bank Deposit')->sum('amount');
 
-        // --- FETCH HISTORY (Ledger Summaries) ---
+        // 4. FETCH HISTORY (Ledger Summaries) - Ensuring unique dates and correct IDs
         $ledgerEntries = \App\Models\DailyLedgerEntry::select('date')
             ->selectRaw('SUM(CASE WHEN type="income" AND description!="A/c Sales" THEN amount ELSE 0 END) as total_income')
             ->selectRaw('SUM(CASE WHEN type="expense" AND description!="Salary" THEN amount ELSE 0 END) as total_expense')
@@ -115,13 +115,17 @@ class ReportController extends Controller
             ->orderBy('date', 'desc')
             ->get()
             ->map(function($item) {
+                // Ensure date is a string Y-m-d for reliable URL usage
+                $dateStr = \Carbon\Carbon::parse($item->date)->format('Y-m-d');
+                $item->date_str = $dateStr;
+                
                 // Add salary total for this date
-                $item->total_salary = \App\Models\DailySalaryEntry::whereDate('date', $item->date)->sum('amount');
+                $item->total_salary = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->sum('amount');
                 
                 // Calculate balance (excluding A/C sales, including salary)
                 $item->total = $item->total_income - $item->total_expense - $item->total_salary; 
                 
-                $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $item->date)->first();
+                $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->first();
                 $item->id = $firstEntry ? $firstEntry->id : 0;
                 return $item;
             });
@@ -156,51 +160,79 @@ class ReportController extends Controller
         $request->validate([
             'date' => 'required|date',
             'entries' => 'nullable|array',
-            'entries.*.id' => 'nullable', // Can be null for new entries
-            'entries.*.description' => 'required_without:entries.*.id|string',
+            'entries.*.id' => 'nullable',
+            'entries.*.description' => 'required|string',
             'entries.*.amount' => 'required|numeric',
-            'entries.*.type' => 'required_without:entries.*.id|in:income,expense',
+            'entries.*.type' => 'required|in:income,expense',
             'salaries' => 'nullable|array',
-            'salaries.*.id' => 'nullable|exists:daily_salary_entries,id',
+            'salaries.*.id' => 'nullable',
             'salaries.*.employee_name' => 'required|string',
             'salaries.*.amount' => 'required|numeric',
         ]);
 
-        if ($request->has('entries')) {
-            foreach ($request->entries as $entryData) {
-                if (isset($entryData['id']) && !str_starts_with($entryData['id'], 'new_')) {
-                    \App\Models\DailyLedgerEntry::where('id', $entryData['id'])->update(['amount' => $entryData['amount']]);
-                } else {
-                    // Create new entry
-                    \App\Models\DailyLedgerEntry::create([
-                        'date' => $request->date,
-                        'description' => $entryData['description'],
-                        'amount' => $entryData['amount'],
-                        'type' => $entryData['type']
-                    ]);
-                }
-            }
-        }
+        \DB::transaction(function () use ($request) {
+            $date = $request->date;
+            $submittedEntryIds = [];
+            $submittedSalaryIds = [];
 
-        // Handle salary entries
-        if ($request->has('salaries')) {
-            foreach ($request->salaries as $salaryData) {
-                if (isset($salaryData['id']) && $salaryData['id']) {
-                    // Update existing salary entry
-                    \App\Models\DailySalaryEntry::where('id', $salaryData['id'])->update([
-                        'employee_name' => $salaryData['employee_name'],
-                        'amount' => $salaryData['amount']
-                    ]);
-                } else {
-                    // Create new salary entry
-                    \App\Models\DailySalaryEntry::create([
-                        'date' => $request->date,
-                        'employee_name' => $salaryData['employee_name'],
-                        'amount' => $salaryData['amount']
-                    ]);
+            // 1. Process Normal Entries (Income/Expense)
+            if ($request->has('entries')) {
+                foreach ($request->entries as $entryData) {
+                    if (!empty($entryData['id']) && is_numeric($entryData['id'])) {
+                        // Update existing
+                        \App\Models\DailyLedgerEntry::where('id', $entryData['id'])->update([
+                            'description' => $entryData['description'],
+                            'amount' => $entryData['amount'],
+                            'type' => $entryData['type']
+                        ]);
+                        $submittedEntryIds[] = $entryData['id'];
+                    } else {
+                        // Create new
+                        $newEntry = \App\Models\DailyLedgerEntry::create([
+                            'date' => $date,
+                            'description' => $entryData['description'],
+                            'amount' => $entryData['amount'],
+                            'type' => $entryData['type']
+                        ]);
+                        $submittedEntryIds[] = $newEntry->id;
+                    }
                 }
             }
-        }
+
+            // 2. Process Salary Entries
+            if ($request->has('salaries')) {
+                foreach ($request->salaries as $salaryData) {
+                    if (!empty($salaryData['id']) && is_numeric($salaryData['id'])) {
+                        // Update existing
+                        \App\Models\DailySalaryEntry::where('id', $salaryData['id'])->update([
+                            'employee_name' => $salaryData['employee_name'],
+                            'amount' => $salaryData['amount']
+                        ]);
+                        $submittedSalaryIds[] = $salaryData['id'];
+                    } else {
+                        // Create new
+                        $newSalary = \App\Models\DailySalaryEntry::create([
+                            'date' => $date,
+                            'employee_name' => $salaryData['employee_name'],
+                            'amount' => $salaryData['amount']
+                        ]);
+                        $submittedSalaryIds[] = $newSalary->id;
+                    }
+                }
+            }
+
+            // 3. Remove records that were deleted in the UI
+            // Important: We only remove entries for THIS date that weren't submitted.
+            // But we MUST NOT remove default heads if they are missing? 
+            // Standard approach: if user removed it, it's gone.
+            \App\Models\DailyLedgerEntry::whereDate('date', $date)
+                ->whereNotIn('id', $submittedEntryIds)
+                ->delete();
+
+            \App\Models\DailySalaryEntry::whereDate('date', $date)
+                ->whereNotIn('id', $submittedSalaryIds)
+                ->delete();
+        });
 
         return redirect()->route('reports.daily-ledger', ['date' => $request->date])->with('success', 'Daily Ledger updated successfully');
     }
@@ -309,33 +341,48 @@ class ReportController extends Controller
     public function updateBalanceSheet(Request $request)
     {
         $request->validate([
+            'date' => 'required|date',
             'entries' => 'nullable|array',
-            'entries.*.id' => 'required|exists:balance_sheet_entries,id',
+            // Entries can have an ID (update) or no ID (create)
+            'entries.*.id' => 'nullable',
+            'entries.*.name' => 'required|string',
             'entries.*.amount' => 'required|numeric',
-            'new_entries' => 'nullable|array',
-            'new_entries.*.name' => 'required|string',
-            'new_entries.*.amount' => 'required|numeric',
-            'new_entries.*.category' => 'required|in:asset,liability,equity',
+            'entries.*.category' => 'required|in:asset,liability,equity',
         ]);
 
-        if ($request->has('entries')) {
-            foreach ($request->entries as $entryData) {
-                \App\Models\BalanceSheetEntry::where('id', $entryData['id'])->update(['amount' => $entryData['amount']]);
-            }
-        }
+        \DB::transaction(function () use ($request) {
+            $date = $request->date;
+            $submittedIds = [];
 
-        if ($request->has('new_entries')) {
-            foreach ($request->new_entries as $newEntry) {
-                if ($newEntry['name'] && $newEntry['amount'] !== null) {
-                    \App\Models\BalanceSheetEntry::create([
-                        'date' => $request->date,
-                        'name' => $newEntry['name'],
-                        'amount' => $newEntry['amount'],
-                        'category' => $newEntry['category'],
-                    ]);
+            if ($request->has('entries')) {
+                foreach ($request->entries as $entryData) {
+                    if (!empty($entryData['id']) && is_numeric($entryData['id'])) {
+                        // Update existing
+                        \App\Models\BalanceSheetEntry::where('id', $entryData['id'])->update([
+                            'name' => $entryData['name'],
+                            'amount' => $entryData['amount'],
+                            'category' => $entryData['category']
+                        ]);
+                        $submittedIds[] = $entryData['id'];
+                    } else {
+                        // Create new or duplicated
+                        $newEntry = \App\Models\BalanceSheetEntry::create([
+                            'date' => $date,
+                            'name' => $entryData['name'],
+                            'amount' => $entryData['amount'],
+                            'category' => $entryData['category']
+                        ]);
+                        $submittedIds[] = $newEntry->id;
+                    }
                 }
             }
-        }
+
+            // Optional: Delete entries that were removed from the UI
+            // Only delete for this specific date
+            \App\Models\BalanceSheetEntry::whereDate('date', $date)
+                ->whereNotIn('id', $submittedIds)
+                ->delete();
+        });
 
         return redirect()->route('reports.balance-sheet', ['date' => $request->date])->with('success', 'Balance Sheet updated successfully');
     }

@@ -430,20 +430,26 @@
         const invoiceNumber = "{{ $sale->invoice_number }}";
         const customerName = "{{ $sale->customer->full_name }}";
         const totalAmount = "{{ number_format($sale->total_amount, 2) }}";
-        const paidAmount = "{{ number_format($sale->paid_amount, 2) }}";
         const balance = "{{ number_format($sale->total_amount - $sale->paid_amount, 2) }}";
         const companyName = "{{ $globalSettings['company_name'] ?? config('app.name') }}";
-        const pdfUrl = "{{ route('sales.pdf', $sale->id) }}";
-        const fullPdfUrl = window.location.origin + pdfUrl;
         
+        // Generate a signed URL that expires in 30 days
+        const fullPdfUrl = "{{ URL::temporarySignedRoute('sales.pdf', now()->addDays(30), ['sale' => $sale->id]) }}";
+        
+        // Get current Date and Time
+        const now = new Date();
+        const dateTimeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+
         // Create message with PDF link
-        const message = `*${companyName}*\n\n` +
-                       `Invoice: *${invoiceNumber}*\n` +
-                       `Customer: ${customerName}\n\n` +
-                       `Total Amount: Rs. ${totalAmount}\n` +
-                       `Paid: Rs. ${paidAmount}\n` +
-                       `Balance: Rs. ${balance}\n\n` +
-                       `Download PDF Invoice:\n${fullPdfUrl}`;
+        const message = `*${companyName}*\n` +
+                       `--------------------------\n` +
+                       `INVOICE: *#${invoiceNumber}*\n` +
+                       `DATE: ${dateTimeStr}\n` +
+                       `CUSTOMER: ${customerName}\n\n` +
+                       `TOTAL: Rs. ${totalAmount}\n` +
+                       `BALANCE: Rs. ${balance}\n\n` +
+                       `*View/Download PDF Invoice:*\n${fullPdfUrl}\n\n` +
+                       `Thank you for your business!`;
         
         // Get customer phone number (remove spaces and special characters)
         const customerPhone = "{{ $sale->customer->mobile_number }}".replace(/[^0-9]/g, '');

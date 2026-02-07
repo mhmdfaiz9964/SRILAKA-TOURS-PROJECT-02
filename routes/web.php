@@ -22,6 +22,11 @@ Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+// Secure Invoice View (Shared via WhatsApp - Signed URL)
+Route::get('/sales/{sale}/pdf', [App\Http\Controllers\SaleController::class, 'generatePdf'])
+    ->name('sales.pdf')
+    ->middleware('signed');
+
 Route::middleware(['auth'])->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class);
     Route::resource('roles', App\Http\Controllers\RoleController::class);
@@ -59,7 +64,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::get('/suppliers/{supplier}/ledger/export', [App\Http\Controllers\SupplierController::class, 'exportLedger'])->name('suppliers.ledger.export');
     Route::resource('sales', App\Http\Controllers\SaleController::class);
-    Route::get('/sales/{sale}/pdf', [App\Http\Controllers\SaleController::class, 'generatePdf'])->name('sales.pdf');
+    // Route moved outside to support public sharing with signature
     Route::post('/sales/{sale}/add-payment', [App\Http\Controllers\SaleController::class, 'addPayment'])->name('sales.add-payment');
     Route::resource('purchases', App\Http\Controllers\PurchaseController::class);
     Route::post('/purchases/{purchase}/add-payment', [App\Http\Controllers\PurchaseController::class, 'addPayment'])->name('purchases.add-payment');

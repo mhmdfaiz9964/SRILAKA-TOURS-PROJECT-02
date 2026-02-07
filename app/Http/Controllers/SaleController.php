@@ -245,14 +245,15 @@ class SaleController extends Controller
     public function generatePdf($id)
     {
         $sale = \App\Models\Sale::with('items.product', 'customer', 'salesman')->findOrFail($id);
-        $globalSettings = [
-            'company_name' => config('app.name'),
-            'company_address' => '',
-            'company_phone' => '',
-        ];
         
+        // Fetch Settings from Cache or Model
+        $globalSettings = \Cache::get('global_settings');
+        if (!$globalSettings) {
+            $globalSettings = \App\Models\Setting::all()->pluck('value', 'key');
+        }
+
         $pdf = \PDF::loadView('sales.invoice_pdf', compact('sale', 'globalSettings'));
-        return $pdf->download('invoice-' . $sale->invoice_number . '.pdf');
+        return $pdf->stream('invoice-' . $sale->invoice_number . '.pdf');
     }
 
     public function edit($id)
