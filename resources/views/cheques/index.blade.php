@@ -158,8 +158,11 @@
                 <tbody>
                     @forelse($cheques as $cheque)
                     <tr>
+                        @php
+                            $isLocked = in_array($cheque->payment_status, ['paid', 'returned']);
+                        @endphp
                         <td class="ps-4">
-                            <input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="form-check-input shadow-none cheque-checkbox">
+                            <input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="form-check-input shadow-none cheque-checkbox" {{ $isLocked ? 'disabled title="Locked cheques cannot be updated"' : '' }}>
                         </td>
                         @if(($page_title ?? '') == 'Payment Cheques')
                             <td class="small text-muted text-nowrap">
@@ -246,9 +249,11 @@
                                         <i class="fa-solid fa-eye"></i>
                                     </a>
                                     @can('cheque-edit')
+                                    @if(!$isLocked)
                                     <a href="{{ route('cheques.edit', $targetCheque) }}" class="btn btn-sm btn-icon border-0 text-black shadow-none">
                                         <i class="fa-solid fa-pen-to-square"></i>
                                     </a>
+                                    @endif
                                     @endcan
                                     @can('cheque-delete')
                                     <button type="button" class="btn btn-sm btn-icon border-0 text-black shadow-none" 

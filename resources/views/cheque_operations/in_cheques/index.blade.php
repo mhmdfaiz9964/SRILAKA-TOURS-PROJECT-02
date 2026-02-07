@@ -257,8 +257,11 @@
                     <tbody>
                         @forelse($cheques as $cheque)
                         <tr>
+                            @php
+                                $isLocked = in_array($cheque->status, ['returned', 'transferred_to_third_party', 'transferred_to_supplier', 'realized']);
+                            @endphp
                             <td class="ps-4">
-                                <input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox" {{ $cheque->status == 'returned' ? 'disabled title="Returned cheques cannot be updated"' : '' }}>
+                                <input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox" {{ $isLocked ? 'disabled title="Locked cheques cannot be updated"' : '' }}>
                             </td>
                             <td>
                                 <span class="badge rounded-pill px-2 py-1" style="background: #eff6ff; color: #3b82f6; font-size: 0.65rem;">
@@ -289,9 +292,11 @@
                             <td class="text-end pe-4">
         <div class="d-flex justify-content-end gap-1">
             @can('in-cheque-edit')
+            @if(!$isLocked)
             <a href="{{ route('in-cheques.edit', $in_cheque = $cheque) }}" class="btn btn-sm btn-icon border-0 text-dark shadow-none">
                 <i class="fa-solid fa-pen-to-square"></i>
             </a>
+            @endif
             @endcan
             @can('in-cheque-delete')
             <button type="button" class="btn btn-sm btn-icon border-0 text-danger shadow-none" onclick="confirmDeleteCheque('{{ route('in-cheques.destroy', $cheque) }}')">

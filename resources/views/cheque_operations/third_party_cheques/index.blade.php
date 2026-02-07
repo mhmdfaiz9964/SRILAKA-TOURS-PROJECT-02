@@ -137,10 +137,7 @@
 
             $('#daterange-tp').daterangepicker({
                 autoUpdateInput: false,
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: 'DD/MM/YYYY'
-                }
+                locale: { cancelLabel: 'Clear', format: 'DD/MM/YYYY' }
             });
 
             $('#daterange-tp').on('apply.daterangepicker', function(ev, picker) {
@@ -171,7 +168,6 @@
                             <option value="returned">Mark Returned</option>
                             <option value="received">Mark Sent</option>
                         </select>
-                        
                         <button type="submit" id="bulkUpdateBtn" class="btn btn-primary btn-sm px-3 shadow-sm" style="background: #6366f1; border: none;">
                             <i class="fa-solid fa-check me-1"></i> Update Selected
                         </button>
@@ -179,103 +175,122 @@
                     <span class="ms-auto small text-muted fw-bold"><span id="selectedCount" class="text-primary">0</span> records selected</span>
                 </div>
 
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr class="bg-light bg-opacity-10 border-bottom">
-                        <th class="ps-4 py-3" style="width: 40px;"><input type="checkbox" id="selectAll"></th>
-                        <th class="py-3 text-muted small text-uppercase">Type</th>
-                        <th class="py-3 text-muted small text-uppercase">Transfer Date</th>
-                        <th class="py-3 text-muted small text-uppercase">Cheq #</th>
-                        <th class="py-3 text-muted small text-uppercase">Client</th>
-                        <th class="py-3 text-muted small text-uppercase">3rd Party Name</th>
-                        <th class="py-3 text-muted small text-uppercase text-end">Amount</th>
-                        <th class="py-3 text-muted small text-uppercase text-center">Status</th>
-                        <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($cheques as $cheque)
-                    <tr>
-                         <td class="ps-4"><input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox"></td>
-                        <td>
-                            <span class="badge rounded-pill px-2 py-1" style="background: #f5f3ff; color: #8b5cf6; font-size: 0.65rem;">
-                                3RD
-                            </span>
-                        </td>
-                        <td class="small text-muted">{{ \Carbon\Carbon::parse($cheque->transfer_date)->format('d/m/Y') }}</td>
-                        <td class="small fw-bold">#{{ $cheque->inCheque->cheque_number }}</td>
-                        <td class="small">{{ $cheque->inCheque->payer_name }}</td>
-                        <td class="small fw-bold text-dark">{{ $cheque->third_party_name }}</td>
-                        <td class="small fw-bold text-end">LKR {{ number_format($cheque->inCheque->amount, 2) }}</td>
-                        <td class="text-center">
-                            @php
-                                $statusColors = [
-                                    'received' => ['bg' => '#eff6ff', 'text' => '#3b82f6', 'label' => 'Sent'],
-                                    'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Realized'],
-                                    'returned' => ['bg' => '#fef2f2', 'text' => '#ef4444', 'label' => 'Returned'],
-                                ];
-                                $st = $statusColors[$cheque->status] ?? ['bg' => '#eee', 'text' => '#666', 'label' => $cheque->status];
-                            @endphp
-                            @can('third-party-cheque-edit')
-                            <div class="dropdown d-inline-block">
-                                <span class="badge rounded-pill px-2 py-1 cursor-pointer dropdown-toggle" data-bs-toggle="dropdown" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="bg-light bg-opacity-10 border-bottom">
+                            <th class="ps-4 py-3" style="width: 40px;"><input type="checkbox" id="selectAll"></th>
+                            <th class="py-3 text-muted small text-uppercase">Type</th>
+                            <th class="py-3 text-muted small text-uppercase">Transfer Date</th>
+                            <th class="py-3 text-muted small text-uppercase">Cheq #</th>
+                            <th class="py-3 text-muted small text-uppercase">Client</th>
+                            <th class="py-3 text-muted small text-uppercase">3rd Party Name</th>
+                            <th class="py-3 text-muted small text-uppercase text-end">Amount</th>
+                            <th class="py-3 text-muted small text-uppercase text-center">Status</th>
+                            <th class="py-3 text-muted small text-uppercase text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($cheques as $cheque)
+                        @php
+                            $isLocked = in_array($cheque->status, ['realized', 'returned']);
+                        @endphp
+                        <tr>
+                            <td class="ps-4"><input type="checkbox" name="cheque_ids[]" value="{{ $cheque->id }}" class="cheque-checkbox" {{ $isLocked ? 'disabled title="Finalized cheques cannot be updated"' : '' }}></td>
+                            <td>
+                                <span class="badge rounded-pill px-2 py-1" style="background: #f5f3ff; color: #8b5cf6; font-size: 0.65rem;">3RD</span>
+                            </td>
+                            <td class="small text-muted text-nowrap">{{ \Carbon\Carbon::parse($cheque->transfer_date)->format('d/m/Y') }}</td>
+                            <td class="small fw-bold">#{{ $cheque->inCheque->cheque_number }}</td>
+                            <td class="small">{{ $cheque->inCheque->payer_name }}</td>
+                            <td class="small fw-bold text-dark">{{ $cheque->third_party_name }}</td>
+                            <td class="small fw-bold text-end">LKR {{ number_format($cheque->inCheque->amount, 2) }}</td>
+                            <td class="text-center">
+                                @php
+                                    $statusColors = [
+                                        'received' => ['bg' => '#eff6ff', 'text' => '#3b82f6', 'label' => 'Sent'],
+                                        'realized' => ['bg' => '#ecfdf5', 'text' => '#10b981', 'label' => 'Realized'],
+                                        'returned' => ['bg' => '#fef2f2', 'text' => '#ef4444', 'label' => 'Returned'],
+                                    ];
+                                    $st = $statusColors[$cheque->status] ?? ['bg' => '#eee', 'text' => '#666', 'label' => $cheque->status];
+                                @endphp
+                                @can('third-party-cheque-edit')
+                                @if(!$isLocked)
+                                <div class="dropdown d-inline-block">
+                                    <span class="badge rounded-pill px-2 py-1 cursor-pointer dropdown-toggle shadow-none" data-bs-toggle="dropdown" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
+                                        {{ $st['label'] }}
+                                    </span>
+                                    <ul class="dropdown-menu shadow-lg border-0 rounded-4">
+                                        @if($cheque->status !== 'realized')
+                                        <li><button type="button" class="dropdown-item small" onclick="updateTPStatus('{{ $cheque->id }}', 'realized')">Mark as Realized</button></li>
+                                        @endif
+                                        @if($cheque->status !== 'returned')
+                                        <li><button type="button" class="dropdown-item small text-danger" onclick="updateTPStatus('{{ $cheque->id }}', 'returned')">Mark as Returned</button></li>
+                                        @endif
+                                    </ul>
+                                </div>
+                                @else
+                                <span class="badge rounded-pill px-2 py-1" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
                                     {{ $st['label'] }}
                                 </span>
-                                <ul class="dropdown-menu shadow-sm border-light">
-                                    @if($cheque->status !== 'realized')
-                                    <li>
-                                        <form action="{{ route('third-party-cheques.update', $cheque) }}" method="POST">
-                                            @csrf @method('PUT')
-                                            <input type="hidden" name="status" value="realized">
-                                            <button type="submit" class="dropdown-item small">Mark as Realized</button>
-                                        </form>
-                                    </li>
-                                    @endif
-                                    @if($cheque->status !== 'returned')
-                                    <li>
-                                        <form action="{{ route('third-party-cheques.update', $cheque) }}" method="POST">
-                                            @csrf @method('PUT')
-                                            <input type="hidden" name="status" value="returned">
-                                            <button type="submit" class="dropdown-item small text-danger">Mark as Returned</button>
-                                        </form>
-                                    </li>
-                                    @endif
-                                </ul>
-                            </div>
-                            @else
-                            <span class="badge rounded-pill px-2 py-1" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
-                                {{ $st['label'] }}
-                            </span>
-                            @endcan
-                        </td>
-                        <td class="text-end pe-4">
-                             @can('third-party-cheque-delete')
-                             <form action="{{ route('third-party-cheques.destroy', $cheque) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-icon border-0 text-danger shadow-none">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </form>
-                            @endcan
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="8" class="text-center py-5 text-muted small">No 3rd party transfers found.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                                @endif
+                                @else
+                                <span class="badge rounded-pill px-2 py-1" style="background: {{ $st['bg'] }}; color: {{ $st['text'] }}; font-size: 0.65rem;">
+                                    {{ $st['label'] }}
+                                </span>
+                                @endcan
+                            </td>
+                            <td class="text-end pe-4 text-nowrap">
+                                <div class="d-flex justify-content-end gap-1">
+                                    @can('third-party-cheque-delete')
+                                    <button type="button" class="btn btn-sm btn-icon border-0 text-danger shadow-none" onclick="deleteTPCheque('{{ $cheque->id }}')">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted small">No 3rd party transfers found.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </form>
         </div>
-        </form>
         <div class="p-4 border-top">
             {{ $cheques->links() }}
         </div>
     </div>
 </div>
 
+<!-- Shared Action Form (Eliminates Nested Forms) -->
+<form id="sharedActionForm" method="POST" style="display: none;">
+    @csrf
+    @method('PUT')
+    <div id="extraInputs"></div>
+</form>
+
 <script>
+    function updateTPStatus(id, status) {
+        const form = document.getElementById('sharedActionForm');
+        form.action = `/third-party-cheques/${id}`;
+        document.getElementById('extraInputs').innerHTML = `
+            <input type="hidden" name="status" value="${status}">
+        `;
+        form.submit();
+    }
+
+    function deleteTPCheque(id) {
+        if (!confirm('Are you sure you want to delete this record?')) return;
+        const form = document.getElementById('sharedActionForm');
+        form.action = `/third-party-cheques/${id}`;
+        document.getElementById('extraInputs').innerHTML = `
+            <input type="hidden" name="_method" value="DELETE">
+        `;
+        form.submit();
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const selectAll = document.getElementById('selectAll');
         if(selectAll) {
@@ -311,7 +326,6 @@
         if(bulkForm) {
             bulkForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
                 const count = document.querySelectorAll('.cheque-checkbox:checked').length;
                 Swal.fire({
                     title: 'Update ' + count + ' Cheques?',
@@ -336,5 +350,6 @@
     .card-stat:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; border-color: rgba(99, 102, 241, 0.2) !important; }
     .btn-icon:hover { background: #f1f5f9; border-radius: 8px; }
     .extra-small { font-size: 0.7rem; }
+    .cursor-pointer { cursor: pointer; }
 </style>
 @endsection

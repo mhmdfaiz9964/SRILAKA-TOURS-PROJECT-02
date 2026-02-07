@@ -31,7 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cheques/export', [App\Http\Controllers\ChequeController::class, 'export'])->name('cheques.export');
     Route::post('/cheques/{cheque}/reminder', [App\Http\Controllers\ChequeController::class, 'storeReminder'])->name('cheques.reminder');
     Route::post('/reminders/{reminder}/complete', [App\Http\Controllers\ChequeController::class, 'completeReminder'])->name('reminders.complete');
-    Route::match(['get', 'post'], '/cheque-bulk-action', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('cheques.bulk-update-combined');
+    Route::match(['get', 'post', 'put', 'patch'], '/cheque-bulk-action', [App\Http\Controllers\ChequeBulkController::class, 'updateBulkStatus'])->name('cheques.bulk-update-combined');
     
     Route::get('/investors/export', [App\Http\Controllers\InvestorController::class, 'export'])->name('investors.export');
     Route::resource('investors', App\Http\Controllers\InvestorController::class);
