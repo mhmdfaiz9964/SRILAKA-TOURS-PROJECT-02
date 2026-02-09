@@ -300,15 +300,7 @@
                     <td class="text-end fw-bold">{{ number_format($item->total_price, 2) }}</td>
                 </tr>
                 @endforeach
-                @for($i = 0; $i < max(0, 10 - count($purchase->items)); $i++)
-                <tr style="height: 30px;">
-                    <td>&nbsp;</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                @endfor
+
             </tbody>
             <tfoot>
                 @php
@@ -325,11 +317,13 @@
                 @endphp
 
                 @foreach($additionalCosts as $cost)
+                @if($cost['val'] > 0 || $cost['label'] == 'Sub Total Item')
                 <tr>
                     <td colspan="3" class="border-0"></td>
                     <td class="text-end p-1 border-dark border-1" style="font-size: 0.9rem;">{{ $cost['label'] }}</td>
                     <td class="text-end p-1 border-dark border-1 {{ $cost['bold'] ? 'fw-bold' : '' }}" style="font-size: 0.9rem;">{{ number_format($cost['val'], 2) }}</td>
                 </tr>
+                @endif
                 @endforeach
 
                 <tr style="background: #f1f3f4 !important; -webkit-print-color-adjust: exact;">

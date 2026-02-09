@@ -59,4 +59,45 @@ class SystemController extends Controller
             return back()->with('error', 'Link Failed: ' . $e->getMessage());
         }
     }
+
+    public function backupDatabase()
+    {
+        try {
+            $database = config('database.connections.mysql.database');
+            $username = config('database.connections.mysql.username');
+            $password = config('database.connections.mysql.password');
+            $host = config('database.connections.mysql.host');
+
+            $filename = "backup-" . now()->format('Y-m-d-H-i-s') . ".sql";
+            $storagePath = storage_path('app/public/backups');
+
+            if (!file_exists($storagePath)) {
+                mkdir($storagePath, 0755, true);
+            }
+
+            $path = $storagePath . '/' . $filename;
+
+            // Use mysqldump. Ensure it's in the system path.
+            $command = sprintf(
+                'mysqldump --user=%s --password=%s --host=%s %s > %s',
+                escapeshellarg($username),
+                escapeshellarg($password),
+                escapeshellarg($host),
+                escapeshellarg($database),
+                escapeshellarg($path)
+            );
+
+            $output = [];
+            $returnVar = null;
+            exec($command, $output, $returnVar);
+
+            if ($returnVar === 0) {
+                return response()->download($path);
+            } else {
+                return back()->with('error', 'Database backup failed. Please ensure mysqldump is installed on the server.');
+            }
+        } catch (\Exception $e) {
+            return back()->with('error', 'Backup Error: ' . $e->getMessage());
+        }
+    }
 }
