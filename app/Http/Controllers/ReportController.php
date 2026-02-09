@@ -167,6 +167,17 @@ class ReportController extends Controller
         ));
     }
 
+    public function editDailyLedgerEntry($id)
+    {
+        $entry = \App\Models\DailyLedgerEntry::find($id);
+        if (!$entry) {
+            return redirect()->route('reports.daily-ledger.history')->with('error', 'Entry not found');
+        }
+
+        // Reuse the dailyLedger logic by passing the date
+        return $this->dailyLedger(new Request(['date' => $entry->date]));
+    }
+
     public function updateDailyLedger(Request $request)
     {
         $request->validate([
@@ -246,7 +257,7 @@ class ReportController extends Controller
                 ->delete();
         });
 
-        return redirect()->route('reports.daily-ledger', ['date' => $request->date])->with('success', 'Daily Ledger updated successfully');
+        return redirect()->route('reports.daily-ledger')->with('success', 'Daily Ledger updated successfully');
     }
 
     // Keeping store for backward compatibility if needed, but primary is now update
@@ -335,6 +346,27 @@ class ReportController extends Controller
             }
         }
 
+        // --- History Section (Integrated) ---
+        $query = \App\Models\BalanceSheetEntry::select('date')
+            ->selectRaw('SUM(CASE WHEN category="asset" THEN amount ELSE 0 END) as total_assets')
+            ->selectRaw('SUM(CASE WHEN category="liability" THEN amount ELSE 0 END) as total_liabilities')
+            ->selectRaw('SUM(CASE WHEN category="equity" THEN amount ELSE 0 END) as total_equity')
+            ->groupBy('date');
+
+        $bsHistory = $query->orderBy('date', 'desc')->get()
+            ->map(function ($item) {
+                $item->total_liab_eq = $item->total_liabilities + $item->total_equity;
+                $item->difference = $item->total_assets - $item->total_liab_eq;
+                $firstRow = \App\Models\BalanceSheetEntry::whereDate('date', $item->date)->first();
+                $item->id = $firstRow ? $firstRow->id : 0;
+                return $item;
+            });
+
+        $historySummary = [
+            'total_assets' => $bsHistory->sum('total_assets'),
+            'total_liab_eq' => $bsHistory->sum('total_liab_eq'),
+        ];
+
         return view('reports.balance_sheet', compact(
             'date',
             'assets',
@@ -343,8 +375,53 @@ class ReportController extends Controller
             'totalAssets',
             'totalLiabilities',
             'totalEquity',
-            'totalLiabilitiesAndEquity'
+            'totalLiabilitiesAndEquity',
+            'bsHistory',
+            'historySummary'
         ));
+    }
+
+    public function editBalanceSheet($id)
+    {
+        $entry = \App\Models\BalanceSheetEntry::find($id);
+        if (!$entry) {
+            return redirect()->route('reports.balance-sheet')->with('error', 'Entry not found');
+        }
+
+        // Reuse the balanceSheet logic by passing the date
+        return $this->balanceSheet(new Request(['date' => $entry->date]));
+    }
+
+    public function balanceSheetHistory(Request $request)
+    {
+        $query = \App\Models\BalanceSheetEntry::select('date')
+            ->selectRaw('SUM(CASE WHEN category="asset" THEN amount ELSE 0 END) as total_assets')
+            ->selectRaw('SUM(CASE WHEN category="liability" THEN amount ELSE 0 END) as total_liabilities')
+            ->selectRaw('SUM(CASE WHEN category="equity" THEN amount ELSE 0 END) as total_equity')
+            ->groupBy('date');
+
+        if ($request->from_date) {
+            $query->whereDate('date', '>=', $request->from_date);
+        }
+        if ($request->to_date) {
+            $query->whereDate('date', '<=', $request->to_date);
+        }
+
+        $bsHistory = $query->orderBy('date', 'desc')->get()
+            ->map(function ($item) {
+                $item->total_liab_eq = $item->total_liabilities + $item->total_equity;
+                $item->difference = $item->total_assets - $item->total_liab_eq;
+                $firstRow = \App\Models\BalanceSheetEntry::whereDate('date', $item->date)->first();
+                $item->id = $firstRow ? $firstRow->id : 0;
+                return $item;
+            });
+
+        $historySummary = [
+            'total_assets' => $bsHistory->sum('total_assets'),
+            'total_liab_eq' => $bsHistory->sum('total_liab_eq'),
+        ];
+
+        return view('reports.balance_sheet_history', compact('bsHistory', 'historySummary'));
     }
 
     public function updateBalanceSheet(Request $request)
@@ -393,7 +470,7 @@ class ReportController extends Controller
                 ->delete();
         });
 
-        return redirect()->route('reports.balance-sheet', ['date' => $request->date])->with('success', 'Balance Sheet updated successfully');
+        return redirect()->route('reports.balance-sheet')->with('success', 'Balance Sheet updated successfully');
     }
 
     public function dailyLedgerHistory(Request $request)
@@ -412,7 +489,13 @@ class ReportController extends Controller
             $query->whereDate('date', '<=', $request->to_date);
         }
 
-        $records = $query->orderBy('date', 'desc')->get();
+        $records = $query->orderBy('date', 'desc')->get()
+            ->map(function ($item) {
+                // Fetch the first entry ID for this date to use as a handle for editing
+                $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $item->date)->first();
+                $item->id = $firstEntry ? $firstEntry->id : 0;
+                return $item;
+            });
 
         if ($request->has('export')) {
             if ($request->export == 'excel') {
@@ -445,5 +528,37 @@ class ReportController extends Controller
             'total_expense' => $expense->sum('amount'),
             'total_salary' => $salaries->sum('amount')
         ]);
+    }
+
+    public function getBalanceSheetDetails($date)
+    {
+        $dateStr = Carbon::parse($date)->format('Y-m-d');
+        $entries = \App\Models\BalanceSheetEntry::whereDate('date', $dateStr)->get();
+
+        $assets = $entries->where('category', 'asset')->values();
+        $liabilities = $entries->where('category', 'liability')->values();
+        $equity = $entries->where('category', 'equity')->values();
+
+        return response()->json([
+            'date' => $dateStr,
+            'assets' => $assets,
+            'liabilities' => $liabilities,
+            'equity' => $equity,
+            'total_assets' => $assets->sum('amount'),
+            'total_liabilities' => $liabilities->sum('amount'),
+            'total_equity' => $equity->sum('amount'),
+            'total_liab_eq' => $liabilities->sum('amount') + $equity->sum('amount')
+        ]);
+    }
+
+    public function destroyBalanceSheet($id)
+    {
+        $entry = \App\Models\BalanceSheetEntry::find($id);
+        if ($entry) {
+            $date = $entry->date;
+            \App\Models\BalanceSheetEntry::whereDate('date', $date)->delete();
+            return redirect()->route('reports.balance-sheet')->with('success', 'Balance Sheet completely removed for ' . $date);
+        }
+        return back()->with('error', 'Entry not found');
     }
 }

@@ -93,7 +93,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/daily-ledger/details/{date}', [App\Http\Controllers\ReportController::class, 'getDailyLedgerDetails'])->name('reports.daily-ledger.details');
 
     Route::get('/reports/balance-sheet', [App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+    Route::get('/reports/balance-sheet/history', [App\Http\Controllers\ReportController::class, 'balanceSheetHistory'])->name('reports.balance-sheet.history');
     Route::post('/reports/balance-sheet/update', [App\Http\Controllers\ReportController::class, 'updateBalanceSheet'])->name('reports.balance-sheet.update');
+    Route::get('/reports/balance-sheet/details/{date}', [App\Http\Controllers\ReportController::class, 'getBalanceSheetDetails'])->name('reports.balance-sheet.details');
+    Route::get('/reports/balance-sheet/edit/{id}', [App\Http\Controllers\ReportController::class, 'editBalanceSheet'])->name('reports.balance-sheet.edit');
+    Route::delete('/reports/balance-sheet/delete/{id}', [App\Http\Controllers\ReportController::class, 'destroyBalanceSheet'])->name('reports.balance-sheet.destroy');
 
     Route::resource('cheques', App\Http\Controllers\ChequeController::class);
 });
