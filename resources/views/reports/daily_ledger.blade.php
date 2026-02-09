@@ -685,7 +685,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     let form = document.getElementById('deleteForm');
-                    form.action = `/reports/daily-ledger/${id}`;
+                    form.action = `/reports/daily-ledger/delete/${id}`;
                     form.submit();
                 }
             })

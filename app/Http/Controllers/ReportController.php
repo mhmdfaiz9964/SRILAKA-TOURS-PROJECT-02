@@ -267,7 +267,7 @@ class ReportController extends Controller
             \App\Models\DailyLedgerEntry::whereDate('date', $date)->delete();
             \App\Models\DailySalaryEntry::whereDate('date', $date)->delete();
 
-            return redirect()->route('reports.daily-ledger', ['date' => $date])->with('success', 'Daily Ledger data completely removed for ' . $date);
+            return redirect()->route('reports.daily-ledger.history')->with('success', 'Daily Ledger data completely removed for ' . $date);
         }
 
         return back()->with('error', 'Entry not found');
