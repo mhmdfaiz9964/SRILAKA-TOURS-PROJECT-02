@@ -480,7 +480,7 @@
             const companyName = "{{ $globalSettings['company_name'] ?? config('app.name') }}";
 
             // Generate a signed URL that expires in 30 days
-            const fullPdfUrl = "{{ URL::temporarySignedRoute('sales.pdf', now()->addDays(30), ['sale' => $sale->id]) }}";
+            const fullPdfUrl = "{!! URL::temporarySignedRoute('sales.pdf', now()->addDays(30), ['sale' => $sale->id]) !!}";
 
             // Get current Date and Time
             const now = new Date();

@@ -50,15 +50,15 @@ class PurchaseController extends Controller
                     break;
                 case 'name_az':
                     $query->join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
-                          ->orderBy('suppliers.full_name')
-                          ->select('purchases.*');
+                        ->orderBy('suppliers.full_name')
+                        ->select('purchases.*');
                     break;
                 default:
                     $query->orderByDesc('purchases.created_at');
             }
         } else {
-             $query->orderByDesc('purchases.created_at');
-        } 
+            $query->orderByDesc('purchases.created_at');
+        }
 
         $purchases = $query->paginate(10);
         $suppliers = \App\Models\Supplier::select('id', 'full_name')->orderBy('full_name')->get();
@@ -100,10 +100,12 @@ class PurchaseController extends Controller
             // 1. Calculations
             $total = $request->input('total_amount');
             $paid = $request->input('paid_amount', 0);
-            
+
             $status = 'unpaid';
-            if ($paid >= $total) $status = 'paid';
-            elseif ($paid > 0) $status = 'partial';
+            if ($paid >= $total)
+                $status = 'paid';
+            elseif ($paid > 0)
+                $status = 'partial';
 
             // 2. Create Purchase
             $purchase = \App\Models\Purchase::create([
@@ -171,13 +173,13 @@ class PurchaseController extends Controller
                     }
                 }
             }
-            
+
 
 
             // 3.5. Process Investors
             if ($request->has('investors') && is_array($request->investors)) {
                 foreach ($request->investors as $inv) {
-                     if (!empty($inv['name']) && !empty($inv['amount'])) {
+                    if (!empty($inv['name']) && !empty($inv['amount'])) {
                         \App\Models\PurchaseInvestor::create([
                             'purchase_id' => $purchase->id,
                             'investor_name' => $inv['name'],
@@ -186,7 +188,7 @@ class PurchaseController extends Controller
                     }
                 }
             }
-            
+
             // 4. Create Payment Record (Transaction Log)
             if ($paid > 0) {
                 \App\Models\Payment::create([
@@ -227,15 +229,28 @@ class PurchaseController extends Controller
      */
     public function show($id)
     {
-         $purchase = \App\Models\Purchase::with('items.product', 'supplier', 'investors', 'payments')->findOrFail($id);
-         $banks = \App\Models\Bank::all();
-         return view('purchases.show', compact('purchase', 'banks'));
+        $purchase = \App\Models\Purchase::with('items.product', 'supplier', 'investors', 'payments')->findOrFail($id);
+        $banks = \App\Models\Bank::all();
+        return view('purchases.show', compact('purchase', 'banks'));
+    }
+
+    public function generatePdf($id)
+    {
+        $purchase = \App\Models\Purchase::with('items.product', 'supplier', 'investors', 'payments')->findOrFail($id);
+
+        $globalSettings = \Cache::get('global_settings');
+        if (!$globalSettings) {
+            $globalSettings = \App\Models\Setting::all()->pluck('value', 'key');
+        }
+
+        $pdf = \PDF::loadView('purchases.invoice_pdf', compact('purchase', 'globalSettings'));
+        return $pdf->stream('purchase-' . ($purchase->invoice_number ?? $purchase->id) . '.pdf');
     }
 
     public function addPayment(Request $request, $id)
     {
         $purchase = \App\Models\Purchase::findOrFail($id);
-        
+
         $request->validate([
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required',
@@ -250,10 +265,10 @@ class PurchaseController extends Controller
         ]);
 
         $amount = $request->amount;
-        
+
         // Update Paid Amount
         $purchase->paid_amount += $amount;
-        if($purchase->paid_amount >= $purchase->total_amount) {
+        if ($purchase->paid_amount >= $purchase->total_amount) {
             $purchase->status = 'paid';
         } else {
             $purchase->status = 'partial';
@@ -262,7 +277,7 @@ class PurchaseController extends Controller
 
         // Handle Cheque Creation (Out Cheque for Purchase)
         $chequeId = null;
-        if($request->payment_method === 'cheque') {
+        if ($request->payment_method === 'cheque') {
             $outCheque = \App\Models\OutCheque::create([
                 'cheque_date' => $request->cheque_date,
                 'amount' => $amount,
@@ -298,17 +313,17 @@ class PurchaseController extends Controller
 
     public function edit($id)
     {
-         $purchase = \App\Models\Purchase::with(['items', 'investors'])->findOrFail($id);
-         $suppliers = \App\Models\Supplier::where('status', true)->get();
-         $products = \App\Models\Product::all();
-         $banks = \App\Models\Bank::all();
-         return view('purchases.edit', compact('purchase', 'suppliers', 'products', 'banks'));
+        $purchase = \App\Models\Purchase::with(['items', 'investors'])->findOrFail($id);
+        $suppliers = \App\Models\Supplier::where('status', true)->get();
+        $products = \App\Models\Product::all();
+        $banks = \App\Models\Bank::all();
+        return view('purchases.edit', compact('purchase', 'suppliers', 'products', 'banks'));
     }
 
     public function update(Request $request, $id)
     {
         $purchase = \App\Models\Purchase::findOrFail($id);
-        
+
         $request->validate([
             'supplier_id' => 'required',
             'purchase_date' => 'required|date',
@@ -322,7 +337,7 @@ class PurchaseController extends Controller
                     $item->product->decrement('current_stock', $item->quantity);
                 }
             }
-            
+
             // 2. Clear old items and investors
             $purchase->items()->delete();
             $purchase->investors()->delete();
@@ -364,7 +379,7 @@ class PurchaseController extends Controller
                     }
                 }
             }
-            
+
             // 4.5. Process Investors
             if ($request->has('investors') && is_array($request->investors)) {
                 foreach ($request->investors as $inv) {
@@ -377,14 +392,16 @@ class PurchaseController extends Controller
                     }
                 }
             }
-            
+
             // 5. Update Status based on current paid_amount
             $status = 'unpaid';
-            if ($purchase->paid_amount >= $purchase->total_amount) $status = 'paid';
-            elseif ($purchase->paid_amount > 0) $status = 'partial';
+            if ($purchase->paid_amount >= $purchase->total_amount)
+                $status = 'paid';
+            elseif ($purchase->paid_amount > 0)
+                $status = 'partial';
             $purchase->update(['status' => $status]);
         });
-        
+
         return redirect()->route('purchases.index')->with('success', 'Purchase updated successfully');
     }
 

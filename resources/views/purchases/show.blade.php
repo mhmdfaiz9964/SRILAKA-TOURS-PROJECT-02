@@ -476,7 +476,8 @@
         const paidAmount = "{{ number_format($purchase->paid_amount, 2) }}";
         const balance = "{{ number_format($purchase->total_amount - $purchase->paid_amount, 2) }}";
         const companyName = "{{ $globalSettings['company_name'] ?? config('app.name') }}";
-        const purchaseUrl = window.location.href;
+        // Generate a signed URL that expires in 30 days
+        const fullPdfUrl = "{!! URL::temporarySignedRoute('purchases.pdf', now()->addDays(30), ['purchase' => $purchase->id]) !!}";
         
         // Create message
         const message = `*${companyName}*\n\n` +
@@ -486,7 +487,7 @@
                        `Total Amount: Rs. ${totalAmount}\n` +
                        `Paid: Rs. ${paidAmount}\n` +
                        `Balance: Rs. ${balance}\n\n` +
-                       `View Details: ${purchaseUrl}`;
+                       `*View/Download PDF:* \n${fullPdfUrl}`;
         
         // Get supplier phone number (remove spaces and special characters)
         const supplierPhone = "{{ $purchase->supplier->contact_number }}".replace(/[^0-9]/g, '');

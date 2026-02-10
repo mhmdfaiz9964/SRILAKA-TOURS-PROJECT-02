@@ -385,9 +385,9 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo-section">
-                    <div class="logo-box">AP</div>
+                    <div class="logo-box">JS</div>
                     <div class="brand-info">
-                        <span class="brand-name">Apex CRM</span>
+                        <span class="brand-name">JS FABRIC</span>
                         <span class="brand-plan">Enterprise Plan</span>
                     </div>
                 </div>
@@ -723,7 +723,7 @@
             <footer class="mt-auto py-3 px-4 border-top bg-white">
                 <div class="container-fluid">
                     <div class="d-flex align-items-center justify-content-between small text-muted">
-                        <div>&copy; {{ date('Y') }} <strong>Apex Web Innovations</strong>. All rights reserved.</div>
+                        <div>&copy; {{ date('Y') }} <strong>JS FABRIC</strong>. All rights reserved.</div>
                         <div class="d-flex gap-3">
                             <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
                             <a href="#" class="text-muted text-decoration-none">Terms of Service</a>

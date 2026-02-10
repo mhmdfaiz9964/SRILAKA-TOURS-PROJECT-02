@@ -27,6 +27,10 @@ Route::get('/sales/{sale}/pdf', [App\Http\Controllers\SaleController::class, 'ge
     ->name('sales.pdf')
     ->middleware('signed');
 
+Route::get('/purchases/{purchase}/pdf', [App\Http\Controllers\PurchaseController::class, 'generatePdf'])
+    ->name('purchases.pdf')
+    ->middleware('signed');
+
 Route::middleware(['auth'])->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class);
     Route::resource('roles', App\Http\Controllers\RoleController::class);
