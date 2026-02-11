@@ -529,6 +529,14 @@
         }
     </script>
 
+    @if(session('print_invoice'))
+    <script>
+        window.addEventListener('load', function() {
+            window.print();
+        });
+    </script>
+    @endif
+
 
 
     <style>

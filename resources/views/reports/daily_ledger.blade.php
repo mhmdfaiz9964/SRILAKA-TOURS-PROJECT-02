@@ -106,240 +106,255 @@
             <input type="hidden" id="openingBalanceVal" value="{{ $openingBalance }}">
         </div>
 
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4">
-                    <div class="card-body p-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase mb-2">Ledger Date</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-light rounded-start-3">
-                                <i class="fa-solid fa-calendar-days text-primary"></i>
-                            </span>
-                            <input type="date" name="date" value="{{ $date->format('Y-m-d') }}"
-                                class="form-control border-light bg-light rounded-end-3 shadow-none focus-ring"
-                                onchange="this.form.method='GET'; this.form.action='{{ route('reports.daily-ledger') }}'; this.form.submit();">
+        <form action="{{ route('reports.daily-ledger.update') }}" method="POST">
+            @csrf
+            <input type="hidden" name="is_edit" value="{{ $isEdit ? 1 : 0 }}">
+            <div class="row g-4 mb-4 align-items-end">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Ledger Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-light rounded-start-3">
+                                    <i class="fa-solid fa-calendar-days text-primary"></i>
+                                </span>
+                                <input type="date" name="date" value="{{ $date->format('Y-m-d') }}"
+                                    class="form-control border-light bg-light rounded-end-3 shadow-none focus-ring"
+                                    onchange="this.form.method='GET'; this.form.action='{{ route('reports.daily-ledger') }}'; this.form.submit();">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="row g-4 mb-4">
-            <!-- Money In Section -->
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
-                                style="width: 32px; height: 32px;">
-                                <i class="fa-solid fa-arrow-down text-success small"></i>
-                            </div>
-                            <h6 class="fw-bold mb-0">Income Entries</h6>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-light text-success border-0 rounded-pill px-2"
-                            onclick="addEntryRow('income')">
-                            <i class="fa-solid fa-plus-circle"></i> Add
-                        </button>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="bg-light bg-opacity-10">
-                                    <tr>
-                                        <th class="ps-4 py-2 small text-muted">Description</th>
-                                        <th class="py-2 small text-muted text-end" style="width: 180px;">Amount (LKR)
-                                        </th>
-                                        <th class="py-2 small text-muted text-center" style="width: 80px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="incomeRows">
-                                    @foreach($incomeEntries as $entry)
-                                        <tr id="ledger_row_{{ $entry->id }}">
-                                            <td class="ps-4">
-                                                <input type="hidden" name="entries[{{ $entry->id }}][id]"
-                                                    value="{{ $entry->id }}">
-                                                <input type="hidden" name="entries[{{ $entry->id }}][type]" value="income">
-                                                <input type="text" name="entries[{{ $entry->id }}][description]"
-                                                    value="{{ $entry->description }}"
-                                                    class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium"
-                                                    {{ in_array($entry->description, ['A/c Sales', 'Cash Sales', 'Old payment']) ? 'readonly' : '' }}>
-                                            </td>
-                                            <td class="text-end">
-                                                <input type="number" step="0.01" name="entries[{{ $entry->id }}][amount]"
-                                                    value="{{ $entry->amount }}"
-                                                    class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount income-amount"
-                                                    data-description="{{ $entry->description }}"
-                                                    oninput="calculateLiveBalance()">
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <button type="button" class="btn btn-sm btn-link text-success p-0"
-                                                        onclick="duplicateRow('ledger', {{ $entry->id }}, 'income')"
-                                                        title="Duplicate">
-                                                        <i class="fa-solid fa-plus-circle"></i>
-                                                    </button>
-                                                    @if(!in_array($entry->description, ['A/c Sales', 'Cash Sales', 'Old payment']))
-                                                        <button type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                            onclick="removeRow('ledger', {{ $entry->id }})">
-                                                            <i class="fa-solid fa-trash-can"></i>
-                                                        </button>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot class="bg-success bg-opacity-10">
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-success small">Total Income</td>
-                                        <td class="text-end fw-bold text-success">LKR <span
-                                                id="totalIncomeDisplay">{{ number_format($totalIncome, 2) }}</span></td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
+                <div class="col-md-4">
+                    @if($date->isToday())
+                        <a href="{{ route('reports.daily-ledger', ['date' => $date->format('Y-m-d'), 'reset' => 1]) }}"
+                            class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm mb-1"
+                            onclick="return confirm('Force reset all values to 0 for today?')">
+                            <i class="fa-solid fa-rotate me-1"></i> Reset Today's Values
+                        </a>
+                    @endif
                 </div>
             </div>
 
-            <!-- Money Out Section (Combined Expenses & Salary) -->
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center"
-                                style="width: 32px; height: 32px;">
-                                <i class="fa-solid fa-arrow-up text-danger small"></i>
+            <div class="row g-4 mb-4">
+                <!-- Money In Section -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div
+                            class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center"
+                                    style="width: 32px; height: 32px;">
+                                    <i class="fa-solid fa-arrow-down text-success small"></i>
+                                </div>
+                                <h6 class="fw-bold mb-0">Income Entries</h6>
                             </div>
-                            <h6 class="fw-bold mb-0">Expense & Salary Entries</h6>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-sm btn-light text-danger border-0 rounded-pill px-2"
-                                onclick="addEntryRow('expense')">
-                                <i class="fa-solid fa-plus-circle"></i> Expense
-                            </button>
-                            <button type="button" class="btn btn-sm btn-light text-warning border-0 rounded-pill px-2"
-                                onclick="addSalaryRow()">
-                                <i class="fa-solid fa-plus-circle"></i> Salary
+                            <button type="button" class="btn btn-sm btn-light text-success border-0 rounded-pill px-2"
+                                onclick="addEntryRow('income')">
+                                <i class="fa-solid fa-plus-circle"></i> Add
                             </button>
                         </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="bg-light bg-opacity-10">
+                                        <tr>
+                                            <th class="ps-4 py-2 small text-muted">Description</th>
+                                            <th class="py-2 small text-muted text-end" style="width: 180px;">Amount (LKR)
+                                            </th>
+                                            <th class="py-2 small text-muted text-center" style="width: 80px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="incomeRows">
+                                        @foreach($incomeEntries as $entry)
+                                            <tr id="ledger_row_{{ $entry->id }}">
+                                                <td class="ps-4">
+                                                    <input type="hidden" name="entries[{{ $entry->id }}][id]"
+                                                        value="{{ $entry->id }}">
+                                                    <input type="hidden" name="entries[{{ $entry->id }}][type]" value="income">
+                                                    <input type="text" name="entries[{{ $entry->id }}][description]"
+                                                        value="{{ $entry->description }}"
+                                                        class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium"
+                                                        {{ in_array($entry->description, ['A/c Sales', 'Cash Sales', 'Old payment']) ? 'readonly' : '' }}>
+                                                </td>
+                                                <td class="text-end">
+                                                    <input type="number" step="0.01" name="entries[{{ $entry->id }}][amount]"
+                                                        value="{{ $entry->amount }}"
+                                                        class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount income-amount"
+                                                        data-description="{{ $entry->description }}"
+                                                        oninput="calculateLiveBalance()">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex justify-content-center gap-1">
+                                                        <button type="button" class="btn btn-sm btn-link text-success p-0"
+                                                            onclick="duplicateRow('ledger', {{ $entry->id }}, 'income')"
+                                                            title="Duplicate">
+                                                            <i class="fa-solid fa-plus-circle"></i>
+                                                        </button>
+                                                        @if(!in_array($entry->description, ['A/c Sales', 'Cash Sales', 'Old payment']))
+                                                            <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                                                onclick="removeRow('ledger', {{ $entry->id }})">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-success bg-opacity-10">
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-success small">Total Income</td>
+                                            <td class="text-end fw-bold text-success">LKR <span
+                                                    id="totalIncomeDisplay">{{ number_format($totalIncome, 2) }}</span></td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="expenseTable">
-                                <thead class="bg-light bg-opacity-10">
-                                    <tr>
-                                        <th class="ps-4 py-2 small text-muted">Description / Employee</th>
-                                        <th class="py-2 small text-muted text-end" style="width: 180px;">Amount (LKR)
-                                        </th>
-                                        <th class="py-2 small text-muted text-center" style="width: 80px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="expenseRows">
-                                    <!-- Regular Expenses -->
-                                    @foreach($expenseEntries as $entry)
-                                        <tr id="ledger_row_{{ $entry->id }}">
-                                            <td class="ps-4">
-                                                <input type="hidden" name="entries[{{ $entry->id }}][id]"
-                                                    value="{{ $entry->id }}">
-                                                <input type="hidden" name="entries[{{ $entry->id }}][type]" value="expense">
-                                                <input type="text" name="entries[{{ $entry->id }}][description]"
-                                                    value="{{ $entry->description }}"
-                                                    class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium"
-                                                    {{ in_array($entry->description, ['Transport', 'Food', 'Bank Deposit', 'Other']) ? 'readonly' : '' }}>
-                                            </td>
-                                            <td class="text-end">
-                                                <input type="number" step="0.01" name="entries[{{ $entry->id }}][amount]"
-                                                    value="{{ $entry->amount }}"
-                                                    class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount expense-amount"
-                                                    data-description="{{ $entry->description }}"
-                                                    oninput="calculateLiveBalance()">
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <button type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                        onclick="duplicateRow('ledger', {{ $entry->id }}, 'expense')"
-                                                        title="Duplicate">
-                                                        <i class="fa-solid fa-plus-circle"></i>
-                                                    </button>
-                                                    @if(!in_array($entry->description, ['Transport', 'Food', 'Bank Deposit', 'Other']))
+                </div>
+
+                <!-- Money Out Section (Combined Expenses & Salary) -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div
+                            class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-danger bg-opacity-10 d-flex align-items-center justify-content-center"
+                                    style="width: 32px; height: 32px;">
+                                    <i class="fa-solid fa-arrow-up text-danger small"></i>
+                                </div>
+                                <h6 class="fw-bold mb-0">Expense & Salary Entries</h6>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-light text-danger border-0 rounded-pill px-2"
+                                    onclick="addEntryRow('expense')">
+                                    <i class="fa-solid fa-plus-circle"></i> Expense
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light text-warning border-0 rounded-pill px-2"
+                                    onclick="addSalaryRow()">
+                                    <i class="fa-solid fa-plus-circle"></i> Salary
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0" id="expenseTable">
+                                    <thead class="bg-light bg-opacity-10">
+                                        <tr>
+                                            <th class="ps-4 py-2 small text-muted">Description / Employee</th>
+                                            <th class="py-2 small text-muted text-end" style="width: 180px;">Amount (LKR)
+                                            </th>
+                                            <th class="py-2 small text-muted text-center" style="width: 80px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="expenseRows">
+                                        <!-- Regular Expenses -->
+                                        @foreach($expenseEntries as $entry)
+                                            <tr id="ledger_row_{{ $entry->id }}">
+                                                <td class="ps-4">
+                                                    <input type="hidden" name="entries[{{ $entry->id }}][id]"
+                                                        value="{{ $entry->id }}">
+                                                    <input type="hidden" name="entries[{{ $entry->id }}][type]" value="expense">
+                                                    <input type="text" name="entries[{{ $entry->id }}][description]"
+                                                        value="{{ $entry->description }}"
+                                                        class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium"
+                                                        {{ in_array($entry->description, ['Transport', 'Food', 'Bank Deposit', 'Other']) ? 'readonly' : '' }}>
+                                                </td>
+                                                <td class="text-end">
+                                                    <input type="number" step="0.01" name="entries[{{ $entry->id }}][amount]"
+                                                        value="{{ $entry->amount }}"
+                                                        class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount expense-amount"
+                                                        data-description="{{ $entry->description }}"
+                                                        oninput="calculateLiveBalance()">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex justify-content-center gap-1">
                                                         <button type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                            onclick="removeRow('ledger', {{ $entry->id }})">
+                                                            onclick="duplicateRow('ledger', {{ $entry->id }}, 'expense')"
+                                                            title="Duplicate">
+                                                            <i class="fa-solid fa-plus-circle"></i>
+                                                        </button>
+                                                        @if(!in_array($entry->description, ['Transport', 'Food', 'Bank Deposit', 'Other']))
+                                                            <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                                                onclick="removeRow('ledger', {{ $entry->id }})">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+
+                                        <!-- Salary Entries -->
+                                        @foreach($salaryEntries as $index => $salary)
+                                            <tr id="salary_row_{{ $salary->id }}">
+                                                <td class="ps-4">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="fa-solid fa-user-tie text-warning small"></i>
+                                                        <input type="hidden" name="salaries[{{ $index }}][id]"
+                                                            value="{{ $salary->id }}">
+                                                        <input type="text" name="salaries[{{ $index }}][employee_name]"
+                                                            value="{{ $salary->employee_name }}"
+                                                            class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2"
+                                                            placeholder="Employee Name" required>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">
+                                                    <input type="number" step="0.01" name="salaries[{{ $index }}][amount]"
+                                                        value="{{ $salary->amount }}"
+                                                        class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount px-2"
+                                                        required oninput="calculateLiveBalance()">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex justify-content-center gap-1">
+                                                        <button type="button" class="btn btn-sm btn-link text-warning p-0"
+                                                            onclick="duplicateRow('salary', {{ $salary->id }})"
+                                                            title="Duplicate">
+                                                            <i class="fa-solid fa-plus-circle"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                                            onclick="removeRow('salary', {{ $salary->id }})">
                                                             <i class="fa-solid fa-trash-can"></i>
                                                         </button>
-                                                    @endif
-                                                </div>
-                                            </td>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-danger bg-opacity-10">
+                                        <tr>
+                                            <td class="ps-4 fw-bold text-danger small">Total Money Out</td>
+                                            <td class="text-end fw-bold text-danger">LKR <span
+                                                    id="totalExpenseDisplayCombined">0.00</span></td>
+                                            <td></td>
                                         </tr>
-                                    @endforeach
-
-                                    <!-- Salary Entries -->
-                                    @foreach($salaryEntries as $index => $salary)
-                                        <tr id="salary_row_{{ $salary->id }}">
-                                            <td class="ps-4">
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <i class="fa-solid fa-user-tie text-warning small"></i>
-                                                    <input type="hidden" name="salaries[{{ $index }}][id]"
-                                                        value="{{ $salary->id }}">
-                                                    <input type="text" name="salaries[{{ $index }}][employee_name]"
-                                                        value="{{ $salary->employee_name }}"
-                                                        class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2"
-                                                        placeholder="Employee Name" required>
-                                                </div>
-                                            </td>
-                                            <td class="text-end">
-                                                <input type="number" step="0.01" name="salaries[{{ $index }}][amount]"
-                                                    value="{{ $salary->amount }}"
-                                                    class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount px-2"
-                                                    required oninput="calculateLiveBalance()">
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <button type="button" class="btn btn-sm btn-link text-warning p-0"
-                                                        onclick="duplicateRow('salary', {{ $salary->id }})" title="Duplicate">
-                                                        <i class="fa-solid fa-plus-circle"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                        onclick="removeRow('salary', {{ $salary->id }})">
-                                                        <i class="fa-solid fa-trash-can"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
+                                        <tr class="small">
+                                            <td class="ps-4 text-muted">Expense: <span id="totalExpenseSub">0.00</span> |
+                                                Salary: <span id="totalSalarySub">0.00</span></td>
+                                            <td colspan="2"></td>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot class="bg-danger bg-opacity-10">
-                                    <tr>
-                                        <td class="ps-4 fw-bold text-danger small">Total Money Out</td>
-                                        <td class="text-end fw-bold text-danger">LKR <span
-                                                id="totalExpenseDisplayCombined">0.00</span></td>
-                                        <td></td>
-                                    </tr>
-                                    <tr class="small">
-                                        <td class="ps-4 text-muted">Expense: <span id="totalExpenseSub">0.00</span> |
-                                            Salary: <span id="totalSalarySub">0.00</span></td>
-                                        <td colspan="2"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="text-end mb-4">
-            <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm fw-bold"
-                style="background: #6366f1; border: none;">
-                <i class="fa-solid fa-save me-2"></i> Save Ledger Data
-            </button>
-        </div>
+            <div class="text-end mb-4">
+                <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow-sm fw-bold"
+                    style="background: #6366f1; border: none;">
+                    <i class="fa-solid fa-save me-2"></i> {{ $isEdit ? 'Update Ledger Data' : 'Save Ledger Data' }}
+                </button>
+            </div>
         </form>
 
         <!-- History Summary Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3">
+        <div class="row g-3 mb-4 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5">
+            <div class="col">
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #f0fdf4;">
                     <div class="card-body p-3 text-center">
                         <div class="text-success small fw-bold text-uppercase mb-1">Total History Income</div>
@@ -348,7 +363,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col">
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #fef2f2;">
                     <div class="card-body p-3 text-center">
                         <div class="text-danger small fw-bold text-uppercase mb-1">Total History Expense</div>
@@ -357,7 +372,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col">
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #fffbeb;">
                     <div class="card-body p-3 text-center">
                         <div class="text-warning small fw-bold text-uppercase mb-1">Total Salary Paid</div>
@@ -366,12 +381,23 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col">
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #eff6ff;">
                     <div class="card-body p-3 text-center">
                         <div class="text-primary small fw-bold text-uppercase mb-1">Total A/C Balance</div>
                         <div class="fw-bold text-primary fs-5">LKR
                             {{ number_format($historySummary['total_ac_balance'], 2) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #fdf2f9;">
+                    <div class="card-body p-3 text-center">
+                        <div class="text-info small fw-bold text-uppercase mb-1" style="color: #701a75 !important;">Total
+                            Bank Deposit</div>
+                        <div class="fw-bold fs-5" style="color: #701a75;">LKR
+                            {{ number_format($historySummary['total_bank_deposit'], 2) }}
                         </div>
                     </div>
                 </div>
@@ -536,24 +562,24 @@
             const tr = document.createElement('tr');
             tr.id = rowId;
             tr.innerHTML = `
-                                    <td class="ps-4">
-                                        <input type="text" name="entries[${rowId}][description]" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" placeholder="Entry Description" required>
-                                        <input type="hidden" name="entries[${rowId}][type]" value="${type}">
-                                    </td>
-                                    <td class="text-end">
-                                        <input type="number" step="0.01" name="entries[${rowId}][amount]" value="0" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount ${type}-amount" required oninput="calculateLiveBalance()">
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <button type="button" class="btn btn-sm btn-link text-primary p-0" onclick="duplicateNewRow('${rowId}', 'ledger')" title="Duplicate">
-                                                <i class="fa-solid fa-plus-circle"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                `;
+                                                <td class="ps-4">
+                                                    <input type="text" name="entries[${rowId}][description]" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" placeholder="Entry Description" required>
+                                                    <input type="hidden" name="entries[${rowId}][type]" value="${type}">
+                                                </td>
+                                                <td class="text-end">
+                                                    <input type="number" step="0.01" name="entries[${rowId}][amount]" value="0" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount ${type}-amount" required oninput="calculateLiveBalance()">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex justify-content-center gap-1">
+                                                        <button type="button" class="btn btn-sm btn-link text-primary p-0" onclick="duplicateNewRow('${rowId}', 'ledger')" title="Duplicate">
+                                                            <i class="fa-solid fa-plus-circle"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            `;
             tbody.appendChild(tr);
             calculateLiveBalance();
         }
@@ -565,26 +591,26 @@
             const tr = document.createElement('tr');
             tr.id = rowId;
             tr.innerHTML = `
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="fa-solid fa-user-tie text-warning small"></i>
-                                            <input type="text" name="salaries[${rowId}][employee_name]" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" placeholder="Employee Name" required>
-                                        </div>
-                                    </td>
-                                    <td class="text-end">
-                                        <input type="number" step="0.01" name="salaries[${rowId}][amount]" value="0" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount" required oninput="calculateLiveBalance()">
-                                    </td>
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <button type="button" class="btn btn-sm btn-link text-warning p-0" onclick="duplicateNewRow('${rowId}', 'salary')" title="Duplicate">
-                                                <i class="fa-solid fa-plus-circle"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                `;
+                                                <td class="ps-4">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <i class="fa-solid fa-user-tie text-warning small"></i>
+                                                        <input type="text" name="salaries[${rowId}][employee_name]" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" placeholder="Employee Name" required>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">
+                                                    <input type="number" step="0.01" name="salaries[${rowId}][amount]" value="0" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount" required oninput="calculateLiveBalance()">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="d-flex justify-content-center gap-1">
+                                                        <button type="button" class="btn btn-sm btn-link text-warning p-0" onclick="duplicateNewRow('${rowId}', 'salary')" title="Duplicate">
+                                                            <i class="fa-solid fa-plus-circle"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            `;
             tbody.appendChild(tr);
             calculateLiveBalance();
         }
@@ -599,24 +625,24 @@
                 const tr = document.createElement('tr');
                 tr.id = rowId;
                 tr.innerHTML = `
-                                        <td class="ps-4">
-                                            <input type="text" name="entries[${rowId}][description]" value="${desc}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
-                                            <input type="hidden" name="entries[${rowId}][type]" value="${type}">
-                                        </td>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" name="entries[${rowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount ${type}-amount" required oninput="calculateLiveBalance()">
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-1">
-                                                <button type="button" class="btn btn-sm btn-link text-primary p-0" onclick="duplicateNewRow('${rowId}', 'ledger')" title="Duplicate">
-                                                    <i class="fa-solid fa-plus-circle"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    `;
+                                                    <td class="ps-4">
+                                                        <input type="text" name="entries[${rowId}][description]" value="${desc}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
+                                                        <input type="hidden" name="entries[${rowId}][type]" value="${type}">
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <input type="number" step="0.01" name="entries[${rowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount ${type}-amount" required oninput="calculateLiveBalance()">
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-sm btn-link text-primary p-0" onclick="duplicateNewRow('${rowId}', 'ledger')" title="Duplicate">
+                                                                <i class="fa-solid fa-plus-circle"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                `;
                 tbody.appendChild(tr);
             } else {
                 const empName = document.querySelector(`tr#salary_row_${id} input[name*="[employee_name]"]`).value;
@@ -627,26 +653,26 @@
                 const tr = document.createElement('tr');
                 tr.id = rowId;
                 tr.innerHTML = `
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <i class="fa-solid fa-user-tie text-warning small"></i>
-                                                <input type="text" name="salaries[${rowId}][employee_name]" value="${empName}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
-                                            </div>
-                                        </td>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" name="salaries[${rowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount" required oninput="calculateLiveBalance()">
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-1">
-                                                <button type="button" class="btn btn-sm btn-link text-warning p-0" onclick="duplicateNewRow('${rowId}', 'salary')" title="Duplicate">
-                                                    <i class="fa-solid fa-plus-circle"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    `;
+                                                    <td class="ps-4">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <i class="fa-solid fa-user-tie text-warning small"></i>
+                                                            <input type="text" name="salaries[${rowId}][employee_name]" value="${empName}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <input type="number" step="0.01" name="salaries[${rowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount" required oninput="calculateLiveBalance()">
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-sm btn-link text-warning p-0" onclick="duplicateNewRow('${rowId}', 'salary')" title="Duplicate">
+                                                                <i class="fa-solid fa-plus-circle"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${rowId}').remove(); calculateLiveBalance();">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                `;
                 tbody.appendChild(tr);
             }
             calculateLiveBalance();
@@ -663,49 +689,49 @@
                 const amount = oldRow.querySelector('input[name*="[amount]"]').value;
                 const type = oldRow.querySelector('input[name*="[type]"]').value;
                 tr.innerHTML = `
-                                        <td class="ps-4">
-                                            <input type="text" name="entries[${newRowId}][description]" value="${desc}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
-                                            <input type="hidden" name="entries[${newRowId}][type]" value="${type}">
-                                        </td>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" name="entries[${newRowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount ${type}-amount" required oninput="calculateLiveBalance()">
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-1">
-                                                <button type="button" class="btn btn-sm btn-link text-primary p-0" onclick="duplicateNewRow('${newRowId}', 'ledger')" title="Duplicate">
-                                                    <i class="fa-solid fa-plus-circle"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${newRowId}').remove(); calculateLiveBalance();">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    `;
+                                                    <td class="ps-4">
+                                                        <input type="text" name="entries[${newRowId}][description]" value="${desc}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
+                                                        <input type="hidden" name="entries[${newRowId}][type]" value="${type}">
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <input type="number" step="0.01" name="entries[${newRowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring entry-amount ${type}-amount" required oninput="calculateLiveBalance()">
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-sm btn-link text-primary p-0" onclick="duplicateNewRow('${newRowId}', 'ledger')" title="Duplicate">
+                                                                <i class="fa-solid fa-plus-circle"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${newRowId}').remove(); calculateLiveBalance();">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                `;
                 oldRow.parentNode.appendChild(tr);
             } else {
                 const empName = oldRow.querySelector('input[name*="[employee_name]"]').value;
                 const amount = oldRow.querySelector('input[name*="[amount]"]').value;
                 tr.innerHTML = `
-                                        <td class="ps-4">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <i class="fa-solid fa-user-tie text-warning small"></i>
-                                                <input type="text" name="salaries[${newRowId}][employee_name]" value="${empName}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
-                                            </div>
-                                        </td>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" name="salaries[${newRowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount" required oninput="calculateLiveBalance()">
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center gap-1">
-                                                <button type="button" class="btn btn-sm btn-link text-warning p-0" onclick="duplicateNewRow('${newRowId}', 'salary')" title="Duplicate">
-                                                    <i class="fa-solid fa-plus-circle"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${newRowId}').remove(); calculateLiveBalance();">
-                                                    <i class="fa-solid fa-trash-can"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    `;
+                                                    <td class="ps-4">
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <i class="fa-solid fa-user-tie text-warning small"></i>
+                                                            <input type="text" name="salaries[${newRowId}][employee_name]" value="${empName}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <input type="number" step="0.01" name="salaries[${newRowId}][amount]" value="${amount}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring salary-amount" required oninput="calculateLiveBalance()">
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex justify-content-center gap-1">
+                                                            <button type="button" class="btn btn-sm btn-link text-warning p-0" onclick="duplicateNewRow('${newRowId}', 'salary')" title="Duplicate">
+                                                                <i class="fa-solid fa-plus-circle"></i>
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('${newRowId}').remove(); calculateLiveBalance();">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                `;
                 oldRow.parentNode.appendChild(tr);
             }
             calculateLiveBalance();
@@ -746,9 +772,9 @@
                     data.income.forEach(item => {
                         if (parseFloat(item.amount) !== 0) {
                             incomeHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
-                                                    <span class="small text-muted">${item.description}</span>
-                                                    <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
-                                                </li>`;
+                                                                <span class="small text-muted">${item.description}</span>
+                                                                <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
+                                                            </li>`;
                         }
                     });
                     document.getElementById('modalIncomeList').innerHTML = incomeHtml || '<li class="list-group-item text-center text-muted small border-0">No income records</li>';
@@ -758,17 +784,17 @@
                     data.expense.forEach(item => {
                         if (parseFloat(item.amount) !== 0) {
                             expenseHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
-                                                    <span class="small text-muted">${item.description}</span>
-                                                    <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
-                                                </li>`;
+                                                                <span class="small text-muted">${item.description}</span>
+                                                                <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
+                                                            </li>`;
                         }
                     });
                     data.salaries.forEach(item => {
                         if (parseFloat(item.amount) !== 0) {
                             expenseHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
-                                                    <span class="small text-warning"><i class="fa-solid fa-user-tie me-1"></i>${item.employee_name} (Salary)</span>
-                                                    <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
-                                                </li>`;
+                                                                <span class="small text-warning"><i class="fa-solid fa-user-tie me-1"></i>${item.employee_name} (Salary)</span>
+                                                                <span class="fw-bold text-dark">${parseFloat(item.amount).toFixed(2)}</span>
+                                                            </li>`;
                         }
                     });
                     document.getElementById('modalExpenseList').innerHTML = expenseHtml || '<li class="list-group-item text-center text-muted small border-0">No expense records</li>';

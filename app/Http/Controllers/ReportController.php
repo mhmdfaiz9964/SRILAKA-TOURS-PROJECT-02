@@ -22,6 +22,7 @@ class ReportController extends Controller
     {
         $date = $request->date ? Carbon::parse($request->date) : now();
         $dateStr = $date->format('Y-m-d');
+        $isEdit = $request->input('is_edit', false);
 
         // Check for Export Request (Works for both single day entry view)
         if ($request->has('export')) {
@@ -57,6 +58,12 @@ class ReportController extends Controller
             'income' => ['A/c Sales', 'Cash Sales', 'Old payment'],
             'expense' => ['Transport', 'Food', 'Bank Deposit', 'Other']
         ];
+
+        // Reset Logic: If forced reset, we set all amounts for this date to 0
+        if ($request->has('reset')) {
+            \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->update(['amount' => 0]);
+            \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->update(['amount' => 0]);
+        }
 
         // Cleanup Obsolete Heads (if amount is 0) to ensure view matches new layout
         $obsoleteHeads = [
@@ -148,6 +155,7 @@ class ReportController extends Controller
             'total_expense' => $ledgerEntries->sum('total_expense'),
             'total_salary' => $ledgerEntries->sum('total_salary'),
             'total_ac_balance' => $ledgerEntries->sum('ac_sales'),
+            'total_bank_deposit' => $ledgerEntries->sum('bank_deposit'),
         ];
 
         return view('reports.daily_ledger', compact(
@@ -163,7 +171,8 @@ class ReportController extends Controller
             'acSales',
             'bankDeposit',
             'ledgerEntries',
-            'historySummary'
+            'historySummary',
+            'isEdit'
         ));
     }
 
@@ -174,8 +183,8 @@ class ReportController extends Controller
             return redirect()->route('reports.daily-ledger.history')->with('error', 'Entry not found');
         }
 
-        // Reuse the dailyLedger logic by passing the date
-        return $this->dailyLedger(new Request(['date' => $entry->date]));
+        // Reuse the dailyLedger logic by passing the date and setting is_edit to true
+        return $this->dailyLedger(new Request(['date' => $entry->date, 'is_edit' => true]));
     }
 
     public function updateDailyLedger(Request $request)

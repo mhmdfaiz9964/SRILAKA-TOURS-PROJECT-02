@@ -19,7 +19,7 @@ class SaleController extends Controller
     public function index(\Illuminate\Http\Request $request)
     {
         $query = \App\Models\Sale::with('customer');
-        
+
         // Status Filter
         if ($request->filled('status')) {
             if (is_array($request->status)) {
@@ -45,11 +45,11 @@ class SaleController extends Controller
         // Search Filter (Invoice # or Customer Name)
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'LIKE', "%{$search}%")
-                  ->orWhereHas('customer', function($cq) use ($search) {
-                      $cq->where('full_name', 'LIKE', "%{$search}%");
-                  });
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->where('full_name', 'LIKE', "%{$search}%");
+                    });
             });
         }
 
@@ -70,14 +70,14 @@ class SaleController extends Controller
                     break;
                 case 'name_az':
                     $query->join('customers', 'sales.customer_id', '=', 'customers.id')
-                          ->orderBy('customers.full_name')
-                          ->select('sales.*');
+                        ->orderBy('customers.full_name')
+                        ->select('sales.*');
                     break;
                 default:
                     $query->orderByDesc('sales.created_at');
             }
         } else {
-             $query->orderByDesc('sales.created_at');
+            $query->orderByDesc('sales.created_at');
         }
 
         // Clone query for stats before pagination
@@ -93,7 +93,7 @@ class SaleController extends Controller
 
         $sales = $query->paginate(20)->withQueryString();
         $customers = \App\Models\Customer::all();
-        
+
         return view('sales.index', compact('sales', 'customers', 'totalSales', 'totalOutstanding', 'pendingAmount'));
     }
 
@@ -110,7 +110,7 @@ class SaleController extends Controller
         $lastSale = \App\Models\Sale::latest()->first();
         $nextId = $lastSale ? $lastSale->id + 1 : 1;
         $invoiceNumber = 'INV-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-        
+
         return view('sales.create', compact('customers', 'products', 'banks', 'invoiceNumber', 'salesmen'));
     }
 
@@ -135,14 +135,16 @@ class SaleController extends Controller
             'cheque_number' => 'nullable|required_if:payment_method,cheque|digits:6',
         ]);
 
-        \DB::transaction(function () use ($request) {
+        $sale = \DB::transaction(function () use ($request) {
             // 1. Calculate Status
             $total = $request->input('total_amount'); // Trusted from frontend or re-calculated
             $paid = $request->input('paid_amount', 0);
-            
+
             $status = 'unpaid';
-            if ($paid >= $total) $status = 'paid';
-            elseif ($paid > 0) $status = 'partial';
+            if ($paid >= $total)
+                $status = 'paid';
+            elseif ($paid > 0)
+                $status = 'partial';
 
             // 2. Create Sale
             $sale = \App\Models\Sale::create([
@@ -196,7 +198,7 @@ class SaleController extends Controller
                     // I will add a migration for `quantity` in products to be correct.
                 }
             }
-            
+
             // 4. Create Payment Record (Transaction Log)
             if ($paid > 0) {
                 \App\Models\Payment::create([
@@ -227,9 +229,10 @@ class SaleController extends Controller
                     'notes' => 'Cheque for Invoice ' . $sale->invoice_number,
                 ]);
             }
+            return $sale;
         });
 
-        return redirect()->route('sales.index')->with('success', 'Sale created successfully.');
+        return redirect()->route('sales.show', $sale->id)->with('success', 'Sale created successfully.')->with('print_invoice', true);
     }
 
     /**
@@ -245,7 +248,7 @@ class SaleController extends Controller
     public function generatePdf($id)
     {
         $sale = \App\Models\Sale::with('items.product', 'customer', 'salesman')->findOrFail($id);
-        
+
         // Fetch Settings from Cache or Model
         $globalSettings = \Cache::get('global_settings');
         if (!$globalSettings) {
@@ -286,7 +289,7 @@ class SaleController extends Controller
                     $product->increment('stock_alert', $item->quantity);
                 }
             }
-            
+
             // 2. Delete existing items
             $sale->items()->delete();
 
@@ -346,7 +349,7 @@ class SaleController extends Controller
     public function destroy($id)
     {
         $sale = \App\Models\Sale::findOrFail($id);
-        $sale->items()->delete(); 
+        $sale->items()->delete();
         $sale->delete();
         return redirect()->route('sales.index')->with('success', 'Sale deleted successfully');
     }
@@ -354,7 +357,7 @@ class SaleController extends Controller
     public function addPayment(Request $request, $id)
     {
         $sale = \App\Models\Sale::findOrFail($id);
-        
+
         $request->validate([
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'required',
@@ -366,10 +369,10 @@ class SaleController extends Controller
         ]);
 
         $amount = $request->amount;
-        
+
         // Update Paid Amount
         $sale->paid_amount += $amount;
-        if($sale->paid_amount >= $sale->total_amount) {
+        if ($sale->paid_amount >= $sale->total_amount) {
             $sale->status = 'paid';
         } else {
             $sale->status = 'partial';
@@ -380,7 +383,7 @@ class SaleController extends Controller
 
         // Handle Cheque Creation
         $chequeId = null;
-        if($request->payment_method === 'cheque') {
+        if ($request->payment_method === 'cheque') {
             $cheque = \App\Models\InCheque::create([
                 'cheque_date' => $request->cheque_date,
                 'amount' => $amount,
