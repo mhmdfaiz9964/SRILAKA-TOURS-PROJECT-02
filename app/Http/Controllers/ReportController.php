@@ -65,7 +65,8 @@ class ReportController extends Controller
         $historySummary = [
             'total_income' => $ledgerEntries->sum('total_income'),
             'total_expense' => $ledgerEntries->sum('total_expense'),
-            'total_salary' => $ledgerEntries->sum('total_salary'), // This will be labeled "Bank Deposit" in UI
+            'total_salary' => $ledgerEntries->sum('total_salary'),
+            'total_bank_deposit' => $ledgerEntries->sum('bank_deposit'),
             'total_ac_balance' => $ledgerEntries->sum('ac_sales'),
             'balance' => $ledgerEntries->sum('total'),
         ];

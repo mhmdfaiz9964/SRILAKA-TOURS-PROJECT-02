@@ -9,19 +9,22 @@
                 <span class="text-muted small">Comprehensive view of business cash flow</span>
             </div>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-primary px-4 rounded-pill shadow-sm fw-bold" 
+                <button type="button" class="btn btn-primary px-4 rounded-pill shadow-sm fw-bold"
                     style="background: #6366f1; border: none;" data-bs-toggle="modal" data-bs-target="#createLedgerModal">
                     <i class="fa-solid fa-plus me-2"></i> Create Entry
                 </button>
                 <div class="dropdown">
-                    <button class="btn btn-white border-light rounded-pill px-3 shadow-sm dropdown-toggle" type="button" data-bs-dropdown="dropdown">
+                    <button class="btn btn-white border-light rounded-pill px-3 shadow-sm dropdown-toggle" type="button"
+                        data-bs-toggle="dropdown">
                         <i class="fa-solid fa-file-export me-2"></i> Export
                     </button>
                     <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4">
-                        <a class="dropdown-item p-2 px-3" href="{{ route('reports.daily-ledger', array_merge(request()->all(), ['export' => 'excel'])) }}">
+                        <a class="dropdown-item p-2 px-3"
+                            href="{{ route('reports.daily-ledger', array_merge(request()->all(), ['export' => 'excel'])) }}">
                             <i class="fa-solid fa-file-excel text-success me-2"></i> Excel Format
                         </a>
-                        <a class="dropdown-item p-2 px-3" href="{{ route('reports.daily-ledger', array_merge(request()->all(), ['export' => 'pdf'])) }}">
+                        <a class="dropdown-item p-2 px-3"
+                            href="{{ route('reports.daily-ledger', array_merge(request()->all(), ['export' => 'pdf'])) }}">
                             <i class="fa-solid fa-file-pdf text-danger me-2"></i> PDF Format
                         </a>
                     </div>
@@ -35,7 +38,8 @@
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #f0fdf4;">
                     <div class="card-body p-3 text-center">
                         <div class="text-success small fw-bold text-uppercase mb-1">Total History Income</div>
-                        <div class="fw-bold text-success fs-5">LKR {{ number_format($historySummary['total_income'], 2) }}</div>
+                        <div class="fw-bold text-success fs-5">LKR {{ number_format($historySummary['total_income'], 2) }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -43,7 +47,8 @@
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #fef2f2;">
                     <div class="card-body p-3 text-center">
                         <div class="text-danger small fw-bold text-uppercase mb-1">Total History Expense</div>
-                        <div class="fw-bold text-danger fs-5">LKR {{ number_format($historySummary['total_expense'], 2) }}</div>
+                        <div class="fw-bold text-danger fs-5">LKR {{ number_format($historySummary['total_expense'], 2) }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -58,8 +63,10 @@
             <div class="col-md-2-4 col-sm-4 col-12">
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #faf5ff;">
                     <div class="card-body p-3 text-center">
-                        <div class="text-purple small fw-bold text-uppercase mb-1" style="color: #9333ea;">Total A/C Balance</div>
-                        <div class="fw-bold fs-5" style="color: #9333ea;">LKR {{ number_format($historySummary['total_ac_balance'], 2) }}</div>
+                        <div class="text-purple small fw-bold text-uppercase mb-1" style="color: #9333ea;">Total A/C Balance
+                        </div>
+                        <div class="fw-bold fs-5" style="color: #9333ea;">LKR
+                            {{ number_format($historySummary['total_ac_balance'], 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -67,7 +74,8 @@
                 <div class="card border-0 shadow-sm rounded-4 h-100" style="background: #fffbeb;">
                     <div class="card-body p-3 text-center">
                         <div class="text-warning small fw-bold text-uppercase mb-1">Total Bank Deposit</div>
-                        <div class="fw-bold text-warning fs-5">LKR {{ number_format($historySummary['total_salary'], 2) }}</div>
+                        <div class="fw-bold text-warning fs-5">LKR
+                            {{ number_format($historySummary['total_bank_deposit'], 2) }}</div>
                     </div>
                 </div>
             </div>
@@ -78,7 +86,8 @@
             <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
                 <h6 class="fw-bold mb-0">Daily Ledger Entries</h6>
                 <form action="{{ route('reports.daily-ledger') }}" method="GET" class="d-flex gap-2 align-items-center">
-                    <select name="filter" class="form-select form-select-sm border-light rounded-pill px-3 shadow-none" onchange="this.form.submit()">
+                    <select name="filter" class="form-select form-select-sm border-light rounded-pill px-3 shadow-none"
+                        onchange="this.form.submit()">
                         <option value="all" {{ $filter == 'all' ? 'selected' : '' }}>All Time</option>
                         <option value="today" {{ $filter == 'today' ? 'selected' : '' }}>Today</option>
                         <option value="last_7_days" {{ $filter == 'last_7_days' ? 'selected' : '' }}>Last 7 Days</option>
@@ -105,7 +114,8 @@
                         <tbody>
                             @forelse($ledgerEntries as $entry)
                                 <tr>
-                                    <td class="ps-4 fw-medium text-dark">{{ \Carbon\Carbon::parse($entry->date)->format('d M, Y') }}</td>
+                                    <td class="ps-4 fw-medium text-dark">
+                                        {{ \Carbon\Carbon::parse($entry->date)->format('d M, Y') }}</td>
                                     <td class="text-end fw-bold text-success">{{ number_format($entry->total_income, 2) }}</td>
                                     <td class="text-end fw-bold text-danger">{{ number_format($entry->total_expense, 2) }}</td>
                                     <td class="text-end fw-bold text-warning">{{ number_format($entry->total_salary, 2) }}</td>
@@ -115,11 +125,13 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="d-flex justify-content-center gap-2">
-                                            <button type="button" class="btn btn-sm btn-light border-0 text-primary bg-primary bg-opacity-10 rounded-pill px-3" 
+                                            <button type="button"
+                                                class="btn btn-sm btn-light border-0 text-primary bg-primary bg-opacity-10 rounded-pill px-3"
                                                 onclick="editLedger('{{ $entry->date }}')">
                                                 <i class="fa-solid fa-pen"></i>
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light border-0 text-danger bg-danger bg-opacity-10 rounded-pill px-3" 
+                                            <button type="button"
+                                                class="btn btn-sm btn-light border-0 text-danger bg-danger bg-opacity-10 rounded-pill px-3"
                                                 onclick="deleteLedger({{ $entry->id }}, '{{ $entry->date }}')">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
@@ -149,13 +161,16 @@
                 <div class="modal-body py-4 text-center">
                     <p class="text-muted mb-4">Please select a date to start recording income and expenses.</p>
                     <div class="input-group mb-3">
-                        <span class="input-group-text bg-light border-0"><i class="fa-solid fa-calendar text-primary"></i></span>
-                        <input type="date" id="createLedgerDate" class="form-control border-light shadow-none" value="{{ date('Y-m-d') }}">
+                        <span class="input-group-text bg-light border-0"><i
+                                class="fa-solid fa-calendar text-primary"></i></span>
+                        <input type="date" id="createLedgerDate" class="form-control border-light shadow-none"
+                            value="{{ date('Y-m-d') }}">
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4" style="background: #6366f1; border: none;" onclick="startNewLedger()">
+                    <button type="button" class="btn btn-primary rounded-pill px-4"
+                        style="background: #6366f1; border: none;" onclick="startNewLedger()">
                         Continue <i class="fa-solid fa-arrow-right ms-2"></i>
                     </button>
                 </div>
@@ -183,8 +198,10 @@
                                 <!-- Income Section -->
                                 <div class="col-md-6 border-end">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <h6 class="fw-bold text-success mb-0"><i class="fa-solid fa-arrow-down me-2"></i>Income Entries</h6>
-                                        <button type="button" class="btn btn-sm btn-light text-success rounded-pill px-3" onclick="addEntry('income')">
+                                        <h6 class="fw-bold text-success mb-0"><i
+                                                class="fa-solid fa-arrow-down me-2"></i>Income Entries</h6>
+                                        <button type="button" class="btn btn-sm btn-light text-success rounded-pill px-3"
+                                            onclick="addEntry('income')">
                                             <i class="fa-solid fa-plus me-1"></i> Add
                                         </button>
                                     </div>
@@ -195,12 +212,16 @@
                                 <!-- Expense Section -->
                                 <div class="col-md-6">
                                     <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <h6 class="fw-bold text-danger mb-0"><i class="fa-solid fa-arrow-up me-2"></i>Expense & Bank Deposit</h6>
+                                        <h6 class="fw-bold text-danger mb-0"><i
+                                                class="fa-solid fa-arrow-up me-2"></i>Expense & Bank Deposit</h6>
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-sm btn-light text-danger rounded-pill px-3" onclick="addEntry('expense')">
+                                            <button type="button" class="btn btn-sm btn-light text-danger rounded-pill px-3"
+                                                onclick="addEntry('expense')">
                                                 <i class="fa-solid fa-plus me-1"></i> Expense
                                             </button>
-                                            <button type="button" class="btn btn-sm btn-light text-warning rounded-pill px-3" onclick="addSalary()">
+                                            <button type="button"
+                                                class="btn btn-sm btn-light text-warning rounded-pill px-3"
+                                                onclick="addSalary()">
                                                 <i class="fa-solid fa-plus me-1"></i> Salary
                                             </button>
                                         </div>
@@ -225,7 +246,8 @@
                         </div>
                     </div>
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" style="background: #6366f1; border: none;" onclick="submitLedgerForm()">
+                    <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm"
+                        style="background: #6366f1; border: none;" onclick="submitLedgerForm()">
                         Save Changes
                     </button>
                 </div>
@@ -240,11 +262,31 @@
     </form>
 
     <style>
-        .col-md-2-4 { width: 20%; }
-        @media (max-width: 992px) { .col-md-2-4 { width: 33.33%; } }
-        @media (max-width: 768px) { .col-md-2-4 { width: 50%; } }
-        @media (max-width: 576px) { .col-md-2-4 { width: 100%; } }
-        .modal-xl { max-width: 1140px; }
+        .col-md-2-4 {
+            width: 20%;
+        }
+
+        @media (max-width: 992px) {
+            .col-md-2-4 {
+                width: 33.33%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .col-md-2-4 {
+                width: 50%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .col-md-2-4 {
+                width: 100%;
+            }
+        }
+
+        .modal-xl {
+            max-width: 1140px;
+        }
     </style>
 
     <script>
@@ -263,7 +305,7 @@
             document.getElementById('editModalTitle').innerText = 'Ledger Data: ' + date;
             document.getElementById('editModalSubtitle').innerText = 'Manage income and outflow entries';
             document.getElementById('ledgerDateInput').value = date;
-            
+
             document.getElementById('incomeEntriesBody').innerHTML = '<tr><td colspan="3" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
             document.getElementById('expenseEntriesBody').innerHTML = '';
 
@@ -305,26 +347,26 @@
             let body = document.getElementById(type + 'EntriesBody');
             let key = 'new_' + rowCounter++;
             let isDefault = ['A/c Sales', 'Cash Sales', 'Old payment', 'Transport', 'Food', 'Bank Deposit', 'Other'].includes(description);
-            
+
             let html = `
-                <tr id="row_${key}">
-                    <td>
-                        <input type="hidden" name="entries[${key}][id]" value="${id}">
-                        <input type="hidden" name="entries[${key}][type]" value="${type}">
-                        <input type="text" name="entries[${key}][description]" value="${description}" 
-                            class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
-                            placeholder="Description" ${isDefault ? 'readonly' : ''} required>
-                    </td>
-                    <td style="width: 150px;">
-                        <input type="number" step="0.01" name="entries[${key}][amount]" value="${amount}" 
-                            class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount ${type == 'income' && description != 'A/c Sales' ? 'modal-income' : (type == 'expense' ? 'modal-expense' : '')}" 
-                            oninput="calculateModalTotals()">
-                    </td>
-                    <td class="text-center" style="width: 50px;">
-                        ${isDefault ? '' : `<button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>`}
-                    </td>
-                </tr>
-            `;
+                    <tr id="row_${key}">
+                        <td>
+                            <input type="hidden" name="entries[${key}][id]" value="${id}">
+                            <input type="hidden" name="entries[${key}][type]" value="${type}">
+                            <input type="text" name="entries[${key}][description]" value="${description}" 
+                                class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
+                                placeholder="Description" ${isDefault ? 'readonly' : ''} required>
+                        </td>
+                        <td style="width: 150px;">
+                            <input type="number" step="0.01" name="entries[${key}][amount]" value="${amount}" 
+                                class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount ${type == 'income' && description != 'A/c Sales' ? 'modal-income' : (type == 'expense' ? 'modal-expense' : '')}" 
+                                oninput="calculateModalTotals()">
+                        </td>
+                        <td class="text-center" style="width: 50px;">
+                            ${isDefault ? '' : `<button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>`}
+                        </td>
+                    </tr>
+                `;
             body.insertAdjacentHTML('beforeend', html);
         }
 
@@ -332,26 +374,26 @@
             let body = document.getElementById('expenseEntriesBody');
             let key = 'sal_' + rowCounter++;
             let html = `
-                <tr id="row_${key}">
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="fa-solid fa-user-tie text-warning small"></i>
-                            <input type="hidden" name="salaries[${key}][id]" value="${id}">
-                            <input type="text" name="salaries[${key}][employee_name]" value="${name}" 
-                                class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
-                                placeholder="Employee Name" required>
-                        </div>
-                    </td>
-                    <td style="width: 150px;">
-                        <input type="number" step="0.01" name="salaries[${key}][amount]" value="${amount}" 
-                            class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount modal-salary" 
-                            oninput="calculateModalTotals()">
-                    </td>
-                    <td class="text-center" style="width: 50px;">
-                        <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>
-                    </td>
-                </tr>
-            `;
+                    <tr id="row_${key}">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-user-tie text-warning small"></i>
+                                <input type="hidden" name="salaries[${key}][id]" value="${id}">
+                                <input type="text" name="salaries[${key}][employee_name]" value="${name}" 
+                                    class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
+                                    placeholder="Employee Name" required>
+                            </div>
+                        </td>
+                        <td style="width: 150px;">
+                            <input type="number" step="0.01" name="salaries[${key}][amount]" value="${amount}" 
+                                class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount modal-salary" 
+                                oninput="calculateModalTotals()">
+                        </td>
+                        <td class="text-center" style="width: 50px;">
+                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>
+                        </td>
+                    </tr>
+                `;
             body.insertAdjacentHTML('beforeend', html);
         }
 
