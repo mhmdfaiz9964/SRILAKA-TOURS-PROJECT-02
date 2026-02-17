@@ -60,15 +60,16 @@
             <div class="col-md-4">
                 @php $diff = $totalAssets - $totalLiabilitiesAndEquity; @endphp
                 <div id="diffCard" class="card border-0 shadow-sm rounded-4 h-100"
-                    style="{{ abs($diff) < 0.01 ? 'background: #eff6ff;' : 'background: #fff1f2;' }}">
+                    style="{{ $diff >= 0 ? ($diff < 0.01 ? 'background: #eff6ff;' : 'background: #f0fdf4;') : 'background: #fff1f2;' }}">
                     <div class="card-body p-3">
                         <div id="diffTitle"
-                            class="{{ abs($diff) < 0.01 ? 'text-primary' : 'text-danger' }} small fw-bold text-uppercase mb-1">
+                            class="{{ $diff >= 0 ? ($diff < 0.01 ? 'text-primary' : 'text-success') : 'text-danger' }} small fw-bold text-uppercase mb-1">
                             Difference</div>
-                        <div id="diffValue" class="fw-bold {{ abs($diff) < 0.01 ? 'text-primary' : 'text-danger' }} fs-5">
+                        <div id="diffValue"
+                            class="fw-bold {{ $diff >= 0 ? ($diff < 0.01 ? 'text-primary' : 'text-success') : 'text-danger' }} fs-5">
                             LKR <span>{{ number_format($diff, 2) }}</span>
                             <i
-                                class="fa-solid {{ abs($diff) < 0.01 ? 'fa-check-circle' : 'fa-circle-exclamation' }} ms-1"></i>
+                                class="fa-solid {{ $diff >= 0 ? ($diff < 0.01 ? 'fa-check-circle' : 'fa-circle-plus') : 'fa-circle-minus' }} ms-1"></i>
                         </div>
                     </div>
                 </div>
@@ -362,10 +363,10 @@
                                     {{ number_format($entry->total_liab_eq, 2) }}
                                 </td>
                                 <td
-                                    class="text-end fw-bold {{ abs($entry->difference) < 0.01 ? 'text-primary' : 'text-danger' }} pe-4 border-light">
+                                    class="text-end fw-bold {{ $entry->difference >= 0 ? ($entry->difference < 0.01 ? 'text-primary' : 'text-success') : 'text-danger' }} pe-4 border-light">
                                     {{ number_format($entry->difference, 2) }}
                                     <i
-                                        class="fa-solid {{ abs($entry->difference) < 0.01 ? 'fa-check-circle' : 'fa-circle-exclamation' }} ms-1"></i>
+                                        class="fa-solid {{ $entry->difference >= 0 ? ($entry->difference < 0.01 ? 'fa-check-circle' : 'fa-plus-circle') : 'fa-minus-circle' }} ms-1"></i>
                                 </td>
                                 <td class="text-end pe-4 border-light">
                                     <div class="d-flex justify-content-end gap-2">
@@ -461,24 +462,24 @@
             row.className = 'entry-row';
             row.dataset.category = category;
             row.innerHTML = `
-                        <td class="ps-4">
-                            <div class="d-flex align-items-center gap-2">
-                                ${badge}
-                                <input type="hidden" name="entries[${index}][category]" value="${category}">
-                                <input type="text" name="entries[${index}][name]" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" placeholder="New ${category}..." required>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="number" step="0.01" name="entries[${index}][amount]" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring amount-input" value="0" oninput="calculateBS()">
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-1">
-                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeRow(this)">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </td>
-                    `;
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    ${badge}
+                                    <input type="hidden" name="entries[${index}][category]" value="${category}">
+                                    <input type="text" name="entries[${index}][name]" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" placeholder="New ${category}..." required>
+                                </div>
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" name="entries[${index}][amount]" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring amount-input" value="0" oninput="calculateBS()">
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeRow(this)">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        `;
             tbody.appendChild(row);
             calculateBS();
         }
@@ -501,24 +502,24 @@
             row.className = 'entry-row';
             row.dataset.category = category;
             row.innerHTML = `
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center gap-2">
-                                        ${badge}
-                                        <input type="hidden" name="entries[${index}][category]" value="${category}">
-                                        <input type="text" name="entries[${index}][name]" value="${nameInput.value}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
-                                    </div>
-                                </td>
-                                <td>
-                                    <input type="number" step="0.01" name="entries[${index}][amount]" value="${amountInput.value}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring amount-input" oninput="calculateBS()">
-                                </td>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeRow(this)">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            `;
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center gap-2">
+                                            ${badge}
+                                            <input type="hidden" name="entries[${index}][category]" value="${category}">
+                                            <input type="text" name="entries[${index}][name]" value="${nameInput.value}" class="form-control form-control-sm border-light bg-light rounded-3 shadow-none focus-ring px-2" required>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" name="entries[${index}][amount]" value="${amountInput.value}" class="form-control form-control-sm text-end fw-bold border-light bg-light rounded-3 shadow-none focus-ring amount-input" oninput="calculateBS()">
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeRow(this)">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                `;
             sourceRow.after(row);
             calculateBS();
         }
@@ -581,9 +582,9 @@
                     let assetsHtml = '';
                     data.assets.forEach(item => {
                         assetsHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
-                                            <span class="small text-muted">${item.name}</span>
-                                            <span class="fw-bold text-dark">${parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                        </li>`;
+                                                <span class="small text-muted">${item.name}</span>
+                                                <span class="fw-bold text-dark">${parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                            </li>`;
                     });
                     document.getElementById('modalAssetsList').innerHTML = assetsHtml || '<li class="list-group-item text-center text-muted small border-0">No assets records</li>';
                     document.getElementById('modalTotalAssets').innerText = 'LKR ' + parseFloat(data.total_assets).toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -591,15 +592,15 @@
                     let liabEqHtml = '';
                     data.liabilities.forEach(item => {
                         liabEqHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
-                                            <span class="small text-danger"><span class="badge bg-danger-subtle text-danger me-1">L</span>${item.name}</span>
-                                            <span class="fw-bold text-dark">${parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                        </li>`;
+                                                <span class="small text-danger"><span class="badge bg-danger-subtle text-danger me-1">L</span>${item.name}</span>
+                                                <span class="fw-bold text-dark">${parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                            </li>`;
                     });
                     data.equity.forEach(item => {
                         liabEqHtml += `<li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-bottom-dashed">
-                                            <span class="small text-primary"><span class="badge bg-primary-subtle text-primary me-1">E</span>${item.name}</span>
-                                            <span class="fw-bold text-dark">${parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                                        </li>`;
+                                                <span class="small text-primary"><span class="badge bg-primary-subtle text-primary me-1">E</span>${item.name}</span>
+                                                <span class="fw-bold text-dark">${parseFloat(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                                            </li>`;
                     });
                     document.getElementById('modalLiabEqList').innerHTML = liabEqHtml || '<li class="list-group-item text-center text-muted small border-0">No records</li>';
                     document.getElementById('modalTotalLiabEq').innerText = 'LKR ' + parseFloat(data.total_liab_eq).toLocaleString(undefined, { minimumFractionDigits: 2 });

@@ -449,10 +449,16 @@
                 </div>
 
                 @can('sale-list')
-                <a href="{{ route('sales.index') }}" class="menu-item {{ request()->routeIs('sales.*') ? 'active' : '' }}">
+                <a href="{{ route('sales.index') }}" class="menu-item {{ request()->routeIs('sales.index') ? 'active' : '' }}">
                     <div class="menu-item-content">
                         <i class="fa-solid fa-cart-shopping"></i>
                         <span>Sales</span>
+                    </div>
+                </a>
+                <a href="{{ route('sales.return.index') }}" class="menu-item {{ request()->routeIs('sales.return.*') ? 'active' : '' }}">
+                    <div class="menu-item-content">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Sales Return</span>
                     </div>
                 </a>
                 @endcan

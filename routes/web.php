@@ -67,6 +67,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/customers/{customer}/ledger/export', [App\Http\Controllers\CustomerController::class, 'exportLedger'])->name('customers.ledger.export');
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::get('/suppliers/{supplier}/ledger/export', [App\Http\Controllers\SupplierController::class, 'exportLedger'])->name('suppliers.ledger.export');
+    Route::get('/sales/returns', [App\Http\Controllers\SaleController::class, 'returnIndex'])->name('sales.return.index');
+    Route::get('/sales/{sale}/return', [App\Http\Controllers\SaleController::class, 'returnForm'])->name('sales.return.create');
+    Route::post('/sales/return', [App\Http\Controllers\SaleController::class, 'storeReturn'])->name('sales.return.store');
     Route::resource('sales', App\Http\Controllers\SaleController::class);
     // Route moved outside to support public sharing with signature
     Route::post('/sales/{sale}/add-payment', [App\Http\Controllers\SaleController::class, 'addPayment'])->name('sales.add-payment');

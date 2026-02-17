@@ -22,159 +22,91 @@ class ReportController extends Controller
     {
         $date = $request->date ? Carbon::parse($request->date) : now();
         $dateStr = $date->format('Y-m-d');
-        $isEdit = $request->input('is_edit', false);
 
-        // Check for Export Request (Works for both single day entry view)
-        if ($request->has('export')) {
-            $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
-            $totalIncome = $entries->where('type', 'income')->sum('amount');
-            $totalExpenses = $entries->where('type', 'expense')->sum('amount');
+        // Handle Filtering
+        $filter = $request->get('filter', 'all');
+        $fromDate = $request->get('from_from_date');
+        $toDate = $request->get('to_date');
 
-            // Calculate Opening/Closing for PDF only if needed
-            $pastEntries = \App\Models\DailyLedgerEntry::whereDate('date', '<', $dateStr)->get();
-            $pastIncome = $pastEntries->where('type', 'income')->sum('amount');
-            $pastExpenses = $pastEntries->where('type', 'expense')->sum('amount');
-            $openingBalance = $pastIncome - $pastExpenses;
-            $closingBalance = $openingBalance + $totalIncome - $totalExpenses;
-
-            if ($request->export == 'excel') {
-                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DailyLedgerExport($entries), 'daily_ledger_' . $dateStr . '.xlsx');
-            } elseif ($request->export == 'pdf') {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.daily_ledger_pdf', compact(
-                    'date',
-                    'entries',
-                    'totalIncome',
-                    'totalExpenses',
-                    'closingBalance'
-                ));
-                return $pdf->download('daily_ledger_' . $dateStr . '.pdf');
-            }
-        }
-
-        // --- ENTRY MODE (Always) ---
-
-        // Define Default Heads
-        $defaultHeads = [
-            'income' => ['A/c Sales', 'Cash Sales', 'Old payment'],
-            'expense' => ['Transport', 'Food', 'Bank Deposit', 'Other']
-        ];
-
-        // Reset Logic: If forced reset, we set all amounts for this date to 0
-        if ($request->has('reset')) {
-            \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->update(['amount' => 0]);
-            \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->update(['amount' => 0]);
-        }
-
-        // Cleanup Obsolete Heads (if amount is 0) to ensure view matches new layout
-        $obsoleteHeads = [
-            'Tour Advance',
-            'Tour Final Payment',
-            'Other Income', // Old Income
-            'Fuel',
-            'Driver Bata',
-            'Highway Ticket',
-            'Parking',
-            'Office Expenses',
-            'Salaries',
-            'Other Expenses' // Old Expense
-        ];
-
-        \App\Models\DailyLedgerEntry::where('date', $dateStr)
-            ->whereIn('description', $obsoleteHeads)
-            ->where('amount', 0)
-            ->delete();
-
-        // Ensure default entries exist for the date
-        foreach ($defaultHeads['income'] as $desc) {
-            \App\Models\DailyLedgerEntry::firstOrCreate(
-                ['date' => $dateStr, 'description' => $desc, 'type' => 'income'],
-                ['amount' => 0]
-            );
-        }
-        foreach ($defaultHeads['expense'] as $desc) {
-            \App\Models\DailyLedgerEntry::firstOrCreate(
-                ['date' => $dateStr, 'description' => $desc, 'type' => 'expense'],
-                ['amount' => 0]
-            );
-        }
-
-        // Fetch entries
-        $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
-
-        $incomeEntries = $entries->where('type', 'income');
-        $expenseEntries = $entries->where('type', 'expense')->where('description', '!=', 'Salary');
-
-        // Calculate totals EXCLUDING A/C Sales from income
-        $totalIncome = $incomeEntries->where('description', '!=', 'A/c Sales')->sum('amount');
-        $totalExpenses = $expenseEntries->sum('amount');
-
-        // Fetch salary entries
-        $salaryEntries = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->get();
-        $totalSalary = $salaryEntries->sum('amount');
-
-        // Opening/Closing Balance Calculations (EXCLUDING A/C Sales)
-        $pastEntries = \App\Models\DailyLedgerEntry::whereDate('date', '<', $dateStr)->get();
-        $pastIncome = $pastEntries->where('type', 'income')->where('description', '!=', 'A/c Sales')->sum('amount');
-        $pastExpenses = $pastEntries->where('type', 'expense')->where('description', '!=', 'Salary')->sum('amount');
-        $pastSalaries = \App\Models\DailySalaryEntry::whereDate('date', '<', $dateStr)->sum('amount');
-
-        $openingBalance = $pastIncome - $pastExpenses - $pastSalaries;
-        $closingBalance = $openingBalance + $totalIncome - $totalExpenses - $totalSalary;
-
-        $acSales = $entries->where('description', 'A/c Sales')->sum('amount');
-        $bankDeposit = $entries->where('description', 'Bank Deposit')->sum('amount');
-
-        // 4. FETCH HISTORY (Ledger Summaries) - Ensuring unique dates and correct IDs
-        $ledgerEntries = \App\Models\DailyLedgerEntry::select('date')
+        $query = \App\Models\DailyLedgerEntry::select('date')
             ->selectRaw('SUM(CASE WHEN type="income" AND description!="A/c Sales" THEN amount ELSE 0 END) as total_income')
             ->selectRaw('SUM(CASE WHEN type="expense" AND description!="Salary" THEN amount ELSE 0 END) as total_expense')
             ->selectRaw('SUM(CASE WHEN description="Bank Deposit" THEN amount ELSE 0 END) as bank_deposit')
             ->selectRaw('SUM(CASE WHEN description="A/c Sales" THEN amount ELSE 0 END) as ac_sales')
-            ->groupBy('date')
-            ->orderBy('date', 'desc')
-            ->get()
+            ->groupBy('date');
+
+        // Apply Date Filters
+        if ($filter == 'today') {
+            $query->whereDate('date', now());
+        } elseif ($filter == 'last_7_days') {
+            $query->whereDate('date', '>=', now()->subDays(7));
+        } elseif ($filter == 'last_week') {
+            $query->whereBetween('date', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()]);
+        } elseif ($filter == 'last_month') {
+            $query->whereMonth('date', now()->subMonth()->month)->whereYear('date', now()->subMonth()->year);
+        } elseif ($filter == 'last_year') {
+            $query->whereYear('date', now()->subYear()->year);
+        } elseif ($fromDate && $toDate) {
+            $query->whereBetween('date', [$fromDate, $toDate]);
+        }
+
+        $ledgerEntries = $query->orderBy('date', 'desc')->get()
             ->map(function ($item) {
-                // Ensure date is a string Y-m-d for reliable URL usage
                 $dateStr = \Carbon\Carbon::parse($item->date)->format('Y-m-d');
                 $item->date_str = $dateStr;
-
-                // Add salary total for this date
                 $item->total_salary = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->sum('amount');
-
-                // Calculate balance (excluding A/C sales, including salary)
                 $item->total = $item->total_income - $item->total_expense - $item->total_salary;
-
                 $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->first();
                 $item->id = $firstEntry ? $firstEntry->id : 0;
                 return $item;
             });
 
-        // 4 Summary Totals for History Table
+        // Summary Totals
         $historySummary = [
             'total_income' => $ledgerEntries->sum('total_income'),
             'total_expense' => $ledgerEntries->sum('total_expense'),
-            'total_salary' => $ledgerEntries->sum('total_salary'),
+            'total_salary' => $ledgerEntries->sum('total_salary'), // This will be labeled "Bank Deposit" in UI
             'total_ac_balance' => $ledgerEntries->sum('ac_sales'),
-            'total_bank_deposit' => $ledgerEntries->sum('bank_deposit'),
+            'balance' => $ledgerEntries->sum('total'),
         ];
 
+        // Check for Export
+        if ($request->has('export')) {
+            if ($request->export == 'excel') {
+                return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DailyLedgerHistoryExport($ledgerEntries), 'daily_ledger_history.xlsx');
+            } elseif ($request->export == 'pdf') {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.daily_ledger_history_pdf', ['records' => $ledgerEntries]);
+                return $pdf->download('daily_ledger_history.pdf');
+            }
+        }
+
         return view('reports.daily_ledger', compact(
-            'date',
-            'incomeEntries',
-            'expenseEntries',
-            'salaryEntries',
-            'totalIncome',
-            'totalExpenses',
-            'totalSalary',
-            'openingBalance',
-            'closingBalance',
-            'acSales',
-            'bankDeposit',
             'ledgerEntries',
             'historySummary',
-            'isEdit'
+            'filter'
         ));
     }
+
+    public function getDailyLedgerDetails($date)
+    {
+        $dateStr = Carbon::parse($date)->format('Y-m-d');
+        $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
+
+        $income = $entries->where('type', 'income')->values();
+        $expense = $entries->where('type', 'expense')->values();
+        $salaries = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->get();
+
+        return response()->json([
+            'date' => $dateStr,
+            'income' => $income,
+            'expense' => $expense,
+            'salaries' => $salaries,
+            'total_income' => $income->where('description', '!=', 'A/c Sales')->sum('amount'),
+            'total_expense' => $expense->sum('amount'),
+            'total_salary' => $salaries->sum('amount')
+        ]);
+    }
+
 
     public function editDailyLedgerEntry($id)
     {
@@ -517,26 +449,6 @@ class ReportController extends Controller
         }
 
         return view('reports.daily_ledger_history', compact('records'));
-    }
-
-    public function getDailyLedgerDetails($date)
-    {
-        $dateStr = Carbon::parse($date)->format('Y-m-d');
-        $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
-
-        $income = $entries->where('type', 'income')->values();
-        $expense = $entries->where('type', 'expense')->values();
-        $salaries = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->get();
-
-        return response()->json([
-            'date' => $dateStr,
-            'income' => $income,
-            'expense' => $expense,
-            'salaries' => $salaries,
-            'total_income' => $income->sum('amount'),
-            'total_expense' => $expense->sum('amount'),
-            'total_salary' => $salaries->sum('amount')
-        ]);
     }
 
     public function getBalanceSheetDetails($date)

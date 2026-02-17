@@ -129,8 +129,6 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|numeric|min:1',
             'paid_amount' => 'nullable|numeric',
             'transport_cost' => 'nullable|numeric',
-            'paid_amount' => 'nullable|numeric',
-            'transport_cost' => 'nullable|numeric',
             'salesman_name' => 'nullable|string',
             'cheque_number' => 'nullable|required_if:payment_method,cheque|digits:6',
         ]);
@@ -156,7 +154,6 @@ class SaleController extends Controller
                 'transport_cost' => $request->transport_cost ?? 0,
                 'paid_amount' => $paid,
                 'status' => $status,
-                'payment_method' => $request->payment_method,
                 'payment_method' => $request->payment_method,
                 'salesman_name' => $request->salesman_name,
                 'notes' => $request->notes,
@@ -255,7 +252,7 @@ class SaleController extends Controller
             $globalSettings = \App\Models\Setting::all()->pluck('value', 'key');
         }
 
-        $pdf = \PDF::loadView('sales.invoice_pdf', compact('sale', 'globalSettings'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('sales.invoice_pdf', compact('sale', 'globalSettings'));
         return $pdf->stream('invoice-' . $sale->invoice_number . '.pdf');
     }
 
@@ -412,5 +409,97 @@ class SaleController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Payment added successfully');
+    }
+
+    public function returnIndex(\Illuminate\Http\Request $request)
+    {
+        $sales = \App\Models\Sale::where('invoice_number', 'LIKE', 'RTN-%')->with('customer')->orderByDesc('created_at')->paginate(20);
+        return view('sales.return_index', compact('sales'));
+    }
+
+    public function returnForm($id)
+    {
+        $sale = \App\Models\Sale::with('items.product', 'customer')->findOrFail($id);
+        $products = \App\Models\Product::all();
+        $banks = \App\Models\Bank::all();
+
+        $lastReturn = \App\Models\Sale::where('invoice_number', 'LIKE', 'RTN-%')->latest()->first();
+        $nextId = $lastReturn ? ((int) preg_replace('/[^0-9]/', '', $lastReturn->invoice_number)) + 1 : 1;
+        $returnNumber = 'RTN-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+
+        return view('sales.return_form', compact('sale', 'products', 'banks', 'returnNumber'));
+    }
+
+    public function storeReturn(Request $request)
+    {
+        $request->validate([
+            'original_sale_id' => 'required|exists:sales,id',
+            'return_number' => 'required|unique:sales,invoice_number',
+            'return_date' => 'required|date',
+            'items' => 'required|array',
+            'cash_return_amount' => 'nullable|numeric|min:0',
+        ]);
+
+        $sale = \DB::transaction(function () use ($request) {
+            $originalSale = \App\Models\Sale::with('customer')->findOrFail($request->original_sale_id);
+
+            // 1. Create Return Sale Record (Negative Total)
+            $totalReturnAmount = 0;
+            foreach ($request->items as $item) {
+                if ($item['quantity'] > 0) {
+                    $totalReturnAmount += ($item['quantity'] * $item['unit_price']);
+                }
+            }
+
+            $returnSale = \App\Models\Sale::create([
+                'customer_id' => $originalSale->customer_id,
+                'invoice_number' => $request->return_number,
+                'sale_date' => $request->return_date,
+                'total_amount' => -$totalReturnAmount, // Negative to reduce ledger balance
+                'paid_amount' => -$request->input('cash_return_amount', 0), // Negative payment (outflow)
+                'status' => 'return',
+                'notes' => 'Sales Return for Invoice #' . $originalSale->invoice_number . '. ' . $request->notes,
+                'payment_method' => 'cash',
+            ]);
+
+            // 2. Process Return Items & Restore Stock
+            foreach ($request->items as $item) {
+                if ($item['quantity'] > 0) {
+                    \App\Models\SaleItem::create([
+                        'sale_id' => $returnSale->id,
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'total_price' => $item['quantity'] * $item['unit_price'],
+                        'description' => 'Return from #' . $originalSale->invoice_number,
+                    ]);
+
+                    // Increase Stock
+                    $product = \App\Models\Product::find($item['product_id']);
+                    if ($product) {
+                        $product->increment('stock_alert', $item['quantity']);
+                    }
+                }
+            }
+
+            // 3. Register Cash Return Payment
+            if ($request->cash_return_amount > 0) {
+                \App\Models\Payment::create([
+                    'amount' => -$request->cash_return_amount, // Negative amount to increase ledger balance (reducing credit)
+                    'payment_date' => $request->return_date,
+                    'payment_method' => 'cash',
+                    'payable_type' => 'App\Models\Customer',
+                    'payable_id' => $originalSale->customer_id,
+                    'type' => 'out',
+                    'transaction_id' => $returnSale->id,
+                    'transaction_type' => 'App\Models\Sale',
+                    'notes' => 'Cash Return for Return #' . $returnSale->invoice_number,
+                ]);
+            }
+
+            return $returnSale;
+        });
+
+        return redirect()->route('sales.return.index')->with('success', 'Sales return processed successfully.');
     }
 }
