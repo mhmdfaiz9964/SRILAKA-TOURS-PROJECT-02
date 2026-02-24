@@ -26,14 +26,19 @@ class ChequeController extends Controller
     {
         $query = Cheque::with(['bank'])->withSum('payments', 'amount')
             ->where('payment_status', '!=', 'paid')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->where('type', '!=', 'transferred_to_third_party')
-                  ->orWhereNull('type');
+                    ->orWhereNull('type');
             });
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
 
-        $cheques = $query->paginate(10)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $cheques = $query->paginate($perPage)->withQueryString();
         $total_balance = $query->get()->sum(fn($c) => $c->amount - ($c->payments_sum_amount ?? 0));
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
@@ -49,15 +54,20 @@ class ChequeController extends Controller
 
         // Apply filters if any
         if ($request->search) {
-            $query->whereHas('cheque', function($q) use ($request) {
+            $query->whereHas('cheque', function ($q) use ($request) {
                 $q->where('payer_name', 'like', "%{$request->search}%")
-                  ->orWhere('cheque_number', 'like', "%{$request->search}%");
+                    ->orWhere('cheque_number', 'like', "%{$request->search}%");
             });
         }
 
-        $payments = $query->latest('payment_date')->paginate(10)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $payments = $query->latest('payment_date')->paginate($perPage)->withQueryString();
         $total_balance = $query->sum('amount');
-        
+
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
         $third_parties = Cheque::distinct()->whereNotNull('payee_name')->pluck('payee_name');
@@ -78,7 +88,12 @@ class ChequeController extends Controller
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
 
-        $cheques = $query->paginate(10)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $cheques = $query->paginate($perPage)->withQueryString();
         $total_balance = $query->get()->sum(fn($c) => $c->amount - ($c->payments_sum_amount ?? 0));
         $banks = Bank::all();
         $payers = Cheque::distinct()->pluck('payer_name');
@@ -91,7 +106,7 @@ class ChequeController extends Controller
     {
         $format = $request->get('format', 'excel');
         $query = Cheque::with(['bank'])->withSum('payments', 'amount');
-        
+
         // Context-aware export based on the current view
         if ($request->has('view')) {
             if ($request->view == 'payment') {
@@ -105,7 +120,7 @@ class ChequeController extends Controller
 
         $this->applyFilters($query, $request);
         $this->applySorting($query, $request);
-        
+
         $cheques = $query->get();
 
         if ($format == 'pdf') {
@@ -131,10 +146,10 @@ class ChequeController extends Controller
             $query->whereBetween('cheque_date', [$request->start_date, $request->end_date]);
         }
         if ($request->search) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('cheque_number', 'like', "%{$request->search}%")
-                  ->orWhere('payer_name', 'like', "%{$request->search}%")
-                  ->orWhere('payee_name', 'like', "%{$request->search}%");
+                    ->orWhere('payer_name', 'like', "%{$request->search}%")
+                    ->orWhere('payee_name', 'like', "%{$request->search}%");
             });
         }
     }
@@ -142,7 +157,7 @@ class ChequeController extends Controller
     private function applySorting($query, $request)
     {
         $sort = $request->get('sort', 'latest');
-        
+
         switch ($sort) {
             case 'oldest':
                 $query->orderBy('cheque_date', 'asc');
@@ -255,10 +270,10 @@ class ChequeController extends Controller
         // Let's assume Payment->bank_id is polymorphic enough or we can use it.
         // But if form sends 'bank_id' for transfer and 'payment_cheque_bank_id' for cheque...
         // I should map payment_cheque_bank_id to bank_id if method is cheque.
-        
+
         if ($request->payment_method == 'cheque') {
             $data['bank_id'] = $request->payment_cheque_bank_id;
-            
+
             // Create InCheque
             \App\Models\InCheque::create([
                 'cheque_number' => $request->payment_cheque_number,

@@ -29,7 +29,7 @@ class ThirdPartyChequeController extends Controller
 
         // Bank filter (through inCheque relationship)
         if ($request->bank_id) {
-            $query->whereHas('inCheque', function($q) use ($request) {
+            $query->whereHas('inCheque', function ($q) use ($request) {
                 $q->where('bank_id', $request->bank_id);
             });
         }
@@ -41,10 +41,10 @@ class ThirdPartyChequeController extends Controller
 
         // Date range filter (using transfer_date)
         if ($request->from_date) {
-            $query->whereDate('transfer_date', '>=', $request->from_date);
+            $query->where('transfer_date', '>=', $request->from_date);
         }
         if ($request->to_date) {
-            $query->whereDate('transfer_date', '<=', $request->to_date);
+            $query->where('transfer_date', '<=', $request->to_date);
         }
 
         $cheques = $query->latest()->get();
@@ -56,7 +56,7 @@ class ThirdPartyChequeController extends Controller
 
         return Excel::download(new ThirdPartyChequesExport($cheques), 'third_party_cheques_export_' . now()->format('YmdHis') . '.xlsx');
     }
-    
+
     // ... existing index ...
     public function __construct()
     {
@@ -71,19 +71,19 @@ class ThirdPartyChequeController extends Controller
         // Stats for Cards with amounts
         $stats = [
             'all' => [
-                'count' => ThirdPartyCheque::count(), 
+                'count' => ThirdPartyCheque::count(),
                 'amount' => ThirdPartyCheque::with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
             ],
             'received' => [
-                'count' => ThirdPartyCheque::where('status', 'received')->count(), 
+                'count' => ThirdPartyCheque::where('status', 'received')->count(),
                 'amount' => ThirdPartyCheque::where('status', 'received')->with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
             ],
             'realized' => [
-                'count' => ThirdPartyCheque::where('status', 'realized')->count(), 
+                'count' => ThirdPartyCheque::where('status', 'realized')->count(),
                 'amount' => ThirdPartyCheque::where('status', 'realized')->with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
             ],
             'returned' => [
-                'count' => ThirdPartyCheque::where('status', 'returned')->count(), 
+                'count' => ThirdPartyCheque::where('status', 'returned')->count(),
                 'amount' => ThirdPartyCheque::where('status', 'returned')->with('inCheque')->get()->sum(fn($tp) => $tp->inCheque->amount ?? 0)
             ],
         ];
@@ -99,7 +99,7 @@ class ThirdPartyChequeController extends Controller
 
         // Bank filter (through inCheque relationship)
         if ($request->bank_id) {
-            $query->whereHas('inCheque', function($q) use ($request) {
+            $query->whereHas('inCheque', function ($q) use ($request) {
                 $q->where('bank_id', $request->bank_id);
             });
         }
@@ -111,13 +111,18 @@ class ThirdPartyChequeController extends Controller
 
         // Date range filter (using transfer_date)
         if ($request->from_date) {
-            $query->whereDate('transfer_date', '>=', $request->from_date);
+            $query->where('transfer_date', '>=', $request->from_date);
         }
         if ($request->to_date) {
-            $query->whereDate('transfer_date', '<=', $request->to_date);
+            $query->where('transfer_date', '<=', $request->to_date);
         }
 
-        $cheques = $query->latest()->paginate(10)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $cheques = $query->latest()->paginate($perPage)->withQueryString();
         $banks = \App\Models\Bank::all();
         return view('cheque_operations.third_party_cheques.index', compact('cheques', 'stats', 'banks'));
     }
@@ -134,7 +139,7 @@ class ThirdPartyChequeController extends Controller
         // Update parent InCheque status based on 3rd party status
         if ($thirdPartyCheque->status == 'returned') {
             $thirdPartyCheque->inCheque->update(['status' => 'returned']);
-            
+
             \App\Models\Cheque::create([
                 'cheque_number' => $thirdPartyCheque->inCheque->cheque_number,
                 'cheque_date' => $thirdPartyCheque->inCheque->cheque_date,

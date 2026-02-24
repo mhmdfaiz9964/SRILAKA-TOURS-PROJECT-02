@@ -22,10 +22,10 @@ class PurchaseController extends Controller
         $query = \App\Models\Purchase::with('supplier');
 
         if ($request->filled('start_date')) {
-            $query->whereDate('purchase_date', '>=', $request->start_date);
+            $query->where('purchase_date', '>=', $request->start_date);
         }
         if ($request->filled('end_date')) {
-            $query->whereDate('purchase_date', '<=', $request->end_date);
+            $query->where('purchase_date', '<=', $request->end_date);
         }
         if ($request->filled('supplier_id')) {
             $query->where('supplier_id', $request->supplier_id);
@@ -60,7 +60,12 @@ class PurchaseController extends Controller
             $query->orderByDesc('purchases.created_at');
         }
 
-        $purchases = $query->paginate(10);
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $purchases = $query->paginate($perPage)->withQueryString();
         $suppliers = \App\Models\Supplier::select('id', 'full_name')->orderBy('full_name')->get();
 
         return view('purchases.index', compact('purchases', 'suppliers'));
@@ -243,7 +248,7 @@ class PurchaseController extends Controller
             $globalSettings = \App\Models\Setting::all()->pluck('value', 'key');
         }
 
-        $pdf = \PDF::loadView('purchases.invoice_pdf', compact('purchase', 'globalSettings'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('purchases.invoice_pdf', compact('purchase', 'globalSettings'));
         return $pdf->stream('purchase-' . ($purchase->invoice_number ?? $purchase->id) . '.pdf');
     }
 

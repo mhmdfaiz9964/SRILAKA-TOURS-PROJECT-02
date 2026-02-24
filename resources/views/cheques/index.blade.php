@@ -58,8 +58,19 @@
 
     <div class="table-container bg-white rounded-4 shadow-sm border border-light overflow-hidden">
         <div class="p-3 border-bottom bg-light bg-opacity-10">
-            <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3">
+            <form action="{{ url()->current() }}" method="GET" class="row g-3 align-items-end" id="filterForm">
+                <div class="col-md-1">
+                    <label class="form-label small fw-bold text-muted mb-1">Rows</label>
+                    <select name="per_page" class="form-select form-select-sm border-light rounded-3 shadow-none" onchange="this.form.submit()">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                        <option value="500" {{ request('per_page') == 500 ? 'selected' : '' }}>500</option>
+                        <option value="1000" {{ request('per_page') == 1000 ? 'selected' : '' }}>1000</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small fw-bold text-muted mb-1">Search</label>
                     <div class="position-relative">
                         <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.8rem;"></i>
@@ -285,10 +296,13 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="text-muted small">Row/Page:</span>
-                <select class="form-select form-select-sm border-0 bg-light shadow-none" style="width: 70px;">
-                    <option>10</option>
-                    <option>20</option>
-                    <option>50</option>
+                <select name="per_page" class="form-select form-select-sm border-0 bg-light shadow-none" style="width: 100px;" onchange="this.form.submit()" form="filterForm">
+                    <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    <option value="500" {{ request('per_page') == 500 ? 'selected' : '' }}>500</option>
+                    <option value="1000" {{ request('per_page') == 1000 ? 'selected' : '' }}>1000</option>
+                    <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
                 </select>
             </div>
         </div>
@@ -352,7 +366,7 @@
     .btn-white { background: #fff; border: 1px solid #f1f5f9; color: #475569; border-radius: 10px; font-size: 0.85rem; }
     .btn-white:hover { background: #f8fafc; }
     .table th { background: transparent; border-bottom: none; font-size: 0.7rem; letter-spacing: 0.05em; font-weight: 700; }
-    .table td { border-bottom: 1px solid #f8fafc; height: 65px; }
+    .table td { border-bottom: 1px solid #e2e8f0 !important; height: 65px; }
     .form-check-input:checked { background-color: #6366f1; border-color: #6366f1; }
     .pagination-custom .pagination { margin-bottom: 0; }
     .pagination-custom .page-link { border: none; background: transparent; color: #64748b; font-size: 0.85rem; margin: 0 2px; }

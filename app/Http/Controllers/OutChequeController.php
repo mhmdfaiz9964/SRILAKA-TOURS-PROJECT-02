@@ -21,9 +21,9 @@ class OutChequeController extends Controller
         $query = OutCheque::with('bank');
 
         if ($request->search) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('payee_name', 'like', "%{$request->search}%")
-                  ->orWhere('cheque_number', 'like', "%{$request->search}%");
+                    ->orWhere('cheque_number', 'like', "%{$request->search}%");
             });
         }
 
@@ -43,23 +43,34 @@ class OutChequeController extends Controller
 
         // Date range filter
         if ($request->from_date) {
-            $query->whereDate('cheque_date', '>=', $request->from_date);
+            $query->where('cheque_date', '>=', $request->from_date);
         }
         if ($request->to_date) {
-            $query->whereDate('cheque_date', '<=', $request->to_date);
+            $query->where('cheque_date', '<=', $request->to_date);
         }
 
         if ($request->filled('sort')) {
             switch ($request->sort) {
-                case 'latest': $query->latest(); break;
-                case 'oldest': $query->oldest(); break;
-                case 'highest_amount': $query->orderByDesc('amount'); break;
-                case 'lowest_amount': $query->orderBy('amount'); break;
-                case 'name_az': $query->orderBy('payee_name'); break;
-                default: $query->latest();
+                case 'latest':
+                    $query->latest();
+                    break;
+                case 'oldest':
+                    $query->oldest();
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('amount');
+                    break;
+                case 'name_az':
+                    $query->orderBy('payee_name');
+                    break;
+                default:
+                    $query->latest();
             }
         } else {
-             $query->latest();
+            $query->latest();
         }
 
         $cheques = $query->get();
@@ -93,9 +104,9 @@ class OutChequeController extends Controller
         ];
 
         if ($request->search) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('payee_name', 'like', "%{$request->search}%")
-                  ->orWhere('cheque_number', 'like', "%{$request->search}%");
+                    ->orWhere('cheque_number', 'like', "%{$request->search}%");
             });
         }
 
@@ -115,10 +126,10 @@ class OutChequeController extends Controller
 
         // Date range filter
         if ($request->from_date) {
-            $query->whereDate('cheque_date', '>=', $request->from_date);
+            $query->where('cheque_date', '>=', $request->from_date);
         }
         if ($request->to_date) {
-            $query->whereDate('cheque_date', '<=', $request->to_date);
+            $query->where('cheque_date', '<=', $request->to_date);
         }
 
         if ($request->filled('sort')) {
@@ -142,10 +153,15 @@ class OutChequeController extends Controller
                     $query->latest();
             }
         } else {
-             $query->latest();
+            $query->latest();
         }
 
-        $cheques = $query->latest()->paginate(10)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $cheques = $query->latest()->paginate($perPage)->withQueryString();
         $banks = Bank::all();
         $payees = OutCheque::select('payee_name')->distinct()->orderBy('payee_name')->pluck('payee_name');
         return view('cheque_operations.out_cheques.index', compact('cheques', 'stats', 'banks', 'payees'));

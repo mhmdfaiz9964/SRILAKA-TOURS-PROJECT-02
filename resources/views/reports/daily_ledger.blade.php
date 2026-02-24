@@ -66,7 +66,8 @@
                         <div class="text-purple small fw-bold text-uppercase mb-1" style="color: #9333ea;">Total A/C Balance
                         </div>
                         <div class="fw-bold fs-5" style="color: #9333ea;">LKR
-                            {{ number_format($historySummary['total_ac_balance'], 2) }}</div>
+                            {{ number_format($historySummary['total_ac_balance'], 2) }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -75,7 +76,8 @@
                     <div class="card-body p-3 text-center">
                         <div class="text-warning small fw-bold text-uppercase mb-1">Total Bank Deposit</div>
                         <div class="fw-bold text-warning fs-5">LKR
-                            {{ number_format($historySummary['total_bank_deposit'], 2) }}</div>
+                            {{ number_format($historySummary['total_bank_deposit'], 2) }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -86,6 +88,15 @@
             <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
                 <h6 class="fw-bold mb-0">Daily Ledger Entries</h6>
                 <form action="{{ route('reports.daily-ledger') }}" method="GET" class="d-flex gap-2 align-items-center">
+                    <select name="per_page" class="form-select form-select-sm border-light rounded-pill px-3 shadow-none"
+                        onchange="this.form.submit()">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 Rows</option>
+                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 Rows</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100 Rows</option>
+                        <option value="500" {{ request('per_page') == 500 ? 'selected' : '' }}>500 Rows</option>
+                        <option value="1000" {{ request('per_page') == 1000 ? 'selected' : '' }}>1000 Rows</option>
+                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All Rows</option>
+                    </select>
                     <select name="filter" class="form-select form-select-sm border-light rounded-pill px-3 shadow-none"
                         onchange="this.form.submit()">
                         <option value="all" {{ $filter == 'all' ? 'selected' : '' }}>All Time</option>
@@ -115,10 +126,11 @@
                             @forelse($ledgerEntries as $entry)
                                 <tr>
                                     <td class="ps-4 fw-medium text-dark">
-                                        {{ \Carbon\Carbon::parse($entry->date)->format('d M, Y') }}</td>
+                                        {{ \Carbon\Carbon::parse($entry->date)->format('d M, Y') }}
+                                    </td>
                                     <td class="text-end fw-bold text-success">{{ number_format($entry->total_income, 2) }}</td>
                                     <td class="text-end fw-bold text-danger">{{ number_format($entry->total_expense, 2) }}</td>
-                                    <td class="text-end fw-bold text-warning">{{ number_format($entry->total_salary, 2) }}</td>
+                                    <td class="text-end fw-bold text-warning">{{ number_format($entry->bank_deposit, 2) }}</td>
                                     <td class="text-end text-muted">{{ number_format($entry->ac_sales, 2) }}</td>
                                     <td class="text-end fw-bold {{ $entry->total >= 0 ? 'text-success' : 'text-danger' }} pe-4">
                                         {{ number_format($entry->total, 2) }}
@@ -146,6 +158,11 @@
                         </tbody>
                     </table>
                 </div>
+                @if($ledgerEntries->hasPages())
+                    <div class="p-3 border-top">
+                        {{ $ledgerEntries->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -246,6 +263,10 @@
                         </div>
                     </div>
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4"
+                        onclick="downloadLedgerImage()">
+                        <i class="fa-solid fa-camera me-2"></i> Screenshot
+                    </button>
                     <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm"
                         style="background: #6366f1; border: none;" onclick="submitLedgerForm()">
                         Save Changes
@@ -287,7 +308,12 @@
         .modal-xl {
             max-width: 1140px;
         }
+
+        #editLedgerModal .modal-content {
+            background: #fff;
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <script>
         let editModal = new bootstrap.Modal(document.getElementById('editLedgerModal'));
@@ -347,69 +373,122 @@
             let body = document.getElementById(type + 'EntriesBody');
             let key = 'new_' + rowCounter++;
             let isDefault = ['A/c Sales', 'Cash Sales', 'Old payment', 'Transport', 'Food', 'Bank Deposit', 'Other'].includes(description);
+            let formattedAmount = formatValue(amount);
 
             let html = `
-                    <tr id="row_${key}">
-                        <td>
-                            <input type="hidden" name="entries[${key}][id]" value="${id}">
-                            <input type="hidden" name="entries[${key}][type]" value="${type}">
-                            <input type="text" name="entries[${key}][description]" value="${description}" 
-                                class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
-                                placeholder="Description" ${isDefault ? 'readonly' : ''} required>
-                        </td>
-                        <td style="width: 150px;">
-                            <input type="number" step="0.01" name="entries[${key}][amount]" value="${amount}" 
-                                class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount ${type == 'income' && description != 'A/c Sales' ? 'modal-income' : (type == 'expense' ? 'modal-expense' : '')}" 
-                                oninput="calculateModalTotals()">
-                        </td>
-                        <td class="text-center" style="width: 50px;">
-                            ${isDefault ? '' : `<button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>`}
-                        </td>
-                    </tr>
-                `;
+                            <tr id="row_${key}">
+                                <td>
+                                    <input type="hidden" name="entries[${key}][id]" value="${id}">
+                                    <input type="hidden" name="entries[${key}][type]" value="${type}">
+                                    <input type="text" name="entries[${key}][description]" value="${description}" 
+                                        class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
+                                        placeholder="Description" ${isDefault ? 'readonly' : ''} required>
+                                </td>
+                                <td style="width: 150px;">
+                                    <input type="text" name="entries[${key}][amount]" value="${formattedAmount}" 
+                                        class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount ${type == 'income' && description != 'A/c Sales' ? 'modal-income' : (type == 'expense' ? 'modal-expense' : '')}" 
+                                        oninput="handleInput(this)">
+                                </td>
+                                <td class="text-center" style="width: 50px;">
+                                    ${isDefault ? '' : `<button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>`}
+                                </td>
+                            </tr>
+                        `;
             body.insertAdjacentHTML('beforeend', html);
         }
 
         function addSalaryRow(name, amount, id = '') {
             let body = document.getElementById('expenseEntriesBody');
             let key = 'sal_' + rowCounter++;
+            let formattedAmount = formatValue(amount);
             let html = `
-                    <tr id="row_${key}">
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="fa-solid fa-user-tie text-warning small"></i>
-                                <input type="hidden" name="salaries[${key}][id]" value="${id}">
-                                <input type="text" name="salaries[${key}][employee_name]" value="${name}" 
-                                    class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
-                                    placeholder="Employee Name" required>
-                            </div>
-                        </td>
-                        <td style="width: 150px;">
-                            <input type="number" step="0.01" name="salaries[${key}][amount]" value="${amount}" 
-                                class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount modal-salary" 
-                                oninput="calculateModalTotals()">
-                        </td>
-                        <td class="text-center" style="width: 50px;">
-                            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>
-                        </td>
-                    </tr>
-                `;
+                            <tr id="row_${key}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fa-solid fa-user-tie text-warning small"></i>
+                                        <input type="hidden" name="salaries[${key}][id]" value="${id}">
+                                        <input type="text" name="salaries[${key}][employee_name]" value="${name}" 
+                                            class="form-control form-control-sm border-0 bg-transparent shadow-none fw-medium" 
+                                            placeholder="Employee Name" required>
+                                    </div>
+                                </td>
+                                <td style="width: 150px;">
+                                    <input type="text" name="salaries[${key}][amount]" value="${formattedAmount}" 
+                                        class="form-control form-control-sm text-end border-light bg-light rounded-2 shadow-none modal-amount modal-salary" 
+                                        oninput="handleInput(this)">
+                                </td>
+                                <td class="text-center" style="width: 50px;">
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="document.getElementById('row_${key}').remove(); calculateModalTotals();"><i class="fa-solid fa-times"></i></button>
+                                </td>
+                            </tr>
+                        `;
             body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function formatValue(val) {
+            if (val === undefined || val === null || isNaN(val)) return '0.00';
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(val);
+        }
+
+        function handleInput(el) {
+            // Store cursor position
+            let start = el.selectionStart;
+            let originalLength = el.value.length;
+
+            // Strip non-digits and non-dots
+            let clean = el.value.replace(/[^\d.]/g, '');
+            let parts = clean.split('.');
+            if (parts.length > 2) clean = parts[0] + '.' + parts.slice(1).join('');
+
+            // Format with commas but keep decimals as they are being typed
+            if (parts[0]) {
+                parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+            el.value = parts.join('.');
+
+            // Adjust cursor position
+            let newLength = el.value.length;
+            el.setSelectionRange(start + (newLength - originalLength), start + (newLength - originalLength));
+
+            calculateModalTotals();
         }
 
         function calculateModalTotals() {
             let income = 0;
             let outflow = 0;
-            document.querySelectorAll('.modal-income').forEach(el => income += parseFloat(el.value || 0));
-            document.querySelectorAll('.modal-expense').forEach(el => outflow += parseFloat(el.value || 0));
-            document.querySelectorAll('.modal-salary').forEach(el => outflow += parseFloat(el.value || 0));
+            document.querySelectorAll('.modal-income').forEach(el => {
+                let val = parseFloat(el.value.replace(/,/g, '')) || 0;
+                income += val;
+            });
+            document.querySelectorAll('.modal-expense').forEach(el => {
+                let val = parseFloat(el.value.replace(/,/g, '')) || 0;
+                outflow += val;
+            });
+            document.querySelectorAll('.modal-salary').forEach(el => {
+                let val = parseFloat(el.value.replace(/,/g, '')) || 0;
+                outflow += val;
+            });
 
-            document.getElementById('modalTotalIncomeDisplay').innerText = income.toFixed(2);
-            document.getElementById('modalTotalOutflowDisplay').innerText = outflow.toFixed(2);
+            const formatter = new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+            document.getElementById('modalTotalIncomeDisplay').innerText = formatter.format(income);
+            document.getElementById('modalTotalOutflowDisplay').innerText = formatter.format(outflow);
         }
 
         function submitLedgerForm() {
             let form = document.getElementById('ledgerForm');
+
+            // Strip commas before submission
+            document.querySelectorAll('.modal-amount').forEach(el => {
+                el.value = el.value.replace(/,/g, '');
+            });
+
             let btn = event.target;
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
@@ -431,6 +510,29 @@
                     form.action = `/reports/daily-ledger/delete/${id}`;
                     form.submit();
                 }
+            });
+        }
+
+        function downloadLedgerImage() {
+            const modalBody = document.querySelector('#editLedgerModal .modal-content');
+            const date = document.getElementById('ledgerDateInput').value;
+
+            // Hide buttons temporarily
+            const footerButtons = document.querySelector('#editLedgerModal .modal-footer').children;
+            for (let btn of footerButtons) btn.style.display = 'none';
+
+            html2canvas(modalBody, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                // Restore buttons
+                for (let btn of footerButtons) btn.style.display = '';
+
+                const link = document.createElement('a');
+                link.download = `daily-ledger-${date}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
             });
         }
     </script>

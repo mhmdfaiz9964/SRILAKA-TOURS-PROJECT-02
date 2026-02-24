@@ -37,9 +37,9 @@ class ReportController extends Controller
 
         // Apply Date Filters
         if ($filter == 'today') {
-            $query->whereDate('date', now());
+            $query->where('date', now()->toDateString());
         } elseif ($filter == 'last_7_days') {
-            $query->whereDate('date', '>=', now()->subDays(7));
+            $query->where('date', '>=', now()->subDays(7)->toDateString());
         } elseif ($filter == 'last_week') {
             $query->whereBetween('date', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()]);
         } elseif ($filter == 'last_month') {
@@ -50,16 +50,22 @@ class ReportController extends Controller
             $query->whereBetween('date', [$fromDate, $toDate]);
         }
 
-        $ledgerEntries = $query->orderBy('date', 'desc')->get()
-            ->map(function ($item) {
-                $dateStr = \Carbon\Carbon::parse($item->date)->format('Y-m-d');
-                $item->date_str = $dateStr;
-                $item->total_salary = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->sum('amount');
-                $item->total = $item->total_income - $item->total_expense - $item->total_salary;
-                $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->first();
-                $item->id = $firstEntry ? $firstEntry->id : 0;
-                return $item;
-            });
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $ledgerEntries = $query->orderBy('date', 'desc')->paginate($perPage)->withQueryString();
+
+        $ledgerEntries->getCollection()->transform(function ($item) {
+            $dateStr = \Carbon\Carbon::parse($item->date)->format('Y-m-d');
+            $item->date_str = $dateStr;
+            $item->total_salary = \App\Models\DailySalaryEntry::where('date', $dateStr)->sum('amount');
+            $item->total = $item->total_income - $item->total_expense - $item->total_salary;
+            $firstEntry = \App\Models\DailyLedgerEntry::where('date', $dateStr)->first();
+            $item->id = $firstEntry ? $firstEntry->id : 0;
+            return $item;
+        });
 
         // Summary Totals
         $historySummary = [
@@ -91,11 +97,11 @@ class ReportController extends Controller
     public function getDailyLedgerDetails($date)
     {
         $dateStr = Carbon::parse($date)->format('Y-m-d');
-        $entries = \App\Models\DailyLedgerEntry::whereDate('date', $dateStr)->get();
+        $entries = \App\Models\DailyLedgerEntry::where('date', $dateStr)->get();
 
         $income = $entries->where('type', 'income')->values();
         $expense = $entries->where('type', 'expense')->values();
-        $salaries = \App\Models\DailySalaryEntry::whereDate('date', $dateStr)->get();
+        $salaries = \App\Models\DailySalaryEntry::where('date', $dateStr)->get();
 
         return response()->json([
             'date' => $dateStr,
@@ -190,11 +196,11 @@ class ReportController extends Controller
             // Important: We only remove entries for THIS date that weren't submitted.
             // But we MUST NOT remove default heads if they are missing? 
             // Standard approach: if user removed it, it's gone.
-            \App\Models\DailyLedgerEntry::whereDate('date', $date)
+            \App\Models\DailyLedgerEntry::where('date', $date)
                 ->whereNotIn('id', $submittedEntryIds)
                 ->delete();
 
-            \App\Models\DailySalaryEntry::whereDate('date', $date)
+            \App\Models\DailySalaryEntry::where('date', $date)
                 ->whereNotIn('id', $submittedSalaryIds)
                 ->delete();
         });
@@ -217,8 +223,8 @@ class ReportController extends Controller
             $date = $entry->date;
 
             // Delete ALL entries and salary entries for this date
-            \App\Models\DailyLedgerEntry::whereDate('date', $date)->delete();
-            \App\Models\DailySalaryEntry::whereDate('date', $date)->delete();
+            \App\Models\DailyLedgerEntry::where('date', $date)->delete();
+            \App\Models\DailySalaryEntry::where('date', $date)->delete();
 
             return redirect()->route('reports.daily-ledger.history')->with('success', 'Daily Ledger data completely removed for ' . $date);
         }
@@ -258,7 +264,7 @@ class ReportController extends Controller
             }
         }
 
-        $entries = \App\Models\BalanceSheetEntry::whereDate('date', $dateStr)->get();
+        $entries = \App\Models\BalanceSheetEntry::where('date', $dateStr)->get();
 
         $assets = $entries->where('category', 'asset');
         $liabilities = $entries->where('category', 'liability');
@@ -299,7 +305,7 @@ class ReportController extends Controller
             ->map(function ($item) {
                 $item->total_liab_eq = $item->total_liabilities + $item->total_equity;
                 $item->difference = $item->total_assets - $item->total_liab_eq;
-                $firstRow = \App\Models\BalanceSheetEntry::whereDate('date', $item->date)->first();
+                $firstRow = \App\Models\BalanceSheetEntry::where('date', $item->date)->first();
                 $item->id = $firstRow ? $firstRow->id : 0;
                 return $item;
             });
@@ -343,17 +349,17 @@ class ReportController extends Controller
             ->groupBy('date');
 
         if ($request->from_date) {
-            $query->whereDate('date', '>=', $request->from_date);
+            $query->where('date', '>=', $request->from_date);
         }
         if ($request->to_date) {
-            $query->whereDate('date', '<=', $request->to_date);
+            $query->where('date', '<=', $request->to_date);
         }
 
         $bsHistory = $query->orderBy('date', 'desc')->get()
             ->map(function ($item) {
                 $item->total_liab_eq = $item->total_liabilities + $item->total_equity;
                 $item->difference = $item->total_assets - $item->total_liab_eq;
-                $firstRow = \App\Models\BalanceSheetEntry::whereDate('date', $item->date)->first();
+                $firstRow = \App\Models\BalanceSheetEntry::where('date', $item->date)->first();
                 $item->id = $firstRow ? $firstRow->id : 0;
                 return $item;
             });
@@ -407,7 +413,7 @@ class ReportController extends Controller
 
             // Optional: Delete entries that were removed from the UI
             // Only delete for this specific date
-            \App\Models\BalanceSheetEntry::whereDate('date', $date)
+            \App\Models\BalanceSheetEntry::where('date', $date)
                 ->whereNotIn('id', $submittedIds)
                 ->delete();
         });
@@ -425,16 +431,16 @@ class ReportController extends Controller
             ->groupBy('date');
 
         if ($request->from_date) {
-            $query->whereDate('date', '>=', $request->from_date);
+            $query->where('date', '>=', $request->from_date);
         }
         if ($request->to_date) {
-            $query->whereDate('date', '<=', $request->to_date);
+            $query->where('date', '<=', $request->to_date);
         }
 
         $records = $query->orderBy('date', 'desc')->get()
             ->map(function ($item) {
                 // Fetch the first entry ID for this date to use as a handle for editing
-                $firstEntry = \App\Models\DailyLedgerEntry::whereDate('date', $item->date)->first();
+                $firstEntry = \App\Models\DailyLedgerEntry::where('date', $item->date)->first();
                 $item->id = $firstEntry ? $firstEntry->id : 0;
                 return $item;
             });
@@ -455,7 +461,7 @@ class ReportController extends Controller
     public function getBalanceSheetDetails($date)
     {
         $dateStr = Carbon::parse($date)->format('Y-m-d');
-        $entries = \App\Models\BalanceSheetEntry::whereDate('date', $dateStr)->get();
+        $entries = \App\Models\BalanceSheetEntry::where('date', $dateStr)->get();
 
         $assets = $entries->where('category', 'asset')->values();
         $liabilities = $entries->where('category', 'liability')->values();
@@ -478,7 +484,7 @@ class ReportController extends Controller
         $entry = \App\Models\BalanceSheetEntry::find($id);
         if ($entry) {
             $date = $entry->date;
-            \App\Models\BalanceSheetEntry::whereDate('date', $date)->delete();
+            \App\Models\BalanceSheetEntry::where('date', $date)->delete();
             return redirect()->route('reports.balance-sheet')->with('success', 'Balance Sheet completely removed for ' . $date);
         }
         return back()->with('error', 'Entry not found');

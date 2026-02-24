@@ -23,13 +23,13 @@ class InChequeController extends Controller
 
         // Exclude transferred cheques by default unless explicitly filtering for them
         if (!$request->has('status') && !$request->has('search')) {
-             $query->where('status', '!=', 'transferred_to_third_party');
+            $query->where('status', '!=', 'transferred_to_third_party');
         }
 
         if ($request->search) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('payer_name', 'like', "%{$request->search}%")
-                  ->orWhere('cheque_number', 'like', "%{$request->search}%");
+                    ->orWhere('cheque_number', 'like', "%{$request->search}%");
             });
         }
 
@@ -45,9 +45,9 @@ class InChequeController extends Controller
 
         if ($request->status) {
             if ($request->status == 'today') {
-                $query->where('status', 'received')->whereDate('cheque_date', Carbon::today());
+                $query->where('status', 'received')->where('cheque_date', Carbon::today()->toDateString());
             } elseif ($request->status == 'overdue') {
-                $query->whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today());
+                $query->whereIn('status', ['received', 'deposited'])->where('cheque_date', '<', Carbon::today()->toDateString());
             } else {
                 $query->where('status', $request->status);
             }
@@ -63,15 +63,26 @@ class InChequeController extends Controller
 
         if ($request->filled('sort')) {
             switch ($request->sort) {
-                case 'latest': $query->latest(); break;
-                case 'oldest': $query->oldest(); break;
-                case 'highest_amount': $query->orderByDesc('amount'); break;
-                case 'lowest_amount': $query->orderBy('amount'); break;
-                case 'name_az': $query->orderBy('payer_name'); break;
-                default: $query->latest();
+                case 'latest':
+                    $query->latest();
+                    break;
+                case 'oldest':
+                    $query->oldest();
+                    break;
+                case 'highest_amount':
+                    $query->orderByDesc('amount');
+                    break;
+                case 'lowest_amount':
+                    $query->orderBy('amount');
+                    break;
+                case 'name_az':
+                    $query->orderBy('payer_name');
+                    break;
+                default:
+                    $query->latest();
             }
         } else {
-             $query->latest();
+            $query->latest();
         }
 
         $cheques = $query->get();
@@ -83,7 +94,7 @@ class InChequeController extends Controller
 
         return Excel::download(new InChequesExport($cheques), 'in_cheques_export_' . now()->format('YmdHis') . '.xlsx');
     }
-    
+
     // ... existing index method ...
     public function __construct()
     {
@@ -98,7 +109,7 @@ class InChequeController extends Controller
 
         // Exclude transferred cheques by default unless explicitly filtering for them
         if (!$request->has('status') && !$request->has('search')) {
-             $query->where('status', '!=', 'transferred_to_third_party');
+            $query->where('status', '!=', 'transferred_to_third_party');
         }
 
         // Stats for Cards with amounts
@@ -109,14 +120,14 @@ class InChequeController extends Controller
             'transferred' => ['count' => InCheque::where('status', 'transferred_to_third_party')->count(), 'amount' => InCheque::where('status', 'transferred_to_third_party')->sum('amount')],
             'returned' => ['count' => InCheque::where('status', 'returned')->count(), 'amount' => InCheque::where('status', 'returned')->sum('amount')],
             'realized' => ['count' => InCheque::where('status', 'realized')->count(), 'amount' => InCheque::where('status', 'realized')->sum('amount')],
-            'to_deposit_today' => ['count' => InCheque::where('status', 'received')->whereDate('cheque_date', Carbon::today())->count(), 'amount' => InCheque::where('status', 'received')->whereDate('cheque_date', Carbon::today())->sum('amount')],
-            'overdue' => ['count' => InCheque::whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today())->count(), 'amount' => InCheque::whereIn('status', ['received', 'deposited'])->whereDate('cheque_date', '<', Carbon::today())->sum('amount')],
+            'to_deposit_today' => ['count' => InCheque::where('status', 'received')->where('cheque_date', \Carbon\Carbon::today()->toDateString())->count(), 'amount' => InCheque::where('status', 'received')->where('cheque_date', \Carbon\Carbon::today()->toDateString())->sum('amount')],
+            'overdue' => ['count' => InCheque::whereIn('status', ['received', 'deposited'])->where('cheque_date', '<', \Carbon\Carbon::today()->toDateString())->count(), 'amount' => InCheque::whereIn('status', ['received', 'deposited'])->where('cheque_date', '<', \Carbon\Carbon::today()->toDateString())->sum('amount')],
         ];
 
         if ($request->search) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('payer_name', 'like', "%{$request->search}%")
-                  ->orWhere('cheque_number', 'like', "%{$request->search}%");
+                    ->orWhere('cheque_number', 'like', "%{$request->search}%");
             });
         }
 
@@ -168,14 +179,19 @@ class InChequeController extends Controller
                 case 'name_az':
                     $query->orderBy('payer_name');
                     break;
-                 default:
+                default:
                     $query->latest();
             }
         } else {
-             $query->latest();
+            $query->latest();
         }
 
-        $cheques = $query->latest()->paginate(10)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $cheques = $query->latest()->paginate($perPage)->withQueryString();
         $banks = Bank::all();
         $payers = InCheque::select('payer_name')->distinct()->orderBy('payer_name')->pluck('payer_name');
         $suppliers = \App\Models\Supplier::select('id', 'full_name')->orderBy('full_name')->get();

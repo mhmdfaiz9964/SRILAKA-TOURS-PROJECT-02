@@ -46,7 +46,8 @@
                                 </div>
                             </div>
                             <div class="h4 fw-bold mb-0" style="color: #9a3412;">LKR
-                                {{ number_format($totalOutstanding, 2) }}</div>
+                                {{ number_format($totalOutstanding, 2) }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -73,7 +74,19 @@
             <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
                 <div class="p-3 border-bottom bg-light bg-opacity-10">
                     <form action="{{ route('sales.index') }}" method="GET" class="row g-3 align-items-end">
-                        <div class="col-md-3">
+                        <div class="col-md-1">
+                            <label class="form-label small fw-bold text-muted mb-1">Rows</label>
+                            <select name="per_page" class="form-select form-select-sm border-light rounded-3 shadow-none"
+                                onchange="this.form.submit()">
+                                <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                                <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                                <option value="500" {{ request('per_page') == 500 ? 'selected' : '' }}>500</option>
+                                <option value="1000" {{ request('per_page') == 1000 ? 'selected' : '' }}>1000</option>
+                                <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label small fw-bold text-muted mb-1">Search</label>
                             <div class="position-relative">
                                 <i class="fa-solid fa-magnifying-glass position-absolute text-muted"
@@ -146,7 +159,22 @@
                         <!-- Sort Hidden -->
                         <input type="hidden" name="sort" value="{{ request('sort', 'latest') }}">
                         <div class="col-12">
-                            <div class="p-2 px-3 small fw-bold text-muted border-top pt-3">{{ $sales->total() }} Results
+                            <div
+                                class="p-2 px-3 small fw-bold text-muted border-top pt-3 d-flex justify-content-between align-items-center">
+                                <span>{{ $sales->total() }} Results</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label class="mb-0">Rows:</label>
+                                    <select name="per_page"
+                                        class="form-select form-select-sm border-light rounded-3 shadow-none"
+                                        style="width: 100px;" onchange="this.form.submit()">
+                                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
+                                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                                        <option value="500" {{ request('per_page') == 500 ? 'selected' : '' }}>500</option>
+                                        <option value="1000" {{ request('per_page') == 1000 ? 'selected' : '' }}>1000</option>
+                                        <option value="all" {{ request('per_page') == 'all' ? 'selected' : '' }}>All</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -170,7 +198,8 @@
                                 @forelse($sales as $sale)
                                     <tr class="cursor-pointer" onclick="window.location='{{ route('sales.show', $sale->id) }}'">
                                         <td class="ps-4 text-muted small">
-                                            {{ \Carbon\Carbon::parse($sale->sale_date)->format('d M, Y') }}</td>
+                                            {{ \Carbon\Carbon::parse($sale->sale_date)->format('d M, Y') }}
+                                        </td>
                                         <td class="fw-bold text-dark small">{{ $sale->invoice_number }}</td>
                                         <td class="small fw-semibold">{{ $sale->customer->full_name }}</td>
                                         <td class="small fw-bold">{{ number_format($sale->total_amount, 2) }}</td>

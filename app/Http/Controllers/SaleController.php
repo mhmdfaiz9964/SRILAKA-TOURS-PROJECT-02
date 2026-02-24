@@ -36,10 +36,10 @@ class SaleController extends Controller
 
         // Date Range Filter
         if ($request->filled('start_date')) {
-            $query->whereDate('sale_date', '>=', $request->start_date);
+            $query->where('sale_date', '>=', $request->start_date);
         }
         if ($request->filled('end_date')) {
-            $query->whereDate('sale_date', '<=', $request->end_date);
+            $query->where('sale_date', '<=', $request->end_date);
         }
 
         // Search Filter (Invoice # or Customer Name)
@@ -91,7 +91,12 @@ class SaleController extends Controller
         $allPaid = \App\Models\Sale::sum('paid_amount');
         $pendingAmount = $allSales - $allPaid;
 
-        $sales = $query->paginate(20)->withQueryString();
+        $perPage = $request->get('per_page', 10);
+        if ($perPage === 'all') {
+            $perPage = 1000000;
+        }
+
+        $sales = $query->paginate($perPage)->withQueryString();
         $customers = \App\Models\Customer::all();
 
         return view('sales.index', compact('sales', 'customers', 'totalSales', 'totalOutstanding', 'pendingAmount'));
