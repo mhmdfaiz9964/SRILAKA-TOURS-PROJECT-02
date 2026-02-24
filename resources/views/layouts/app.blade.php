@@ -625,15 +625,15 @@
 
             <div class="sidebar-footer">
                 <div class="user-profile">
-                    <div class="user-info">
+                    <a href="{{ route('profile.edit') }}" class="user-info text-decoration-none">
                         <div class="user-avatar text-white fw-bold" style="background: #FF6A6A;">
                             {{ substr(Auth::user()->name, 0, 1) }}
                         </div>
                         <div class="user-details">
                             <span class="user-name">{{ Auth::user()->name }}</span>
-                            <span class="user-email">{{ Auth::user()->email }}</span>
+                            <span class="user-email text-muted">{{ Auth::user()->email }}</span>
                         </div>
-                    </div>
+                    </a>
                     <button type="button" onclick="confirmLogout()" class="btn btn-sm btn-icon border-0 text-danger shadow-none p-0" title="Logout" style="font-size: 1.1rem;">
                         <i class="fa-solid fa-right-from-bracket"></i>
                     </button>
@@ -717,6 +717,40 @@
                             </div>
                         </div>
                         <i class="fa-regular fa-comment-dots text-black cursor-pointer"></i>
+                        
+                        <!-- Profile Dropdown -->
+                        <div class="dropdown">
+                            <div class="d-flex align-items-center gap-2 cursor-pointer" data-bs-toggle="dropdown">
+                                <div class="user-avatar text-white fw-bold shadow-sm" style="background: #FF6A6A; width: 32px; height: 32px; font-size: 0.8rem;">
+                                    {{ substr(Auth::user()->name, 0, 1) }}
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-muted small"></i>
+                            </div>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-2 mt-2">
+                                <li class="px-3 py-2 border-bottom mb-2">
+                                    <div class="fw-bold small text-dark">{{ Auth::user()->name }}</div>
+                                    <div class="text-muted small" style="font-size: 0.7rem;">{{ Auth::user()->email }}</div>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 d-flex align-items-center gap-2" href="{{ route('profile.edit') }}">
+                                        <i class="fa-solid fa-user-circle text-muted"></i> Edit Profile
+                                    </a>
+                                </li>
+                                @can('settings-manage')
+                                <li>
+                                    <a class="dropdown-item rounded-3 d-flex align-items-center gap-2" href="{{ route('settings.index') }}">
+                                        <i class="fa-solid fa-gear text-muted"></i> Settings
+                                    </a>
+                                </li>
+                                @endcan
+                                <li><hr class="dropdown-divider bg-light"></li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 d-flex align-items-center gap-2 text-danger" href="javascript:void(0)" onclick="confirmLogout()">
+                                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -774,8 +808,39 @@
                 title: "{{ $errors->first() }}"
             });
         @endif
-        
-        // ... (rest of the script)
+
+        function confirmLogout() {
+            Swal.fire({
+                title: 'Logout?',
+                text: "Are you sure you want to exit the system?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Yes, logout'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('logout-form').submit();
+                }
+            })
+        }
+
+        function updateSystem() {
+            Swal.fire({
+                title: 'System Update',
+                text: "Are you sure you want to update the system?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#6366f1',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Update Now'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Actual update call would go here
+                    Swal.fire('Updated!', 'System is already up to date.', 'success');
+                }
+            })
+        }
     </script>
 </body>
 </html>

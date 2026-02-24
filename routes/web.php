@@ -107,4 +107,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/reports/balance-sheet/delete/{id}', [App\Http\Controllers\ReportController::class, 'destroyBalanceSheet'])->name('reports.balance-sheet.destroy');
 
     Route::resource('cheques', App\Http\Controllers\ChequeController::class);
+
+    // Profile Routes
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 });
