@@ -152,7 +152,9 @@
                             </span>
                         </td>
                         <td>
-                            <div class="fw-bold text-dark small">{{ $investor->name }}</div>
+                            <a href="{{ route('investors.show', $investor) }}" class="text-decoration-none">
+                                <div class="fw-bold text-primary small">{{ $investor->name }}</div>
+                            </a>
                         </td>
                         <td class="small text-muted text-center">{{ $investor->collect_date ? \Carbon\Carbon::parse($investor->collect_date)->format('d/m/Y') : '-' }}</td>
                         <td class="small text-muted text-center">{{ $investor->refund_date ? \Carbon\Carbon::parse($investor->refund_date)->format('d/m/Y') : '-' }}</td>

@@ -137,6 +137,59 @@ class InvestorController extends Controller
         return redirect()->route('investors.index')->with('success', 'Investor deleted successfully');
     }
 
+    public function show(Investor $investor)
+    {
+        // Gather Ledger Data
+        // 1. Initial Investment from specific record?
+        // 2. Contributions to Purchases (PurchaseInvestor)
+        // 3. Payouts (Payments where payable_id = investor->id and payable_type = Investor)
+
+        $investments = \App\Models\PurchaseInvestor::where('investor_id', $investor->id)
+            ->orWhere('investor_name', $investor->name)
+            ->with('purchase')
+            ->get()
+            ->map(function($item) {
+                return [
+                    'date' => $item->created_at,
+                    'description' => "Investment in Purchase #{$item->purchase->invoice_number} ({$item->purchase->grn_number})",
+                    'type' => 'investment',
+                    'debit' => $item->amount,
+                    'credit' => 0,
+                    'ref' => $item->purchase->invoice_number
+                ];
+            });
+
+        $payments = \App\Models\Payment::where('payable_id', $investor->id)
+            ->where('payable_type', \App\Models\Investor::class)
+            ->get()
+            ->map(function($item) {
+                return [
+                    'date' => $item->payment_date,
+                    'description' => "Payout: {$item->notes}",
+                    'type' => 'payout',
+                    'debit' => 0,
+                    'credit' => $item->amount,
+                    'ref' => $item->reference_number ?: '-'
+                ];
+            });
+
+        // Add Initial Amount if it exists and not represented separately
+        $ledger = collect($investments)->concat($payments)->sortBy('date');
+
+        // Running Balance Calculation
+        $balance = 0;
+        $ledger = $ledger->map(function($item) use (&$balance) {
+            $balance += ($item['debit'] - $item['credit']);
+            $item['balance'] = $balance;
+            return $item;
+        });
+
+        $totalInvested = $investments->sum('debit') + $investor->invest_amount; // Current invest_amount is often the total
+        $totalReturned = $payments->sum('credit');
+
+        return view('investors.show', compact('investor', 'ledger', 'totalInvested', 'totalReturned'));
+    }
+
     public function export(Request $request)
     {
         $format = $request->get('format', 'excel');

@@ -96,7 +96,13 @@ class SaleController extends Controller
             $perPage = 1000000;
         }
 
+        // Task 4: Filter out return sales from main index
+        $query->whereNull('original_sale_id');
+
         $sales = $query->paginate($perPage)->withQueryString();
+        foreach ($sales as $sale) {
+            $sale->days_unpaid = $sale->status !== 'paid' ? (int) abs(now()->diffInDays($sale->created_at)) : null;
+        }
         $customers = \App\Models\Customer::all();
 
         return view('sales.index', compact('sales', 'customers', 'totalSales', 'totalOutstanding', 'pendingAmount'));
@@ -418,8 +424,25 @@ class SaleController extends Controller
 
     public function returnIndex(\Illuminate\Http\Request $request)
     {
-        $sales = \App\Models\Sale::where('invoice_number', 'LIKE', 'RTN-%')->with('customer')->orderByDesc('created_at')->paginate(20);
+        $sales = \App\Models\Sale::whereNotNull('original_sale_id')->with('customer', 'originalSale')->orderByDesc('created_at')->paginate(20);
         return view('sales.return_index', compact('sales'));
+    }
+
+    public function returnFormStandalone()
+    {
+        $sales = \App\Models\Sale::whereNull('original_sale_id')->orderByDesc('created_at')->get();
+        
+        $lastReturn = \App\Models\Sale::where('invoice_number', 'LIKE', 'RTN-%')->latest()->first();
+        $nextId = $lastReturn ? ((int) preg_replace('/[^0-9]/', '', $lastReturn->invoice_number)) + 1 : 1;
+        $returnNumber = 'RTN-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+        
+        return view('sales.return_form_standalone', compact('sales', 'returnNumber'));
+    }
+
+    public function fetchSaleData($id)
+    {
+        $sale = \App\Models\Sale::with('items.product', 'customer')->findOrFail($id);
+        return response()->json($sale);
     }
 
     public function returnForm($id)
@@ -448,7 +471,7 @@ class SaleController extends Controller
         $sale = \DB::transaction(function () use ($request) {
             $originalSale = \App\Models\Sale::with('customer')->findOrFail($request->original_sale_id);
 
-            // 1. Create Return Sale Record (Negative Total)
+            // 1. Calculate and update financials
             $totalReturnAmount = 0;
             foreach ($request->items as $item) {
                 if ($item['quantity'] > 0) {
@@ -456,16 +479,39 @@ class SaleController extends Controller
                 }
             }
 
+            // Create Return Sale Record
             $returnSale = \App\Models\Sale::create([
                 'customer_id' => $originalSale->customer_id,
+                'original_sale_id' => $originalSale->id,
                 'invoice_number' => $request->return_number,
                 'sale_date' => $request->return_date,
-                'total_amount' => -$totalReturnAmount, // Negative to reduce ledger balance
-                'paid_amount' => -$request->input('cash_return_amount', 0), // Negative payment (outflow)
-                'status' => 'return',
+                'total_amount' => -$totalReturnAmount,
+                'paid_amount' => -$request->input('cash_return_amount', 0),
+                'status' => 'paid', // Mark as paid for the transaction itself
                 'notes' => 'Sales Return for Invoice #' . $originalSale->invoice_number . '. ' . $request->notes,
                 'payment_method' => 'cash',
             ]);
+
+            // Adjust original sale total and paid amount? 
+            // The user said: "payment also minus for that product from sales"
+            // This is complex. We usually decrease the balance of the original invoice.
+            // But if it's already paid, we might owe the customer money.
+            // For now, decreasing original sale's total_amount if unpaid, OR just creating a transaction.
+            // Standard approach: Decrease the OUTSTANDING of the original sale.
+            
+            // 1. Decrease original sale's liability.
+            // This reduction reduces what the customer owes on THIS invoice.
+            $originalSale->total_amount -= $totalReturnAmount;
+            
+            // Re-evaluate status. Use 'unpaid' as 'Credit'/Account.
+            if ($originalSale->paid_amount >= $originalSale->total_amount) {
+                $originalSale->status = 'paid';
+            } elseif ($originalSale->paid_amount > 0) {
+                $originalSale->status = 'partial';
+            } else {
+                $originalSale->status = 'unpaid';
+            }
+            $originalSale->save();
 
             // 2. Process Return Items & Restore Stock
             foreach ($request->items as $item) {
@@ -473,6 +519,7 @@ class SaleController extends Controller
                     \App\Models\SaleItem::create([
                         'sale_id' => $returnSale->id,
                         'product_id' => $item['product_id'],
+                        'original_item_id' => $item['original_item_id'] ?? null,
                         'quantity' => $item['quantity'],
                         'unit_price' => $item['unit_price'],
                         'total_price' => $item['quantity'] * $item['unit_price'],
@@ -490,7 +537,7 @@ class SaleController extends Controller
             // 3. Register Cash Return Payment
             if ($request->cash_return_amount > 0) {
                 \App\Models\Payment::create([
-                    'amount' => -$request->cash_return_amount, // Negative amount to increase ledger balance (reducing credit)
+                    'amount' => -$request->cash_return_amount,
                     'payment_date' => $request->return_date,
                     'payment_method' => 'cash',
                     'payable_type' => 'App\Models\Customer',

@@ -40,15 +40,22 @@
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between mb-5">
-                            <div>
-                                <h5 class="fw-bold text-primary">{{ $globalSettings['company_name'] ?? config('app.name') }}
-                                </h5>
-                                <p class="small text-muted mb-0">{{ $globalSettings['company_address'] ?? 'Address N/A' }}
-                                </p>
-                                <p class="small text-muted">Phone: {{ $globalSettings['company_phone'] ?? 'N/A' }}</p>
+                            <div class="d-flex align-items-start gap-3">
+                                @if(!empty($globalSettings['company_logo']))
+                                    <div class="flex-shrink-0" style="width: 70px; height: 70px;">
+                                        <img src="{{ asset($globalSettings['company_logo']) }}" alt="Logo" class="img-fluid rounded-circle border p-1">
+                                    </div>
+                                @endif
+                                <div>
+                                    <h5 class="fw-bold text-primary mb-1">{{ $globalSettings['company_name'] ?? config('app.name') }}</h5>
+                                    <p class="small text-muted mb-0" style="max-width: 300px; line-height: 1.3;">
+                                        {{ $globalSettings['company_address'] ?? 'Address: Not Provided' }}
+                                    </p>
+                                    <p class="small text-muted mt-1 fw-bold">Phone: {{ $globalSettings['company_phone'] ?? 'N/A' }}</p>
+                                </div>
                             </div>
                             <div class="text-end">
-                                <h6 class="fw-bold text-muted">Bill To:</h6>
+                                <h6 class="fw-bold text-muted small text-uppercase">Bill To:</h6>
                                 <h5 class="fw-bold mb-1">{{ $sale->customer->full_name }}</h5>
                                 <p class="small text-muted mb-0">{{ $sale->customer->company_name }}</p>
                                 <p class="small text-muted">{{ $sale->customer->mobile_number }}</p>
@@ -68,26 +75,68 @@
                                 </thead>
                                 <tbody>
                                     @foreach($sale->items as $index => $item)
-                                        <tr>
+                                        @php
+                                            $returnedQty = \App\Models\SaleItem::where('original_item_id', $item->id)->sum('quantity');
+                                            $returnedQty = abs($returnedQty);
+                                            $isFullyReturned = ($returnedQty >= $item->quantity);
+                                        @endphp
+                                        <tr class="{{ $isFullyReturned ? 'bg-light opacity-50' : '' }}">
                                             <td class="ps-3">{{ $index + 1 }}</td>
                                             <td>
-                                                <div class="fw-bold small">{{ $item->product->name }}</div>
+                                                <div class="fw-bold small {{ $isFullyReturned ? 'text-decoration-line-through' : '' }}">{{ $item->product->name }}</div>
                                                 <div class="text-muted small" style="font-size: 0.75rem;">
                                                     {{ $item->product->code }}</div>
-                                                @if($item->description)
-                                                    <div class="text-muted small fst-italic" style="font-size: 0.75rem;">
-                                                        {{ $item->description }}</div>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="{{ $isFullyReturned ? 'text-decoration-line-through' : '' }}">
+                                                    {{ $item->quantity }} {{ $item->product->units }}
+                                                </div>
+                                                @if($returnedQty > 0)
+                                                    <span class="badge bg-danger-subtle text-danger border-0 small px-2 py-1 mt-1">
+                                                        <i class="fa-solid fa-rotate-left me-1"></i> 
+                                                        {{ $isFullyReturned ? 'FULLY RETURNED' : 'RETURNED: ' . $returnedQty }}
+                                                    </span>
                                                 @endif
                                             </td>
-                                            <td class="text-center">{{ $item->quantity }} {{ $item->product->units }}</td>
                                             <td class="text-end">Rs. {{ number_format($item->unit_price, 2) }}</td>
-                                            <td class="text-end pe-3 fw-bold">Rs. {{ number_format($item->total_price, 2) }}
-                                            </td>
+                                            <td class="text-end pe-3 fw-bold">Rs. {{ number_format($item->total_price, 2) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
+
+                        @if($sale->returns->count() > 0)
+                            <div class="alert alert-warning border-0 rounded-4 p-4 mb-4">
+                                <h6 class="fw-bold text-uppercase small mb-3 text-warning-emphasis">Processsed Returns</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless align-middle mb-0">
+                                        <thead>
+                                            <tr class="text-muted small fw-bold">
+                                                <th>Return #</th>
+                                                <th>Date</th>
+                                                <th>Product</th>
+                                                <th class="text-center">Qty</th>
+                                                <th class="text-end">Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($sale->returns as $return)
+                                                @foreach($return->items as $rItem)
+                                                    <tr>
+                                                        <td class="fw-bold small">{{ $return->invoice_number }}</td>
+                                                        <td class="small">{{ \Carbon\Carbon::parse($return->sale_date)->format('d M, Y') }}</td>
+                                                        <td class="small">{{ $rItem->product->name }}</td>
+                                                        <td class="text-center small fw-bold text-danger">{{ $rItem->quantity }}</td>
+                                                        <td class="text-end small fw-bold text-danger">LKR {{ number_format($rItem->total_price, 2) }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
 
                         <div class="row justify-content-end">
                             <div class="col-md-5">
@@ -188,7 +237,7 @@
                             @else
                                 <div
                                     class="p-2 bg-danger-subtle text-danger text-center rounded fw-bold border border-danger-subtle">
-                                    Unpaid</div>
+                                    Credit</div>
                             @endif
                         </div>
 

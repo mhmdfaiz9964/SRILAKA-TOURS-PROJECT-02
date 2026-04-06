@@ -68,6 +68,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class);
     Route::get('/suppliers/{supplier}/ledger/export', [App\Http\Controllers\SupplierController::class, 'exportLedger'])->name('suppliers.ledger.export');
     Route::get('/sales/returns', [App\Http\Controllers\SaleController::class, 'returnIndex'])->name('sales.return.index');
+    Route::get('/sales/returns/create', [App\Http\Controllers\SaleController::class, 'returnFormStandalone'])->name('sales.return.create_standalone');
     Route::get('/sales/{sale}/return', [App\Http\Controllers\SaleController::class, 'returnForm'])->name('sales.return.create');
     Route::post('/sales/return', [App\Http\Controllers\SaleController::class, 'storeReturn'])->name('sales.return.store');
     Route::resource('sales', App\Http\Controllers\SaleController::class);
@@ -106,9 +107,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reports/balance-sheet/edit/{id}', [App\Http\Controllers\ReportController::class, 'editBalanceSheet'])->name('reports.balance-sheet.edit');
     Route::delete('/reports/balance-sheet/delete/{id}', [App\Http\Controllers\ReportController::class, 'destroyBalanceSheet'])->name('reports.balance-sheet.destroy');
 
-    Route::resource('cheques', App\Http\Controllers\ChequeController::class);
-
-    // Profile Routes
+    Route::get('/sales/returns', [App\Http\Controllers\SaleController::class, 'returnIndex'])->name('sales.return.index');
+    Route::get('/sales/returns/create', [App\Http\Controllers\SaleController::class, 'returnFormStandalone'])->name('sales.return.create_standalone');
+    Route::get('/sales/{sale}/fetch-data', [App\Http\Controllers\SaleController::class, 'fetchSaleData'])->name('sales.fetch-data');
+    Route::get('/sales/{sale}/return', [App\Http\Controllers\SaleController::class, 'returnForm'])->name('sales.return.create');
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
+    Route::resource('cheques', App\Http\Controllers\ChequeController::class);
 });

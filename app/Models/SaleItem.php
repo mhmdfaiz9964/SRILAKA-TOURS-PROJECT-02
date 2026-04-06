@@ -14,7 +14,13 @@ class SaleItem extends Model
         'unit_price',
         'discount_percentage',
         'total_price',
+        'original_item_id',
     ];
+
+    public function originalItem()
+    {
+        return $this->belongsTo(SaleItem::class, 'original_item_id');
+    }
 
     public function sale()
     {

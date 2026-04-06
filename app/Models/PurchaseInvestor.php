@@ -10,7 +10,13 @@ class PurchaseInvestor extends Model
         'purchase_id',
         'investor_name',
         'amount',
+        'investor_id',
     ];
+
+    public function investor()
+    {
+        return $this->belongsTo(Investor::class);
+    }
 
     public function purchase()
     {

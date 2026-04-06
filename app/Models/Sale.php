@@ -19,8 +19,19 @@ class Sale extends Model
         'transport_cost',
         'salesman_id',
         'salesman_name',
+        'original_sale_id',
         'payment_method',
     ];
+
+    public function originalSale()
+    {
+        return $this->belongsTo(Sale::class, 'original_sale_id');
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(Sale::class, 'original_sale_id');
+    }
 
     public function customer()
     {

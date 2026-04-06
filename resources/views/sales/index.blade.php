@@ -9,6 +9,11 @@
                     <p class="text-muted small mb-0">Manage your sales, invoices, and payments</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('sales.return.create_standalone') }}"
+                        class="btn btn-warning btn-sm px-3 shadow-sm d-flex align-items-center gap-2 text-white"
+                        style="background: #f59e0b; border: none;">
+                        <i class="fa-solid fa-rotate-left"></i> Create Sales Return
+                    </a>
                     @can('sale-create')
                         <a href="{{ route('sales.create') }}"
                             class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center gap-2"
@@ -191,22 +196,23 @@
                                     <th class="py-3 text-muted fw-semibold small text-uppercase">Paid</th>
                                     <th class="py-3 text-muted fw-semibold small text-uppercase">Balance</th>
                                     <th class="py-3 text-muted fw-semibold small text-uppercase">Status</th>
+                                    <th class="py-3 text-muted fw-semibold small text-uppercase">Days Unpaid</th>
                                     <th class="py-3 text-muted fw-semibold small text-uppercase text-end pe-4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($sales as $sale)
-                                    <tr class="cursor-pointer" onclick="window.location='{{ route('sales.show', $sale->id) }}'">
+                                    <tr class="cursor-pointer {{ $sale->status == 'unpaid' ? 'bg-danger bg-opacity-10' : '' }}" onclick="window.location='{{ route('sales.show', $sale->id) }}'">
                                         <td class="ps-4 text-muted small">
                                             {{ \Carbon\Carbon::parse($sale->sale_date)->format('d M, Y') }}
                                         </td>
                                         <td class="fw-bold text-dark small">{{ $sale->invoice_number }}</td>
                                         <td class="small fw-semibold">{{ $sale->customer->full_name }}</td>
                                         <td class="small fw-bold">{{ number_format($sale->total_amount, 2) }}</td>
-                                        <td class="small fw-bold text-success">{{ number_format($sale->paid_amount, 2) }}</td>
+                                        <td class="small fw-bold text-success">{{ number_format(max(0, $sale->paid_amount), 2) }}</td>
                                         <td
                                             class="small fw-bold {{ ($sale->total_amount - $sale->paid_amount) > 0 ? 'text-danger' : 'text-muted' }}">
-                                            {{ number_format($sale->total_amount - $sale->paid_amount, 2) }}
+                                            {{ number_format(max(0, $sale->total_amount - $sale->paid_amount), 2) }}
                                         </td>
                                         <td class="small">
                                             @if($sale->status == 'paid')
@@ -217,17 +223,14 @@
                                                     class="badge bg-warning-subtle text-warning rounded-pill border border-0">Partial</span>
                                             @else
                                                 <span
-                                                    class="badge bg-danger-subtle text-danger rounded-pill border border-0">Unpaid</span>
+                                                    class="badge bg-danger-subtle text-danger rounded-pill border border-0">Credit</span>
                                             @endif
+                                        </td>
+                                        <td class="small fw-bold text-danger">
+                                            {{ $sale->days_unpaid !== null ? $sale->days_unpaid . ' Days' : '-' }}
                                         </td>
                                         <td class="text-end pe-4" onclick="event.stopPropagation();">
                                             <div class="d-flex align-items-center justify-content-end gap-2">
-                                                @if(!str_starts_with($sale->invoice_number, 'RTN-'))
-                                                    <a href="{{ route('sales.return.create', $sale->id) }}"
-                                                        class="btn btn-sm btn-icon border-0 text-warning" title="Return">
-                                                        <i class="fa-solid fa-rotate-left"></i>
-                                                    </a>
-                                                @endif
                                                 @can('sale-edit')
                                                     <a href="{{ route('sales.edit', $sale->id) }}"
                                                         class="btn btn-sm btn-icon border-0 text-primary" title="Edit">
