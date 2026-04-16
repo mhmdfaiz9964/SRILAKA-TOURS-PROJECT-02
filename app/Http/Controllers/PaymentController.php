@@ -77,4 +77,30 @@ class PaymentController extends Controller
 
         return back()->with('success', 'Payment recorded successfully');
     }
+
+    public function destroy(\App\Models\Payment $payment)
+    {
+        \DB::transaction(function () use ($payment) {
+            // If payment was tied to a cheque block, update its status
+            if ($payment->cheque_id) {
+                $cheque = \App\Models\Cheque::find($payment->cheque_id);
+                $payment->delete();
+                
+                if ($cheque) {
+                    $totalPaid = $cheque->payments()->sum('amount');
+                    if ($totalPaid >= $cheque->amount) {
+                         $cheque->update(['payment_status' => 'paid']);
+                    } elseif ($totalPaid > 0) {
+                         $cheque->update(['payment_status' => 'partial paid']);
+                    } else {
+                         $cheque->update(['payment_status' => 'pending']);
+                    }
+                }
+            } else {
+                $payment->delete();
+            }
+        });
+
+        return back()->with('success', 'Payment deleted successfully');
+    }
 }

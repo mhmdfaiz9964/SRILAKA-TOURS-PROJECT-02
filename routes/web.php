@@ -79,6 +79,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/cheque-reasons', [App\Http\Controllers\ChequeReasonController::class, 'store'])->name('cheque-reasons.store');
     Route::post('/payments', [App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
+    Route::delete('/payments/{payment}', [App\Http\Controllers\PaymentController::class, 'destroy'])->name('payments.destroy');
     Route::get('/system', [App\Http\Controllers\SystemController::class, 'index'])->name('system.index');
     Route::post('/system/update', [App\Http\Controllers\SystemController::class, 'update'])->name('system.update');
     Route::post('/system/storage-link', [App\Http\Controllers\SystemController::class, 'linkStorage'])->name('system.storage-link');

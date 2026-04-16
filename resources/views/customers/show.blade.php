@@ -223,6 +223,7 @@
                                              <th class="text-end py-3 text-muted small text-uppercase">Amount</th>
                                              <th class="py-3 text-muted small text-uppercase">Reference / Details</th>
                                              <th class="pe-4 py-3 text-muted small text-uppercase">Notes</th>
+                                             <th class="pe-4 py-3 text-muted small text-uppercase text-end">Action</th>
                                          </tr>
                                      </thead>
                                      <tbody>
@@ -253,9 +254,37 @@
                                                  @endif
                                              </td>
                                              <td class="pe-4 small text-muted">{{ $payment->notes ?? '-' }}</td>
+                                             <td class="pe-4 text-end">
+                                                 <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#deletePaymentModal{{ $payment->id }}">
+                                                     <i class="fa-solid fa-trash me-1"></i> Delete
+                                                 </button>
+
+                                                 <!-- Delete Payment Modal -->
+                                                 <div class="modal fade text-start" id="deletePaymentModal{{ $payment->id }}" tabindex="-1" aria-hidden="true">
+                                                     <div class="modal-dialog modal-dialog-centered modal-sm">
+                                                         <div class="modal-content rounded-4 border-0">
+                                                             <div class="modal-header border-bottom-0 pb-0 justify-content-center">
+                                                                 <i class="fa-solid fa-triangle-exclamation text-danger fs-1 mt-3"></i>
+                                                             </div>
+                                                             <div class="modal-body text-center py-4">
+                                                                 <h6 class="fw-bold mb-3">Delete Payment?</h6>
+                                                                 <p class="mb-4 small text-muted">Are you sure you want to delete this payment of <strong class="text-dark">{{ number_format($payment->amount, 2) }}</strong>?<br>The balance will be restored.</p>
+                                                                 <div class="d-flex justify-content-center gap-2">
+                                                                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Undo</button>
+                                                                     <form action="{{ route('payments.destroy', $payment->id) }}" method="POST" class="m-0">
+                                                                         @csrf
+                                                                         @method('DELETE')
+                                                                         <button type="submit" class="btn btn-danger rounded-pill px-4">Delete</button>
+                                                                     </form>
+                                                                 </div>
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                             </td>
                                          </tr>
                                          @empty
-                                         <tr><td colspan="5" class="text-center text-muted small py-5">No payments recorded</td></tr>
+                                         <tr><td colspan="6" class="text-center text-muted small py-5">No payments recorded</td></tr>
                                          @endforelse
                                      </tbody>
                                  </table>
