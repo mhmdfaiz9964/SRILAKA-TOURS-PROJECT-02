@@ -47,7 +47,7 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'lato', sans-serif;
             background-color: var(--bg-light);
             margin: 0;
             padding: 0;
