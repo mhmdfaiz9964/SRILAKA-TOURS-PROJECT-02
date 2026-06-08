@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Balance Sheet Report</title>
     <style>
-        body { font-family: 'Helvetica', sans-serif; font-size: 12px; color: #333; }
+        body { font-family: 'Inter', sans-serif; font-size: 12px; color: #333; }
         .header { text-align: center; margin-bottom: 20px; }
         .header h1 { color: #6366f1; margin: 0; font-size: 24px; }
         .header p { color: #6b7280; margin: 5px 0; }

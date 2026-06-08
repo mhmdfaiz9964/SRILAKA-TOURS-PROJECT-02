@@ -3,7 +3,7 @@
 <head>
     <title>{{ $type }} Ledger - {{ $entity->full_name }}</title>
     <style>
-        body { font-family: sans-serif; font-size: 12px; color: #333; }
+        body { font-family: 'Inter', sans-serif; font-size: 12px; color: #333; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #444; padding-bottom: 10px; }
         .company-name { font-size: 24px; font-weight: bold; color: #1a73e8; margin-bottom: 5px; }
         .info { margin-bottom: 20px; }

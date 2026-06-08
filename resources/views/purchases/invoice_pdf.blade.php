@@ -6,7 +6,7 @@
     <title>Purchase Order {{ $purchase->invoice_number ?? $purchase->id }}</title>
     <style>
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: #000;
         }

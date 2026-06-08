@@ -264,7 +264,7 @@
     <!-- Print Layout: Hidden on screen, Visible on Print -->
     <div class="invoice-wrapper d-none d-print-block">
         <div class="invoice-container bg-white mx-auto"
-            style="width: 100%; max-width: 800px; color: black; font-family: 'Times New Roman', Times, serif;">
+            style="width: 100%; max-width: 800px; color: black; font-family: 'Inter', sans-serif;">
 
             <!-- Header -->
             <div class="border-bottom border-2 border-dark pb-2 mb-2">

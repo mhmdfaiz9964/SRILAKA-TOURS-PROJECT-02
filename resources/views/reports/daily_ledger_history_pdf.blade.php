@@ -3,7 +3,7 @@
 <head>
     <title>Daily Ledger History</title>
     <style>
-        body { font-family: sans-serif; font-size: 12px; }
+        body { font-family: 'Inter', sans-serif; font-size: 12px; }
         .header { text-align: center; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }

@@ -5,7 +5,7 @@
     <title>Customers List</title>
     <style>
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 11px;
             color: #000;
         }

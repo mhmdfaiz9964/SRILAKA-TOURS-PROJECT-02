@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Out Cheques Report</title>
     <style>
-        body { font-family: 'Helvetica', sans-serif; font-size: 11px; color: #333; }
+        body { font-family: 'Inter', sans-serif; font-size: 11px; color: #333; }
         .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #ef4444; padding-bottom: 10px; }
         .header h1 { color: #ef4444; margin: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 1px; }
         .header p { color: #6b7280; margin: 5px 0; font-size: 10px; }

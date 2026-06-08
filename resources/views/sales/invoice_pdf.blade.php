@@ -5,7 +5,7 @@
     <title>Invoice {{ $sale->invoice_number }}</title>
     <style>
         body {
-            font-family: 'DejaVu Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: #000;
         }

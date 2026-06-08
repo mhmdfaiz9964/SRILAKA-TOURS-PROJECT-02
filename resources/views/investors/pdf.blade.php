@@ -3,7 +3,7 @@
 <head>
     <title>Investors Report</title>
     <style>
-        body { font-family: 'Helvetica', sans-serif; font-size: 10px; color: #333; }
+        body { font-family: 'Inter', sans-serif; font-size: 10px; color: #333; }
         .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #6366f1; padding-bottom: 10px; }
         .header h2 { margin: 0; color: #6366f1; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
